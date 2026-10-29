@@ -59,7 +59,7 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   const t0 = Date.now();
   const cap = await capture(p, {});
   const manifest = readManifest(p, cap.key);
-  const capDir = path.join(p.adkit, 'captures', cap.key);
+  const capDir = path.join(p.adkit, 'public');
   const out: Finding[] = [];
   const { plan, spec } = p;
 
