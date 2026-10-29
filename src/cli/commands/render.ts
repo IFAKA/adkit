@@ -1,14 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {bundleProject} from '../../render/bundle';
-import {GL, renderFrames} from '../../render/render';
+import {CHUNK, GL, defaultConcurrency, renderFrames} from '../../render/render';
 import {segmentKey, segments} from '../cache';
 import {engineVersion, PKG_ROOT, readManifest, type Project} from '../project';
 import {fmt, run, sha} from '../util';
 import {capture} from './capture';
 import {build} from './build';
 
-export const RENDER_CONCURRENCY = 6;
 
 export type RenderResult = {out: string; rebuilt: string[]; reused: string[]; seconds: number; frames: string};
 
@@ -17,7 +16,7 @@ export async function render(p: Project, flags: {force?: boolean; recapture?: bo
   const cap = await capture(p, {});
   const manifest = readManifest(p, cap.key);
   const {wav} = await build(p);
-  const engine = `${engineVersion()}-c${RENDER_CONCURRENCY}-${GL}`;
+  const engine = `${engineVersion()}-k${CHUNK}-${GL}`;
 
   // 1. the Remotion bundle, cached by render sources + captures
   const bundleKey = sha(engine, cap.key).slice(0, 16);
@@ -33,8 +32,8 @@ export async function render(p: Project, flags: {force?: boolean; recapture?: bo
   const inputProps = {plan: p.plan, spec: p.spec, manifest, assetBase: ''};
   const rebuilt: string[] = [];
   const reused: string[] = [];
-  // Fixed: Chrome output differs in the last bit with a different worker count, and the cache assumes one value.
-  const concurrency = RENDER_CONCURRENCY;
+  // Frames are drawn in fixed chunks, so the worker count changes only the speed, never the pixels.
+  const concurrency = defaultConcurrency();
   const segs = segments(p.plan).map((s) => ({...s, key: segmentKey(p.spec, p.plan, s.index, manifest, engine)}));
   for (const s of segs) {
     const dir = path.join(p.adkit, 'frames', s.key);

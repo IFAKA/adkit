@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {renderFrames} from '../src/render/render.ts';
+import {bundleProject} from '../src/render/bundle.ts';
+import {loadSpec} from '../src/spec/load.ts';
+const proj = '/tmp/adkit-cache-proof/.adkit';
+const bundle = '/tmp/exp/bundle'; fs.rmSync(bundle, {recursive: true, force: true});
+await bundleProject({entry: path.resolve('src/render/index.ts'), publicDir: path.join(proj, 'public'), outDir: bundle});
+const man = fs.readdirSync(path.join(proj, 'captures'))[0];
+const manifest = JSON.parse(fs.readFileSync(path.join(proj, 'captures', man, 'manifest.json'), 'utf8'));
+const plan = JSON.parse(fs.readFileSync(path.join(proj, 'plan.json'), 'utf8'));
+const spec = loadSpec('/tmp/adkit-cache-proof/ad.yaml', process.env).spec;
+await renderFrames({serveUrl: bundle, inputProps: {plan, spec, manifest, assetBase: ''}, from: Number(process.env.FROM), to: Number(process.env.TO), outDir: process.argv[2], concurrency: Number(process.env.C || 6)});
