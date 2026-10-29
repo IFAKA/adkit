@@ -1,0 +1,598 @@
+{
+  "salon": [
+    {
+      "id": "cafe",
+      "name": "Café y bebidas calientes",
+      "products": [
+        {
+          "id": 1001,
+          "name": "Espresso",
+          "description": "Café de especialidad, tostado en Rosario.",
+          "price": 3200,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 3200
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1002,
+          "name": "Cortado",
+          "description": "Espresso con un toque de leche texturizada.",
+          "price": 3800,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 3800
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1003,
+          "name": "Café con leche",
+          "description": "Doble espresso con leche vaporizada. Opción de leche de almendras.",
+          "price": 4800,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 4800
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1004,
+          "name": "Flat white",
+          "description": "Doble ristretto y microespuma sedosa.",
+          "price": 5400,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 5400
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1005,
+          "name": "Capuchino italiano",
+          "description": "Espresso, leche y espuma, con cacao amargo.",
+          "price": 5200,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 5200
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1006,
+          "name": "Chocolate caliente",
+          "description": "Chocolate semiamargo derretido en leche, con crema.",
+          "price": 6200,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 6200
+            }
+          ],
+          "image": null
+        }
+      ]
+    },
+    {
+      "id": "desayunos",
+      "name": "Desayunos y meriendas",
+      "products": [
+        {
+          "id": 1011,
+          "name": "Desayuno de la casa",
+          "description": "Café con leche, exprimido de naranja y dos medialunas de manteca.",
+          "price": 11800,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 11800
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1012,
+          "name": "Merienda para dos",
+          "description": "Dos infusiones, tostadas con queso y dulce, y mini porciones de torta.",
+          "price": 24500,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 24500
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1013,
+          "name": "Tostada con palta y huevo",
+          "description": "Pan de masa madre, palta, huevo poché y semillas.",
+          "price": 10900,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 10900
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1014,
+          "name": "Yogur con granola",
+          "description": "Yogur natural, granola casera y frutas de estación.",
+          "price": 8200,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 8200
+            }
+          ],
+          "image": null
+        }
+      ]
+    },
+    {
+      "id": "tostados",
+      "name": "Tostados y sándwiches",
+      "products": [
+        {
+          "id": 1021,
+          "name": "Tostado de jamón y queso",
+          "description": "Pan de masa madre, jamón cocido natural y queso cremoso.",
+          "price": 9800,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 9800
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1022,
+          "name": "Tostado de pavita y rúcula",
+          "description": "Pavita braseada, queso brie, rúcula y tomates confitados.",
+          "price": 11400,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 11400
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1023,
+          "name": "Sándwich de bondiola",
+          "description": "Bondiola braseada 8 horas, cebolla caramelizada y mostaza antigua.",
+          "price": 13600,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 13600
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1024,
+          "name": "Croissant relleno",
+          "description": "Croissant de manteca con jamón, queso y tomate.",
+          "price": 8900,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 8900
+            }
+          ],
+          "image": null
+        }
+      ]
+    },
+    {
+      "id": "vitrina",
+      "name": "Pastelería de vitrina",
+      "products": [
+        {
+          "id": 1031,
+          "name": "Medialuna de manteca",
+          "description": "Hojaldrada, de fermentación lenta. Por unidad.",
+          "price": 1900,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 1900
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1032,
+          "name": "Porción de torta",
+          "description": "Pedí la del día: chocolate, lemon pie, cheesecake o carrot cake.",
+          "price": 7800,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 7800
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1033,
+          "name": "Alfajor de maicena",
+          "description": "Relleno de dulce de leche y coco rallado.",
+          "price": 3400,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 3400
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1034,
+          "name": "Cookie de chips de chocolate",
+          "description": "Crocante por fuera y húmeda por dentro.",
+          "price": 4200,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 4200
+            }
+          ],
+          "image": null
+        }
+      ]
+    },
+    {
+      "id": "almuerzos",
+      "name": "Almuerzos livianos",
+      "products": [
+        {
+          "id": 1041,
+          "name": "Ensalada de quinoa",
+          "description": "Quinoa, rúcula, palta, tomates cherry y vinagreta de limón.",
+          "price": 12900,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 12900
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1042,
+          "name": "Tarta del día con ensalada",
+          "description": "Pedí la tarta de la semana, con ensalada de hojas verdes.",
+          "price": 12400,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 12400
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1043,
+          "name": "Wrap de pollo crispy",
+          "description": "Pollo apanado, lechuga, cheddar y salsa de yogur.",
+          "price": 13200,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 13200
+            }
+          ],
+          "image": null
+        }
+      ]
+    },
+    {
+      "id": "frias",
+      "name": "Bebidas frías",
+      "products": [
+        {
+          "id": 1051,
+          "name": "Limonada con menta y jengibre",
+          "description": "Exprimida al momento. Jarra de 500 ml.",
+          "price": 6400,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 6400
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1052,
+          "name": "Exprimido de naranja",
+          "description": "Naranjas de Entre Ríos, sin azúcar agregada.",
+          "price": 5600,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 5600
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1053,
+          "name": "Licuado de frutilla",
+          "description": "Frutillas, leche o agua, con hielo.",
+          "price": 6800,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 6800
+            }
+          ],
+          "image": null
+        },
+        {
+          "id": 1054,
+          "name": "Cold brew",
+          "description": "Café infusionado 18 horas, servido con hielo.",
+          "price": 5900,
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Tamaño único",
+              "price": 5900
+            }
+          ],
+          "image": null
+        }
+      ]
+    }
+  ],
+  "takeaway": [
+    {
+      "id": "tortas",
+      "name": "Tortas",
+      "products": [
+        {
+          "id": 2001,
+          "name": "Torta mousse de chocolate",
+          "description": "Bizcochuelo húmedo de cacao, mousse de chocolate semiamargo y cobertura de ganache.",
+          "price": 38000,
+          "image": "/shops/horno-lento/products/torta-mousse-chocolate.webp",
+          "sizes": [
+            {
+              "id": "18cm",
+              "label": "18 cm",
+              "price": 38000
+            },
+            {
+              "id": "24cm",
+              "label": "24 cm",
+              "price": 52000
+            }
+          ]
+        },
+        {
+          "id": 2002,
+          "name": "Cheesecake de frutos rojos",
+          "description": "Base de galletitas de manteca, crema de queso suave y coulis de frutos rojos.",
+          "price": 36000,
+          "image": "/shops/horno-lento/products/cheesecake-frutos-rojos.webp",
+          "sizes": [
+            {
+              "id": "18cm",
+              "label": "18 cm",
+              "price": 36000
+            },
+            {
+              "id": "24cm",
+              "label": "24 cm",
+              "price": 49000
+            }
+          ]
+        },
+        {
+          "id": 2003,
+          "name": "Carrot cake",
+          "description": "Bizcochuelo especiado con zanahoria y nueces, relleno y cubierto con crema de queso.",
+          "price": 34000,
+          "image": "/shops/horno-lento/products/carrot-cake.webp",
+          "sizes": [
+            {
+              "id": "18cm",
+              "label": "18 cm",
+              "price": 34000
+            },
+            {
+              "id": "24cm",
+              "label": "24 cm",
+              "price": 46000
+            }
+          ]
+        },
+        {
+          "id": 2004,
+          "name": "Torta de dulce de leche y caramelo",
+          "description": "Capas de bizcochuelo de vainilla, dulce de leche repostero y caramelo salado.",
+          "price": 40000,
+          "image": "/shops/horno-lento/products/torta-caramelo.webp",
+          "sizes": [
+            {
+              "id": "18cm",
+              "label": "18 cm",
+              "price": 40000
+            },
+            {
+              "id": "24cm",
+              "label": "24 cm",
+              "price": 55000
+            }
+          ]
+        },
+        {
+          "id": 2005,
+          "name": "Pavlova de frutillas",
+          "description": "Merengue crocante por fuera y suave por dentro, crema chantilly y frutillas frescas.",
+          "price": 42000,
+          "image": "/shops/horno-lento/products/pavlova.webp",
+          "sizes": [
+            {
+              "id": "22cm",
+              "label": "22 cm",
+              "price": 42000
+            },
+            {
+              "id": "28cm",
+              "label": "28 cm",
+              "price": 58000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tartas",
+      "name": "Tartas",
+      "products": [
+        {
+          "id": 2006,
+          "name": "Lemon pie",
+          "description": "Masa sablée, crema de limón y merengue italiano flameado.",
+          "price": 32000,
+          "image": "/shops/horno-lento/products/lemon-pie.webp",
+          "sizes": [
+            {
+              "id": "20cm",
+              "label": "20 cm",
+              "price": 32000
+            },
+            {
+              "id": "26cm",
+              "label": "26 cm",
+              "price": 44000
+            }
+          ]
+        },
+        {
+          "id": 2007,
+          "name": "Tarta de frutos rojos",
+          "description": "Masa sablée, crema pastelera de vainilla y frutos rojos frescos.",
+          "price": 33000,
+          "image": "/shops/horno-lento/products/tarta-frutos-rojos.webp",
+          "sizes": [
+            {
+              "id": "24cm",
+              "label": "24 cm",
+              "price": 33000
+            },
+            {
+              "id": "28cm",
+              "label": "28 cm",
+              "price": 45000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "para-el-cafe",
+      "name": "Para el café",
+      "products": [
+        {
+          "id": 2008,
+          "name": "Brownies de chocolate (caja x9)",
+          "description": "Húmedos, con chocolate semiamargo y corteza crujiente.",
+          "price": 29000,
+          "image": "/shops/horno-lento/products/brownies.webp",
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Caja x9",
+              "price": 29000
+            }
+          ]
+        },
+        {
+          "id": 2009,
+          "name": "Budín de banana",
+          "description": "Con banana madura y glaseado de limón. Rinde 10 porciones.",
+          "price": 14500,
+          "image": "/shops/horno-lento/products/budin-banana.webp",
+          "sizes": [
+            {
+              "id": "unica",
+              "label": "Entero",
+              "price": 14500
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rating": 4.8,
+  "reviews": [
+    {
+      "author": "Carolina M.",
+      "rating": 5,
+      "text": "Pedí la torta mousse de chocolate para el cumple de mi hija y fue un éxito. Retiré a la hora justa y estaba perfecta.",
+      "when": "hace 2 semanas"
+    },
+    {
+      "author": "Federico R.",
+      "rating": 5,
+      "text": "El mejor lemon pie de Rosario, sin exagerar. Y el café de especialidad es una gloria.",
+      "when": "hace un mes"
+    },
+    {
+      "author": "Julieta S.",
+      "rating": 5,
+      "text": "Encargar online es facilísimo: elegís el día, pagás y listo. La pavlova llegó impecable.",
+      "when": "hace un mes"
+    },
+    {
+      "author": "Martín G.",
+      "rating": 4,
+      "text": "Lindo lugar para desayunar. Las medialunas de manteca son de otro nivel.",
+      "when": "hace 2 meses"
+    }
+  ]
+}

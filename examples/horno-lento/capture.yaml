@@ -1,0 +1,167 @@
+# How to photograph the real shop app for the Horno Lento ad.
+# The app (APP_DIR) is never touched: adkit works in a copy under .adkit/work/app.
+# Variables for the commands: ADKIT_SPEC_DIR (this folder), ADKIT_PROJECT_DIR.
+app:
+  dir: ${APP_DIR:-/Users/faka/code/contributions/sasha}
+  isolate: copy
+  setup:
+    - test -d node_modules/next || env -u SHOP npm ci --no-audit --no-fund
+  build:
+    - npm run build
+  # The server's clock is moved to the same day as the browser's, or it would refuse the pickup times the page offers.
+  start: NODE_OPTIONS="--require $ADKIT_SPEC_DIR/scripts/fake-date.cjs" FAKE_NOW=2026-03-10T10:00:00-03:00 node node_modules/next/dist/bin/next start -p {port}
+  env:
+    SHOP: horno-lento
+    MP_ACCESS_TOKEN: ''
+    NEXT_TELEMETRY_DISABLED: '1'
+  ready: {path: /, timeoutSeconds: 120}
+
+viewport: {width: 390, height: 844, scale: 3}
+locale: es-AR
+timezone: America/Argentina/Buenos_Aires
+# A Tuesday (the shop is closed on Mondays) so dates in the shots never change.
+clock: '2026-03-10T10:00:00-03:00'
+inputs: [scripts, demo-shop]
+
+sets:
+  main:
+    setup:
+      - node "$ADKIT_SPEC_DIR/scripts/install-shop.mjs"
+    screens:
+      - &home
+        name: home
+        steps:
+          - goto: /
+        elements:
+          hero: main section >> nth=0
+          logo: 'header a[aria-label$=", inicio"]'
+
+      - name: menu
+        steps:
+          - goto: /salon
+        elements:
+          title: h1 >> nth=0
+          firstCategory: section[id] >> nth=0
+
+      - &catalog
+        name: catalog
+        steps:
+          - goto: /take-away
+          - click: 'button:has-text("Entendido")'
+          - wait: {for: 'button:has-text("Entendido")', state: detached}
+          - wait: 600
+        scroll: {to: 'li:has(button[aria-label="Agregar Torta mousse de chocolate al pedido"])', offset: 190}
+        elements:
+          productCard: 'li:has(button[aria-label="Agregar Torta mousse de chocolate al pedido"])'
+          addButton: 'li:has(button[aria-label="Agregar Torta mousse de chocolate al pedido"]) >> button[aria-label="Agregar Torta mousse de chocolate al pedido"]'
+          cartIcon: {selector: '[data-cart-target]', fixed: true}
+
+      # product detail sheet (a drawer)
+      - name: product
+        drawer: true
+        steps:
+          - click: 'li:has(button[aria-label="Agregar Torta mousse de chocolate al pedido"]) >> button.block'
+          - wait: {for: '[role=dialog] >> button:text-is("Agregar")'}
+          - wait: 900
+        elements:
+          sheet: '[role=dialog]'
+          sheetPhoto: '[role=dialog] img >> nth=0'
+          addButton: '[role=dialog] >> button:text-is("Agregar")'
+
+      # add to the order, then open the cart (no shot for the add itself)
+      - steps:
+          - click: '[role=dialog] >> button:text-is("Agregar")'
+          - wait: {for: 'button:has-text("Ver pedido") >> nth=0'}
+          - wait: 1200
+
+      - name: cart
+        drawer: true
+        steps:
+          - click: '[data-cart-target]'
+          - wait: {for: '[role=dialog] >> text=Tu pedido >> nth=0'}
+          - wait: 1000
+        elements:
+          cartRow: '[role=dialog] li >> nth=0'
+          cartTotal: '[role=dialog] span.font-display >> nth=-1'
+          closeButton: '[role=dialog] >> button[aria-label="Cerrar pedido"]'
+
+      # pickup: branch, day, time, who picks up
+      - name: pickup
+        drawer: true
+        steps:
+          - click: {selector: '[role=dialog] >> [role=radio]:has-text("Centro")', tap: true}
+          - wait: 300
+          - click: {selector: '[role=dialog] >> [aria-label="Día de retiro"] [role=radio] >> nth=1', tap: true}
+          - wait: 300
+          - click: {selector: '[role=dialog] >> [aria-label="Horario de retiro"] [role=radio] >> nth=2', tap: true}
+          - fill: {selector: '[role=dialog] input[name=name]', value: Lucía Fernández}
+          - fill: {selector: '[role=dialog] input[name=phone]', value: 341 555-0147}
+          - fill: {selector: '[role=dialog] textarea[name=notes]', value: 'Escribir “Feliz cumple, Sofi”'}
+          - scroll: {to: '[role=dialog] >> text=¿Dónde lo retirás? >> nth=0', offset: 14, within: .overflow-y-auto}
+          - wait: 900
+        elements:
+          branchChip: '[role=dialog] >> [role=radio]:has-text("Centro")'
+          dayChip: '[role=dialog] >> [aria-label="Día de retiro"] [role=radio][data-checked]'
+          timeChip: '[role=dialog] >> [aria-label="Horario de retiro"] [role=radio][data-checked]'
+          payButton: '[role=dialog] >> button:has-text("Pagar con Mercado Pago")'
+
+      # payment (simulated Mercado Pago)
+      - name: payment
+        steps:
+          - click: '[role=dialog] >> button:has-text("Pagar con Mercado Pago")'
+          - wait: {for: 'text=¿Cómo querés pagar?', timeoutMs: 20000}
+        elements:
+          payButton: 'button:has-text("Pagar")'
+          summary: main section >> nth=0
+
+      - name: confirmation
+        settleMs: 1200
+        steps:
+          - click: 'button:has-text("Pagar")'
+          - wait: {for: '#result-title', timeoutMs: 20000}
+          - evaluate: {script: "new URL(location.href).searchParams.get('ref')", save: ref}
+          - wait: 1500
+        elements:
+          checkBadge: 'section[aria-labelledby="result-title"] > span >> nth=0'
+          title: '#result-title'
+          summary: 'section[aria-labelledby="result-title"] dl'
+
+      # more orders for the panel, written to the same storage the app uses
+      - name: adminOrders
+        steps:
+          - evaluate: {file: scripts/inject-orders.js}
+          - goto: '/admin?nuevo={ref}'
+          - wait: {for: 'section[aria-labelledby="fresh-title"] article'}
+        elements:
+          newOrderCard: 'section[aria-labelledby="fresh-title"] article'
+          freshBadge: '#fresh-title'
+          stats: dl >> nth=0
+
+      - name: adminSales
+        settleMs: 1500
+        steps:
+          - goto: /admin/ventas
+          - wait: {for: 'p.text-5xl:not(:has-text("–"))'}
+          - wait: 1500
+        scroll: {to: '[aria-label="Período"]', offset: 72}
+        elements:
+          revenueCard: 'section[aria-label="Resumen del período"] > div >> nth=0'
+          revenueNumber: p.text-5xl >> nth=0
+          chartArea: 'section[aria-labelledby="by-day"]'
+
+  # colour variants: the same shop in other palettes (only the first two screens)
+  teal:
+    extends: main
+    env: {HL_PALETTE: teal}
+    theme: {bg: '#f5fbfa', fg: '#10282a', accent: '#1f6f6b'}
+    screens: [*home, *catalog]
+  plum:
+    extends: main
+    env: {HL_PALETTE: plum}
+    theme: {bg: '#fbf6fa', fg: '#2a1426', accent: '#6b2d5c'}
+    screens: [*home, *catalog]
+  navy:
+    extends: main
+    env: {HL_PALETTE: navy}
+    theme: {bg: '#f5f8fc', fg: '#121d30', accent: '#23395b'}
+    screens: [*home, *catalog]
