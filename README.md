@@ -148,9 +148,24 @@ minimal (15 s): cold 49 s, one-title edit 28 s, draft 30 s. Each run prints a on
 
 Quality against the approved ad: mean SSIM 0.973 (1 frame per beat), loudness -14.1 vs -14.0 LUFS. The remaining difference is demo data and the fictional contact number.
 
-## For AI agents
+## Use it with AI agents (Claude Code and others)
 
-`skills/product-ad/SKILL.md` is a Claude Code skill: what the agent decides (brief, story, fictional brand and data, copy, motif, blocks), what it must not do by hand, and the review loop (tile, fix, re-render from cache).
+adkit ships an agent skill, [`skills/product-ad/SKILL.md`](skills/product-ad/SKILL.md). It tells the agent what to decide (audience, one-sentence message, story, fictional brand and demo data, copy, sound-logo notes, which blocks) and what never to do by hand (capture, timing, camera, render, audio, checks: the engine does them).
+
+**Install the skill in Claude Code**
+
+```bash
+git clone https://github.com/IFAKA/adkit ~/adkit && cd ~/adkit && npm install && npx playwright install chromium
+mkdir -p ~/.claude/skills && cp -r skills/product-ad ~/.claude/skills/product-ad
+```
+
+**Then just ask**
+
+> Make a 30 s vertical ad for my app in `~/code/my-app` for café owners, in Spanish. Use adkit.
+
+The agent writes `ad.yaml` and `capture.yaml`, runs `adkit capture`, `adkit render --draft`, `adkit check` and `adkit tile`, looks at the contact sheet, fixes the copy or timing, and re-renders. Because of caching, each fix takes seconds, not minutes.
+
+**Other agents** (Codex, Cursor, Gemini CLI, etc.): point them at `AGENTS.md`, which links the same skill and the spec schema (`schema/ad.schema.json`) for exact fields.
 
 ## Tests
 
