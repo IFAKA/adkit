@@ -5,7 +5,14 @@ import {renderFrames as remotionFrames, renderStill, selectComposition} from '@r
 
 export const defaultConcurrency = () => Math.max(1, Math.min(6, Math.floor(os.cpus().length / 2)));
 const name = (n: number) => `frame-${String(n).padStart(6, '0')}.jpg`;
-const CHROME = {gl: 'angle' as const, disableWebSecurity: true};
+const BROWSER = process.env.ADKIT_CHROME ?? null;
+/**
+ * Software GL by default: with the GPU ("angle") two renders of the same frame differ in a few pixels by one level,
+ * so cached scenes would not equal a fresh render. Measured: swiftshader at a fixed worker count gives identical bytes.
+ * ADKIT_GL=angle is faster and fine for a quick look, but not byte-stable.
+ */
+export const GL = (process.env.ADKIT_GL ?? 'swiftshader') as 'swiftshader' | 'swangle' | 'angle';
+const CHROME = {gl: GL, disableWebSecurity: true};
 
 /** Renders frames [from, to] (inclusive) as frame-%06d.jpg (absolute frame numbers) in outDir. JPEG quality 95, no audio. */
 export async function renderFrames(o: {
@@ -30,7 +37,7 @@ export async function renderFrames(o: {
     imageFormat: 'jpeg',
     jpegQuality: 95,
     outputDir: null,
-    chromiumOptions: CHROME,
+    chromiumOptions: CHROME, browserExecutable: BROWSER,
     onFrameBuffer: (buf, frame) => {
       fs.writeFileSync(path.join(o.outDir, name(frame)), buf);
       o.onProgress?.(++done, total);

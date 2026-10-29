@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {bundleProject} from '../../render/bundle';
-import {renderFrames} from '../../render/render';
+import {GL, renderFrames} from '../../render/render';
 import {segmentKey, segments} from '../cache';
 import {engineVersion, PKG_ROOT, readManifest, type Project} from '../project';
 import {fmt, run, sha} from '../util';
@@ -17,7 +17,7 @@ export async function render(p: Project, flags: {force?: boolean; recapture?: bo
   const cap = await capture(p, {});
   const manifest = readManifest(p, cap.key);
   const {wav} = await build(p);
-  const engine = `${engineVersion()}-c${RENDER_CONCURRENCY}`;
+  const engine = `${engineVersion()}-c${RENDER_CONCURRENCY}-${GL}`;
 
   // 1. the Remotion bundle, cached by render sources + captures
   const bundleKey = sha(engine, cap.key).slice(0, 16);

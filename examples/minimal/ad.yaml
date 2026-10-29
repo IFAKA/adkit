@@ -23,7 +23,7 @@ scenes:
     screen: home
     open: rise
     titles:
-      - {lines: ["Fresh coffee,", "*two taps* away."], at: 1, to: 5.5, size: 112}
+      - {lines: ["Fresh coffee,", "*two_taps* away."], at: 1, to: 5.5, size: 112}
 
   - block: tapFlow
     id: order
