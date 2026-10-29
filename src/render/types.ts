@@ -11,4 +11,6 @@ export type RenderProps = {
   assetBase: string;
   /** Optional backdrop photo, relative to assetBase (not in the spec schema yet). */
   photo?: string;
+  /** Draft: no motion blur (the renderer also halves the size). */
+  draft?: boolean;
 };

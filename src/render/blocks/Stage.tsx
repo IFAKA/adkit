@@ -213,10 +213,10 @@ export const Stage: React.FC<{m: Model; flat?: boolean}> = ({m, flat}) => {
   );
 };
 
-import {CameraMotionBlur} from '@remotion/motion-blur';
+import {MotionBlur} from '../lib/Blur';
 const CardBlur: React.FC<{m: Model; item: LiftItem}> = ({m, item}) => (
-  <CameraMotionBlur shutterAngle={220} samples={6}>
+  <MotionBlur shutterAngle={220} samples={6}>
     <CardLift m={m} item={item} />
-  </CameraMotionBlur>
+  </MotionBlur>
 );
 export {rgba};

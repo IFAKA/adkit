@@ -16,9 +16,18 @@ def write_wav(path, x):
         w.writeframes(pcm.tobytes())
 
 
-def measure(path):
+def measure(path, aac=False):
+    """Loudness and true peak. With aac=True the file is first passed through the same AAC encode the video gets,
+    because AAC adds up to 2 dB of overshoot and the limit must hold in the final file, not only in the WAV."""
+    if aac:
+        coded = path + '.aac.m4a'
+        subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', path, '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+                        '-fflags', '+bitexact', '-flags:a', '+bitexact', '-map_metadata', '-1', coded], check=True)
+        path = coded
     r = subprocess.run(['ffmpeg', '-hide_banner', '-nostats', '-i', path, '-af', 'ebur128=peak=true', '-f', 'null', '-'],
                        capture_output=True, text=True)
+    if aac:
+        os.remove(path)
     tail = r.stderr[r.stderr.rindex('Summary:'):]
     i = float(re.search(r'I:\s+(-?[\d.]+) LUFS', tail).group(1))
     tp = float(re.search(r'Peak:\s+(-?[\d.]+) dBFS', tail).group(1))
@@ -46,7 +55,7 @@ def master(mixed, target, tp_target, out, tmp):
     for it in range(8):
         y = limit(mixed * db(gain), db(ceil_db))
         write_wav(out, y)
-        i, tp = measure(out)
+        i, tp = measure(out, aac=True)
         ok = abs(i - target) <= 0.1 and tp <= tp_target
         if best is None or (tp <= tp_target and abs(i - target) < abs(best[0] - target)): best = (i, tp, gain, ceil_db)
         if ok: return i, tp
@@ -54,7 +63,7 @@ def master(mixed, target, tp_target, out, tmp):
         gain += target - i
     # fall back to the best valid state
     if best:
-        y = limit(mixed * db(best[2]), db(best[3])); write_wav(out, y); return measure(out)
+        y = limit(mixed * db(best[2]), db(best[3])); write_wav(out, y); return measure(out, aac=True)
     return i, tp
 
 

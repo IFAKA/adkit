@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
-import {CameraMotionBlur} from '@remotion/motion-blur';
+import {DraftCtx, MotionBlur} from './lib/Blur';
 import {buildModel, type Model} from './model';
 import type {RenderProps} from './types';
 import {ColorsProvider} from './lib/colors';
@@ -116,9 +116,9 @@ const PhoneScene: React.FC<{m: Model}> = ({m}) => {
     <AbsoluteFill>
       <SceneBackdrop m={m} />
       {blurStage ? (
-        <CameraMotionBlur shutterAngle={200} samples={6}>
+        <MotionBlur shutterAngle={200} samples={6}>
           {stage}
-        </CameraMotionBlur>
+        </MotionBlur>
       ) : (
         stage
       )}
@@ -138,6 +138,7 @@ export const Ad: React.FC<RenderProps> = (props) => {
   const chatTitles = m.chat ? m.plan.titles.filter((t) => t.block === m.chat!.block.id).map((t) => ({spec: t.spec, inAt: t.inAt, outAt: t.outAt})) : [];
   const showChat = !!m.chat && f < chatEnd;
   return (
+    <DraftCtx.Provider value={!!props.draft}>
     <FontsCtx.Provider value={fonts}>
       <ColorsProvider model={m}>
         <AbsoluteFill style={{background: '#000'}}>
@@ -145,9 +146,9 @@ export const Ad: React.FC<RenderProps> = (props) => {
             <ChatLocal m={m} titles={chatTitles} />
           ) : m.reveal ? (
             inWhip ? (
-              <CameraMotionBlur shutterAngle={240} samples={7}>
+              <MotionBlur shutterAngle={240} samples={7}>
                 <PhoneScene m={m} />
-              </CameraMotionBlur>
+              </MotionBlur>
             ) : (
               <PhoneScene m={m} />
             )
@@ -156,6 +157,7 @@ export const Ad: React.FC<RenderProps> = (props) => {
         </AbsoluteFill>
       </ColorsProvider>
     </FontsCtx.Provider>
+    </DraftCtx.Provider>
   );
 };
 

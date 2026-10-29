@@ -109,10 +109,28 @@ Duration, frame count, size, fps; every cue on the grid; loudness within 0.5 LU 
 
 ## Determinism and caching
 
-- Same spec + same captures gives byte-identical frames: no clocks, no `Math.random`; film grain uses seeded random per frame; audio is synthesised with a fixed seed (numpy, no samples).
-- **Captures** are cached by hash(app git HEAD + uncommitted diff + inputs + capture spec).
-- **Audio** is cached by hash(cues + sound spec + synth code).
-- **Render** is cached per scene by hash(scene spec + its neighbours without titles + layout + titles on screen + brand + the captures it shows + engine version). Frames of all scenes are linked in order and encoded once, so a partial render is identical to a full one. Changing one title re-renders one scene.
+- Same spec + same captures gives byte-identical video. No clocks, no `Math.random`; grain uses seeded random per frame; audio is synthesised with a fixed seed (numpy, no samples).
+- Chrome draws on the CPU (one raster thread, no partial raster) in fixed 30-frame chunks, each in a fresh tab. Measured: 6 runs of 180 frames gave 0 differing frames, at any worker count. The GPU path (`ADKIT_GL=angle`) is faster but a few pixels differ by one level between runs, so it is used only for `--draft`.
+- **Captures** are cached by hash(committed files of the app folder + uncommitted diff + inputs + capture spec). The capture sets run side by side.
+- **Audio** is cached by hash(cues + sound spec + synth code). The limiter is checked after an AAC round trip, so the true peak holds in the final file.
+- **Render** is cached per scene by hash(scene spec + neighbours without titles + layout + titles on screen + brand + the captures it shows + engine version). Each scene is encoded to its own file as soon as its frames exist, and the files are joined without re-encoding. A one-title edit rebuilds one scene; `scripts/cache-proof.sh` proves that the partial render is byte-identical to a render from scratch.
+- Frames go through one pool of workers (all cores but two, at most 10; `ADKIT_WORKERS` overrides).
+
+## Speed
+
+Measured on an Apple M-series Mac with 12 cores (other jobs were running), horno-lento, 30 s, 900 frames:
+
+| Run | Time |
+| --- | --- |
+| Cold, everything (capture 104 s incl. 4 app builds + frames 106 s + mux) | 211 s |
+| Cold frames only (capture cached) | 112 s |
+| Nothing changed | 0.8 s |
+| One title changed in the longest scene (240 frames) | 50 s |
+| `--draft` (half size, no motion blur, GPU), all scenes | 35 s |
+
+minimal (15 s): cold 49 s, one-title edit 28 s, draft 30 s. Each run prints a one-line timing and writes `.adkit/logs/timing.json`. Other options: `--scene NAME`, `--frames A-B` (video only).
+
+Quality against the approved ad: mean SSIM 0.973 (1 frame per beat), loudness -14.1 vs -14.0 LUFS. The remaining difference is demo data and the fictional contact number.
 
 ## For AI agents
 

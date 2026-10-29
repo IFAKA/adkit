@@ -1,7 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, random, useCurrentFrame} from 'remotion';
 import {noise2D} from '@remotion/noise';
-import {CameraMotionBlur} from '@remotion/motion-blur';
+import {MotionBlur} from '../lib/Blur';
 import {H, W, type Model} from '../model';
 import {useFonts} from '../lib/fonts';
 import {SNAP, clamp01, easeInOut, lerp, mix, ramp, rgba, spr} from '../lib/anim';
@@ -195,9 +195,9 @@ export const ChatScene: React.FC<{m: Model; chatTitles: {spec: TitleSpec; inAt: 
         {flying ? (
           <>
             <BubbleField m={m} s={s} f={f} layer="static" />
-            <CameraMotionBlur shutterAngle={110} samples={4}>
+            <MotionBlur shutterAngle={110} samples={4}>
               <BubbleField m={m} s={s} f={f} layer="fly" />
-            </CameraMotionBlur>
+            </MotionBlur>
           </>
         ) : (
           <BubbleField m={m} s={s} f={f} />

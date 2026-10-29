@@ -22,6 +22,7 @@ export type CaptureResult = {key: string; dir: string; manifestPath: string; cac
 
 type CaptureSpec = Ad['capture'];
 type SetSpec = CaptureSpec['sets'][string];
+type SetEntryT = Manifest['sets'][string];
 
 /** A set with the env and setup of the sets it extends merged in (parents first). */
 export function resolveSet(sets: CaptureSpec['sets'], name: string, seen: string[] = []): {env: Record<string, string>; setup: string[]; set: SetSpec} {
@@ -101,19 +102,21 @@ export async function runCapture(opts: CaptureOptions): Promise<CaptureResult> {
   const patch: Manifest = {scale: cap.viewport.scale, viewport: {w: cap.viewport.width, h: cap.viewport.height}, sets: {}};
 
   try {
-    for (const name of wantSets) {
+    // Sets are independent (own work copy, own server, own browser), so they run side by side.
+    const entries: Record<string, SetEntryT> = {};
+    const shoot = async (name: string) => {
       const ts = Date.now();
       const {env: setEnv, setup, set} = resolveSet(cap.sets, name);
       let cwd = specDir;
       if (appDir) {
         if (app.isolate === 'copy') {
-          cwd = path.join(adkit, 'work', 'app');
+          cwd = path.join(adkit, 'work', wantSets.length > 1 ? `app-${name}` : 'app');
           syncWorkCopy(appDir, cwd);
           detail(`${name}: work copy synced ${appDir} -> ${cwd}`);
         } else cwd = appDir;
       }
       const env: NodeJS.ProcessEnv = {...process.env, ...app.env, ...setEnv, ADKIT_SPEC_DIR: specDir, ADKIT_PROJECT_DIR: projectDir};
-      const sh = (cmd: string) => { detail(`${name}: $ ${cmd}`); return runShell(cmd, {cwd, env, logFile}); };
+      const sh = (cmd: string) => { detail(`${name}: $ ${cmd}`); return runShell(cmd, {cwd, env, logFile: path.join(logsDir, `capture-${name}.log`)}); };
       let server: Server | undefined;
       try {
         let baseUrl: string;
@@ -127,17 +130,20 @@ export async function runCapture(opts: CaptureOptions): Promise<CaptureResult> {
           baseUrl = server.base;
           detail(`${name}: server up at ${baseUrl} (pid ${server.pid})`);
         }
-        const entry = await shootSet({
+        entries[name] = await shootSet({
           cap, specDir, setName: name, screens: set.screens, theme: set.theme, accent: spec.brand.colors.accent,
           base: baseUrl, outDir: tmp, logsDir, onlyScreen: only?.screen, log, detail,
         });
-        patch.sets[name] = entry;
       } finally {
         if (server) await server.stop().catch((e) => detail(`${name}: stop failed: ${e}`));
         for (const c of app.teardown) await sh(c).catch((e) => detail(`${name}: teardown failed: ${e}`));
         detail(`${name}: done in ${((Date.now() - ts) / 1000).toFixed(0)}s`);
       }
-    }
+    };
+    const results = await Promise.allSettled(wantSets.map(shoot));
+    const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+    if (failed) throw failed.reason;
+    for (const name of wantSets) patch.sets[name] = entries[name]; // fixed order, whatever finished first
     const merged = mergeManifest(base, patch);
     fs.writeFileSync(path.join(tmp, 'manifest.json'), JSON.stringify(merged, null, 2));
     fs.rmSync(dir, {recursive: true, force: true});

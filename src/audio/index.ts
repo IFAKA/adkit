@@ -1,3 +1,4 @@
+import {homedir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync} from 'node:fs';
@@ -28,7 +29,7 @@ function run(cmd: string, args: string[], logStream: ReturnType<typeof createWri
   });
 }
 
-/** Synthesise the ad's audio from a plan JSON into a WAV. Creates <projectDir>/.adkit/venv (numpy) on first use. */
+/** Synthesise the ad's audio from a plan JSON into a WAV. Creates one shared venv (numpy) on first use: $ADKIT_CACHE or ~/.cache/adkit. */
 export async function buildAudio(o: {planFile: string; outWav: string; projectDir: string; log: string}): Promise<void> {
   mkdirSync(dirname(resolve(o.log)), {recursive: true});
   mkdirSync(dirname(resolve(o.outWav)), {recursive: true});
@@ -38,11 +39,12 @@ export async function buildAudio(o: {planFile: string; outWav: string; projectDi
     await done();
     throw new Error(`${msg} (see log: ${o.log})`);
   };
-  const venv = join(o.projectDir, '.adkit', 'venv');
+  const cache = process.env.ADKIT_CACHE ?? join(homedir(), '.cache', 'adkit');
+  const venv = join(cache, 'venv');
   const py = join(venv, process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
   try {
     if (!existsSync(py)) {
-      mkdirSync(join(o.projectDir, '.adkit'), {recursive: true});
+      mkdirSync(cache, {recursive: true});
       if ((await run('python3', ['-m', 'venv', venv], logStream)) !== 0) return await fail('audio: could not create the python venv (is python3 installed?)');
     }
     const hasNumpy = (await run(py, ['-c', 'import numpy'], logStream)) === 0;

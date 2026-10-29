@@ -12,7 +12,8 @@ Usage: adkit <command> [ad.yaml | folder] [options]
                    --force  --set NAME  --screen NAME
   build          compile the spec; write .adkit/plan.json, cues.json; synthesise the audio (cached)
   render         capture + build + render only the scenes that changed + encode
-                   --out FILE  --force
+                   --out FILE  --force  --draft (half size, no motion blur)
+                   --scene NAME  --frames A-B  (one scene or range, video only)
   check          verify the video and the spec (size, grid, loudness, safe zones, text size, captures)
   tile           contact sheet PNG of the video (1 frame per second)
                    --from F --to T [--count N]  a frame range instead   --cols N  --out FILE
@@ -21,6 +22,7 @@ Usage: adkit <command> [ad.yaml | folder] [options]
 
 Logs: .adkit/logs/<step>.log next to ad.yaml. Exit code is non-zero on failure.`;
 
+process.setMaxListeners(100);
 async function main() {
   const [cmd, ...rest] = process.argv.slice(2);
   if (!cmd || cmd === '-h' || cmd === '--help' || cmd === 'help') { console.log(HELP); return; }
@@ -28,7 +30,7 @@ async function main() {
     args: rest, allowPositionals: true,
     options: {
       force: {type: 'boolean'}, out: {type: 'string'}, set: {type: 'string'}, screen: {type: 'string'}, video: {type: 'string'},
-      from: {type: 'string'}, to: {type: 'string'}, count: {type: 'string'}, cols: {type: 'string'}, 'no-warm': {type: 'boolean'},
+      from: {type: 'string'}, to: {type: 'string'}, count: {type: 'string'}, cols: {type: 'string'}, 'no-warm': {type: 'boolean'}, draft: {type: 'boolean'}, scene: {type: 'string'}, frames: {type: 'string'},
     },
   });
   const num = (s?: string) => (s === undefined ? undefined : Number(s));
@@ -43,7 +45,7 @@ async function main() {
   switch (cmd) {
     case 'capture': await (await import('./commands/capture')).capture(p, {force: values.force, set: values.set, screen: values.screen}); break;
     case 'build': await (await import('./commands/build')).build(p, {force: values.force}); break;
-    case 'render': await (await import('./commands/render')).render(p, {force: values.force, out: values.out}); break;
+    case 'render': await (await import('./commands/render')).render(p, {force: values.force, out: values.out, draft: values.draft, scene: values.scene, frames: values.frames}); break;
     case 'check': { const r = await (await import('./commands/check')).check(p, {video: values.video, warm: !values['no-warm']}); if (r.failed) process.exitCode = 1; break; }
     case 'tile': await (await import('./commands/tile')).tile(p, {video: values.video, out: values.out, from: num(values.from), to: num(values.to), count: num(values.count), cols: num(values.cols)}); break;
     case 'studio': await (await import('./commands/studio')).studio(p); break;

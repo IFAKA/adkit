@@ -26,5 +26,5 @@ export async function build(p: Project, flags: {force?: boolean} = {}) {
     fs.renameSync(tmp, wav);
   }
   p.rep.line('build', `${p.plan.cues.length} cues, ${p.plan.total} frames, audio ${cached ? 'cached' : 'built'} ${sha(fs.readFileSync(wav)).slice(0, 8)} (${fmt((Date.now() - t0) / 1000)})`);
-  return {wav, cached};
+  return {wav, cached, key};
 }

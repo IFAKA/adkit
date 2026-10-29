@@ -10,4 +10,4 @@ const man = fs.readdirSync(path.join(proj, 'captures'))[0];
 const manifest = JSON.parse(fs.readFileSync(path.join(proj, 'captures', man, 'manifest.json'), 'utf8'));
 const plan = JSON.parse(fs.readFileSync(path.join(proj, 'plan.json'), 'utf8'));
 const spec = loadSpec('/tmp/adkit-cache-proof/ad.yaml', process.env).spec;
-await renderFrames({serveUrl: bundle, inputProps: {plan, spec, manifest, assetBase: ''}, from: Number(process.env.FROM), to: Number(process.env.TO), outDir: process.argv[2], concurrency: Number(process.env.C || 6)});
+await renderFrames({serveUrl: bundle, inputProps: {plan, spec, manifest, assetBase: '', draft: !!process.env.DRAFT}, from: Number(process.env.FROM), to: Number(process.env.TO), outDir: process.argv[2], concurrency: Number(process.env.C || 6)});
