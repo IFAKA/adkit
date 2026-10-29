@@ -1,0 +1,159 @@
+# yaml-language-server: $schema=../../schema/ad.schema.json
+# Horno Lento: a 30 s ad (15 bars at 120 BPM) for a fictional bakery shop built with the "sasha" shop template.
+meta: {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 15}
+
+brief:
+  audience: Owners of cafes and bakeries who take orders by WhatsApp today.
+  message: "Your own online shop: customers order and pay alone, you only bake."
+  language: es-AR
+  tone: warm, premium, calm confidence
+
+brand:
+  name: Tu Tienda
+  contact: "Escribinos: +54 341 555-0100"
+  colors: {paper: "#F6F0E6", paperDeep: "#EADFCB", ink: "#1F1912", glow: "#FFD9A0", accent: "#B8832B", night: "#0C1627"}
+  fonts: {sans: Inter, serif: InstrumentSerif, mark: Fraunces}
+  icon: {text: HL, color: "#B8742B", textColor: "#FFF3DC"}
+
+capture: capture.yaml
+
+scenes:
+  # 1. The problem: WhatsApp bubbles pile up, faster and faster, then fly into the chat icon.
+  - block: chatChaos
+    id: hook
+    bars: 1.75
+    pings: [6, 6.5]
+    messages:
+      - {frame: -42, text: "Buen día! Pregunta por las tortas"}
+      - {frame: -35, text: "¿Hacen envíos?"}
+      - {frame: -28, text: "¿Cuánto sale el pan de campo?"}
+      - {frame: -21, text: "Hola?? Mandé mensaje ayer"}
+      - {frame: -14, text: "¿Tenés lemon pie para el sábado?"}
+      - {frame: -7, text: "Hola! ¿Hacen tortas para 12?"}
+      - {beat: 0, text: "¿A qué hora paso?"}
+      - {frame: 8, text: "¿Me pasás precios?"}
+      - {beat: 1, side: out, text: "Hola! Un segundito y te confirmo"}
+      - {frame: 22, text: "¿Aceptan transferencia?"}
+      - {beat: 2, text: "¿Queda algo de la torta de limón?"}
+      - {frame: 38, text: "Hola?? ¿Seguís ahí?"}
+      - {beat: 3, text: "¿Cuánto sale la docena de medialunas?"}
+      - {beat: 3.5, text: "Te transferí, ¿te llegó?"}
+      - {beat: 3.5, side: out, text: "Ahora te miro, estoy amasando"}
+      - {beat: 4, text: "¿Abren los domingos?"}
+      - {frame: 64, text: "¿Me mandás el menú?"}
+      - {beat: 4.5, text: "¿Hay opción sin TACC?"}
+      - {beat: 5, text: "¿Me guardás una para las 18?"}
+      - {frame: 78, text: "¿Entregan a domicilio?"}
+      - {beat: 5.5, side: out, text: "Sí! Te escribo en un rato"}
+      - {frame: 86, text: "Mandé el comprobante"}
+      - {frame: 88, text: "¿Cuánto sale la de dulce de leche?"}
+    title: {lines: ["¿Todavía tomás", "pedidos por", "*WhatsApp?*"], at: 3, to: 5.5, y: 410, size: 104, color: "#FFFFFF", accent: "#5BE08A"}
+
+  # 2. The chat icon turns into the app icon.
+  - {block: iconOpen, bars: 0.25}
+
+  # 3. The icon opens into the phone with the shop.
+  - block: reveal
+    bars: 2
+    screen: home
+    scroll: 70
+    titles:
+      - {lines: ["Tu *tienda*", "online."], at: 2, to: 5, size: 124}
+      - {lines: ["Con tu", "*marca.*"], at: 5, to: 7, size: 124}
+
+  # 4. The customer orders and pays.
+  - block: tapFlow
+    id: customer
+    bars: 4
+    start: {screen: home, scroll: 70}
+    titles:
+      - {lines: ["Tus clientes", "*eligen…*"], at: 1, to: 8, size: 118, scrim: true}
+      - {lines: ["…reservan", "*día_y_hora…*"], at: 8, to: 12, size: 118, scrim: true}
+      - {lines: ["…y pagan", "*online.*"], at: 12, to: 13.5, size: 118, scrim: true}
+    steps:
+      - {type: screen, at: 0.5, screen: catalog, scroll: {element: productCard, y: 380}, sticky: 117}
+      - {type: lift, at: 3.5, element: productCard, tap: addButton, tapAt: 4}
+      - {type: fly, at: 5, to: cartIcon}
+      - {type: badge, at: 7, element: cartIcon, count: 1}
+      - {type: screen, at: 7.5, screen: pickup, scroll: {element: dayChip, y: 400}}
+      - {type: tap, at: 8.5, element: branchChip, pan: -0.2}
+      - {type: tap, at: 9.5, element: dayChip, pan: 0}
+      - {type: tap, at: 10.5, element: timeChip, pan: 0.2}
+      - {type: tap, at: 11.5, element: payButton, x: 0.6, radius: 26}
+      - {type: screen, at: 12.5, screen: payment, scroll: {element: payButton, y: 560}}
+      - {type: tap, at: 13.5, element: payButton, radius: 28, press: true}
+      - {type: check, at: 14}
+      - {type: screen, at: 14.5, screen: confirmation}
+    camera:
+      - {at: 3, zoom: {fit: productCard, fraction: 0.75}, focus: {element: productCard, x: element}, qy: 1210, spring: fast, whoosh: true}
+      - {at: 5, offset: -2, zoom: 1.5, focus: {y: 230}, qy: 1150}
+      - {at: 8, zoom: 1.9, focus: {element: branchChip}, qy: 1180, spring: fast, roll: 0.5, whoosh: true}
+      - {at: 8.5, offset: -6, zoom: 1.9, focus: {element: branchChip}, qy: 1180, spring: tap}
+      - {at: 9.5, offset: -6, zoom: 1.9, focus: {element: dayChip}, qy: 1180, spring: tap}
+      - {at: 10.5, offset: -6, zoom: 1.9, focus: {element: timeChip}, qy: 1180, spring: tap}
+      - {at: 11.5, offset: -6, zoom: 1.9, focus: {element: payButton, dy: -50}, qy: 1190, spring: tap}
+      - {at: 12.5, zoom: 1.05, qy: 1060, spring: fast, roll: -0.4, whoosh: true}
+      - {at: 14, offset: 2, zoom: 1.5, qy: 1180}
+      - {at: 14.5, offset: 4, zoom: 1.33, focus: {y: 300}, qy: 1150, roll: 0}
+
+  # 5. Whip pan to the owner's phone.
+  - {block: whip, to: owner}
+
+  # 6. The owner gets the order, then sees sales.
+  - block: notification
+    id: owner
+    bars: 1.5
+    screen: adminOrders
+    element: newOrderCard
+    also: [freshBadge]
+    slideAt: 3
+    landAt: 3.5
+    banner: {title: "Nuevo pedido", body: "Retira hoy a las 17:30 · Pagado", time: ahora}
+    titles:
+      - {lines: ["Vos solo", "*horneás.*"], at: 2, to: 11, size: 124, scrim: true}
+    camera:
+      - {at: 3.5, offset: 6, zoom: 1.8, focus: {element: "freshBadge+newOrderCard"}, qy: 1190}
+
+  - block: statCountUp
+    id: sales
+    bars: 1.5
+    screen: adminSales
+    scroll: {from: 387, to: 700}
+    number: {element: revenueNumber, from: 0, to: 6762000, prefix: "$ ", thousands: ".", fontSize: 46, weight: 500, color: "#2b1d14", startAt: 1, doneAt: 3}
+    card: revenueCard
+    chart: {element: chartArea, at: 4}
+    camera:
+      - {at: 0.5, zoom: 2.0, focus: {element: revenueNumber, dy: 20}, qy: 1180, spring: fast, whoosh: true}
+      - {at: 3, offset: 6, zoom: 1.33, focus: {element: chartArea}, qy: 1180}
+
+  # 7. Same shop, new colours.
+  - block: skins
+    bars: 2
+    every: 2
+    variants:
+      - {screen: home}
+      - {screen: teal/home}
+      - {screen: plum/home}
+      - {screen: navy/home}
+    title: {lines: ["Con tus", "*colores.*"], at: 1, to: 7, size: 124, scrim: true}
+
+  # 8. End card.
+  - block: endCard
+    bars: 2
+    screen: home
+    scroll: 60
+    mark: storefront
+    title: {lines: ["Tu tienda online", "en *1_día.*"], at: 0, y: 585, size: 100}
+    lockupAt: 4
+    contactAt: 5
+    hitAt: 6
+
+sound:
+  key: C
+  progression: [C, F, Am, G]
+  chords: {13: G, 14: C}
+  motif:
+    notes: [[0, 67, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]]
+    ding: 84
+
+output: {file: out/ad.mp4, crf: 18}

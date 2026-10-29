@@ -185,6 +185,7 @@ export const ChatChaos = z.object({
     beat: posBeat.optional().describe('Grid time: also emits a "ping" cue.'),
     frame: z.number().int().optional().describe('Free time in frames from block start (may be negative = already on screen).'),
   }).strict().refine((m) => (m.beat === undefined) !== (m.frame === undefined), 'give exactly one of beat or frame')).min(3),
+  pings: z.array(posBeat).default([]).describe('More ping sounds (beats) that have no bubble.'),
   counter: z.object({start: z.number().int().default(3), rise: z.number().int().default(44), cap: z.number().int().default(99)}).strict().default({start: 3, rise: 44, cap: 99}),
   flyBeats: beat.default(1).describe('Beats before the end of the block when the bubbles fly into the icon.'),
   title: Title.optional().describe('Drawn inside the shaking scene; default colours are white and green.'),
