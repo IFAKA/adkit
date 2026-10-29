@@ -1,0 +1,2882 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "adkit ad.yaml",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "default": {
+        "fps": 30,
+        "width": 1080,
+        "height": 1920,
+        "bpm": 120
+      },
+      "type": "object",
+      "properties": {
+        "fps": {
+          "default": 30,
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 60
+        },
+        "width": {
+          "default": 1080,
+          "type": "integer",
+          "minimum": 360,
+          "maximum": 9007199254740991
+        },
+        "height": {
+          "default": 1920,
+          "type": "integer",
+          "minimum": 640,
+          "maximum": 9007199254740991
+        },
+        "bpm": {
+          "default": 120,
+          "type": "number",
+          "minimum": 60,
+          "maximum": 180
+        },
+        "bars": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "brief": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "audience": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "tone": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "brand": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Product or brand name shown on the end card."
+        },
+        "tagline": {
+          "type": "string"
+        },
+        "contact": {
+          "description": "Contact line on the end card, e.g. a URL or phone number.",
+          "type": "string"
+        },
+        "colors": {
+          "default": {
+            "paper": "#F6F0E6",
+            "paperDeep": "#EADFCB",
+            "ink": "#1F1912",
+            "glow": "#FFD9A0",
+            "accent": "#B8832B",
+            "night": "#0C1627"
+          },
+          "type": "object",
+          "properties": {
+            "paper": {
+              "default": "#F6F0E6",
+              "description": "Background of the bright scenes.",
+              "type": "string",
+              "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "paperDeep": {
+              "default": "#EADFCB",
+              "type": "string",
+              "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "ink": {
+              "default": "#1F1912",
+              "description": "Text on paper.",
+              "type": "string",
+              "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "glow": {
+              "default": "#FFD9A0",
+              "description": "Soft key light on the background.",
+              "type": "string",
+              "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "accent": {
+              "default": "#B8832B",
+              "description": "Accent words and highlights when the captured app has no theme.",
+              "type": "string",
+              "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "night": {
+              "default": "#0C1627",
+              "description": "Background of the dark \"problem\" scene.",
+              "type": "string",
+              "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "fonts": {
+          "default": {
+            "sans": "Inter",
+            "serif": "InstrumentSerif",
+            "mark": "Fraunces"
+          },
+          "type": "object",
+          "properties": {
+            "sans": {
+              "default": "Inter",
+              "type": "string",
+              "enum": [
+                "Inter",
+                "Poppins",
+                "DMSans",
+                "Manrope",
+                "SpaceGrotesk"
+              ]
+            },
+            "serif": {
+              "default": "InstrumentSerif",
+              "description": "Italic accent words in titles.",
+              "type": "string",
+              "enum": [
+                "InstrumentSerif",
+                "Fraunces",
+                "PlayfairDisplay",
+                "Lora"
+              ]
+            },
+            "mark": {
+              "default": "Fraunces",
+              "description": "Font of the app icon monogram.",
+              "type": "string",
+              "enum": [
+                "Fraunces",
+                "Inter",
+                "Poppins",
+                "PlayfairDisplay",
+                "DMSans"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "icon": {
+          "default": {
+            "text": "A",
+            "color": "#B8742B",
+            "textColor": "#FFF3DC"
+          },
+          "type": "object",
+          "properties": {
+            "text": {
+              "default": "A",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 3
+            },
+            "color": {
+              "default": "#B8742B",
+              "type": "string",
+              "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "textColor": {
+              "default": "#FFF3DC",
+              "type": "string",
+              "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "capture": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "object",
+          "properties": {
+            "dir": {
+              "description": "App folder. Supports ${ENV:-default}. Omit for a plain URL.",
+              "type": "string"
+            },
+            "url": {
+              "description": "Base URL of an already running site (skips start/build).",
+              "type": "string"
+            },
+            "isolate": {
+              "default": "copy",
+              "description": "Work in a copy under .adkit/ so the app folder is never touched.",
+              "type": "string",
+              "enum": [
+                "copy",
+                "inplace"
+              ]
+            },
+            "setup": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "build": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "start": {
+              "description": "Server command; {port} is replaced by a free port.",
+              "type": "string"
+            },
+            "env": {
+              "default": {},
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "ready": {
+              "default": {
+                "path": "/",
+                "timeoutSeconds": 120
+              },
+              "type": "object",
+              "properties": {
+                "path": {
+                  "default": "/",
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "default": 120,
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            },
+            "teardown": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "viewport": {
+          "default": {
+            "width": 390,
+            "height": 844,
+            "scale": 3
+          },
+          "type": "object",
+          "properties": {
+            "width": {
+              "default": 390,
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "height": {
+              "default": 844,
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "scale": {
+              "default": 3,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4
+            }
+          },
+          "additionalProperties": false
+        },
+        "locale": {
+          "default": "en-US",
+          "type": "string"
+        },
+        "timezone": {
+          "default": "UTC",
+          "type": "string"
+        },
+        "clock": {
+          "description": "ISO time to freeze the browser clock at, so dates in screenshots are stable.",
+          "type": "string"
+        },
+        "inputs": {
+          "default": [],
+          "description": "Files or folders (relative to the spec) that change what the app shows; hashed into the capture cache key.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sets": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "extends": {
+                "description": "Inherit app settings from another set.",
+                "type": "string"
+              },
+              "env": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "setup": {
+                "default": [],
+                "description": "Shell commands run (in the app folder) before building this set.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "theme": {
+                "description": "Colours of this variant; used for backgrounds and highlights.",
+                "type": "object",
+                "properties": {
+                  "bg": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "fg": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "accent": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  }
+                },
+                "required": [
+                  "bg",
+                  "fg",
+                  "accent"
+                ],
+                "additionalProperties": false
+              },
+              "screens": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Omit to run steps without taking a shot.",
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+                    },
+                    "steps": {
+                      "default": [],
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "goto": {
+                            "description": "Path or URL. {var} is replaced by values saved with evaluate+save.",
+                            "type": "string"
+                          },
+                          "click": {
+                            "description": "Playwright selector.",
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "selector": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "tap": {
+                                    "default": false,
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "selector"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "fill": {
+                            "type": "object",
+                            "properties": {
+                              "selector": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "selector",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "select": {
+                            "type": "object",
+                            "properties": {
+                              "selector": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "selector",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "wait": {
+                            "description": "Milliseconds, or wait for a selector.",
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "for": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "state": {
+                                    "default": "visible",
+                                    "type": "string",
+                                    "enum": [
+                                      "visible",
+                                      "hidden",
+                                      "attached",
+                                      "detached"
+                                    ]
+                                  },
+                                  "timeoutMs": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  }
+                                },
+                                "required": [
+                                  "for"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "evaluate": {
+                            "description": "JavaScript run in the page (inline, or {file}).",
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "file": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "script": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "save": {
+                                    "description": "Store the returned value as {name} for later steps.",
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "scroll": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "to": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "offset": {
+                                    "default": 0,
+                                    "type": "number"
+                                  },
+                                  "within": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "to"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "elements": {
+                      "default": {},
+                      "description": "Named elements whose boxes the video can point at.",
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "selector": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "fixed": {
+                                "default": false,
+                                "description": "Sticky/fixed element: its box is stored in viewport coordinates, not page coordinates.",
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "selector"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "scroll": {
+                      "description": "Scroll before the shot: a number of px, or bring an element to {offset} px below the top.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "to": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "offset": {
+                              "default": 0,
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "to"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "drawer": {
+                      "default": false,
+                      "description": "An overlay (sheet/drawer): shoot the viewport only, no full-page image.",
+                      "type": "boolean"
+                    },
+                    "settleMs": {
+                      "default": 700,
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "app",
+        "sets"
+      ],
+      "additionalProperties": false
+    },
+    "scenes": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "chatChaos"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Length in bars (4 beats each)."
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "messages": {
+                "minItems": 3,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "side": {
+                      "default": "in",
+                      "type": "string",
+                      "enum": [
+                        "in",
+                        "out"
+                      ]
+                    },
+                    "beat": {
+                      "description": "Grid time: also emits a \"ping\" cue.",
+                      "type": "number"
+                    },
+                    "frame": {
+                      "description": "Free time in frames from block start (may be negative = already on screen).",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "counter": {
+                "default": {
+                  "start": 3,
+                  "rise": 44,
+                  "cap": 99
+                },
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "default": 3,
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "rise": {
+                    "default": 44,
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "cap": {
+                    "default": 99,
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "additionalProperties": false
+              },
+              "flyBeats": {
+                "default": 1,
+                "description": "Beats before the end of the block when the bubbles fly into the icon.",
+                "type": "number"
+              },
+              "title": {
+                "description": "Drawn inside the shaking scene; default colours are white and green.",
+                "type": "object",
+                "properties": {
+                  "lines": {
+                    "minItems": 1,
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                  },
+                  "at": {
+                    "default": 0,
+                    "description": "Beat (relative to the block) when it enters.",
+                    "type": "number"
+                  },
+                  "to": {
+                    "description": "Beat when it leaves; default: never (until the block ends).",
+                    "type": "number"
+                  },
+                  "y": {
+                    "description": "Top of the text in px (default 270, inside the safe zone).",
+                    "type": "number"
+                  },
+                  "size": {
+                    "default": 120,
+                    "type": "number",
+                    "minimum": 60,
+                    "maximum": 220
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "accent": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "scrim": {
+                    "default": false,
+                    "description": "Soft gradient behind the text; true uses the paper colour.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "lines"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "block",
+              "bars",
+              "messages"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "iconOpen"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Length in bars (4 beats each)."
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "text": {
+                "description": "Default: brand.icon.text",
+                "type": "string",
+                "maxLength": 3
+              },
+              "color": {
+                "type": "string",
+                "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+              },
+              "bloom": {
+                "default": {
+                  "core": "#F2A94E",
+                  "edge": "#8A4A14"
+                },
+                "description": "Warm light that grows out of the icon.",
+                "type": "object",
+                "properties": {
+                  "core": {
+                    "default": "#F2A94E",
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "edge": {
+                    "default": "#8A4A14",
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "block",
+              "bars"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "reveal"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Length in bars (4 beats each)."
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "screen": {
+                "type": "string",
+                "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "scroll": {
+                "default": 0,
+                "type": "number"
+              },
+              "open": {
+                "default": "auto",
+                "description": "icon = grows out of the app icon (after iconOpen); rise = rises into frame.",
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "icon",
+                  "rise"
+                ]
+              }
+            },
+            "required": [
+              "block",
+              "bars",
+              "screen"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "tapFlow"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Length in bars (4 beats each)."
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "start": {
+                "type": "object",
+                "properties": {
+                  "screen": {
+                    "type": "string",
+                    "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+                  },
+                  "scroll": {
+                    "default": 0,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "screen"
+                ],
+                "additionalProperties": false
+              },
+              "steps": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "screen"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "screen": {
+                          "type": "string",
+                          "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+                        },
+                        "scroll": {
+                          "description": "Scroll in px, or bring an element to screen-y.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "element": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "y": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "element",
+                                "y"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "sticky": {
+                          "description": "Pin the top N px (header) while scrolled.",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "screen"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "tap"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "element": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "x": {
+                          "default": 0.5,
+                          "description": "Where along the element width the finger lands.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "radius": {
+                          "default": 16,
+                          "type": "number"
+                        },
+                        "press": {
+                          "default": false,
+                          "description": "Pop the element out and press it.",
+                          "type": "boolean"
+                        },
+                        "highlight": {
+                          "default": true,
+                          "type": "boolean"
+                        },
+                        "pan": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "element"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "lift"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "element": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "tap": {
+                          "description": "Element of the lifted card the finger presses.",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "tapAt": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "element"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "fly"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "to": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Element the lifted card flies into (e.g. the cart icon)."
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "to"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "badge"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "element": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "count": {
+                          "default": 1,
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "element"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "check"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "size": {
+                          "default": 150,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "camera": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "description": "Beat (relative to the block) when the move starts."
+                    },
+                    "offset": {
+                      "default": 0,
+                      "description": "Extra frames added to `at` (camera moves need not sit on the grid).",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "zoom": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 4
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "fit": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "fraction": {
+                              "default": 0.75,
+                              "type": "number",
+                              "minimum": 0.2,
+                              "maximum": 1
+                            }
+                          },
+                          "required": [
+                            "fit"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ],
+                      "description": "Zoom, or fit an element to a fraction of the frame width."
+                    },
+                    "focus": {
+                      "default": {
+                        "x": 195,
+                        "dy": 0
+                      },
+                      "type": "object",
+                      "properties": {
+                        "element": {
+                          "description": "Look at this element (of the screen currently shown).",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "x": {
+                          "default": 195,
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string",
+                              "const": "element"
+                            }
+                          ]
+                        },
+                        "y": {
+                          "description": "Phone screen y in px (default 422 = centre).",
+                          "type": "number"
+                        },
+                        "dy": {
+                          "default": 0,
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "qy": {
+                      "default": 1180,
+                      "description": "Where on the frame (px from top) the focus point sits.",
+                      "type": "number"
+                    },
+                    "spring": {
+                      "default": "soft",
+                      "type": "string",
+                      "enum": [
+                        "soft",
+                        "fast",
+                        "tap",
+                        "slow",
+                        "snap"
+                      ]
+                    },
+                    "roll": {
+                      "description": "Camera roll in degrees; omit to keep the current roll.",
+                      "type": "number"
+                    },
+                    "whoosh": {
+                      "default": false,
+                      "description": "Emit a short whoosh cue at this move.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "zoom"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "block",
+              "bars",
+              "start",
+              "steps"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "whip"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "default": 0,
+                "type": "number",
+                "const": 0
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "to": {
+                "description": "Informational: what the next screen is.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "block"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "notification"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Length in bars (4 beats each)."
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "screen": {
+                "type": "string",
+                "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "element": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Element that slides in (e.g. the new order card)."
+              },
+              "also": {
+                "default": [],
+                "description": "More elements joined with `element` into one box (e.g. its badge).",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "slideAt": {
+                "type": "number"
+              },
+              "landAt": {
+                "type": "number"
+              },
+              "banner": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "body": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "time": {
+                    "default": "now",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "camera": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "description": "Beat (relative to the block) when the move starts."
+                    },
+                    "offset": {
+                      "default": 0,
+                      "description": "Extra frames added to `at` (camera moves need not sit on the grid).",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "zoom": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 4
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "fit": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "fraction": {
+                              "default": 0.75,
+                              "type": "number",
+                              "minimum": 0.2,
+                              "maximum": 1
+                            }
+                          },
+                          "required": [
+                            "fit"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ],
+                      "description": "Zoom, or fit an element to a fraction of the frame width."
+                    },
+                    "focus": {
+                      "default": {
+                        "x": 195,
+                        "dy": 0
+                      },
+                      "type": "object",
+                      "properties": {
+                        "element": {
+                          "description": "Look at this element (of the screen currently shown).",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "x": {
+                          "default": 195,
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string",
+                              "const": "element"
+                            }
+                          ]
+                        },
+                        "y": {
+                          "description": "Phone screen y in px (default 422 = centre).",
+                          "type": "number"
+                        },
+                        "dy": {
+                          "default": 0,
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "qy": {
+                      "default": 1180,
+                      "description": "Where on the frame (px from top) the focus point sits.",
+                      "type": "number"
+                    },
+                    "spring": {
+                      "default": "soft",
+                      "type": "string",
+                      "enum": [
+                        "soft",
+                        "fast",
+                        "tap",
+                        "slow",
+                        "snap"
+                      ]
+                    },
+                    "roll": {
+                      "description": "Camera roll in degrees; omit to keep the current roll.",
+                      "type": "number"
+                    },
+                    "whoosh": {
+                      "default": false,
+                      "description": "Emit a short whoosh cue at this move.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "zoom"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "block",
+              "bars",
+              "screen",
+              "element",
+              "slideAt",
+              "landAt",
+              "banner"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "statCountUp"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Length in bars (4 beats each)."
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "screen": {
+                "type": "string",
+                "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "scroll": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "number"
+                  },
+                  "to": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to"
+                ],
+                "additionalProperties": false
+              },
+              "number": {
+                "type": "object",
+                "properties": {
+                  "element": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "from": {
+                    "default": 0,
+                    "type": "number"
+                  },
+                  "to": {
+                    "type": "number"
+                  },
+                  "prefix": {
+                    "default": "",
+                    "type": "string"
+                  },
+                  "suffix": {
+                    "default": "",
+                    "type": "string"
+                  },
+                  "thousands": {
+                    "default": ",",
+                    "type": "string"
+                  },
+                  "decimals": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "fontSize": {
+                    "default": 46,
+                    "type": "number"
+                  },
+                  "weight": {
+                    "default": 500,
+                    "type": "number"
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "startAt": {
+                    "type": "number"
+                  },
+                  "doneAt": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "element",
+                  "to",
+                  "startAt",
+                  "doneAt"
+                ],
+                "additionalProperties": false
+              },
+              "card": {
+                "description": "Element ringed when the count finishes.",
+                "type": "string"
+              },
+              "chart": {
+                "description": "Bars of this element grow in.",
+                "type": "object",
+                "properties": {
+                  "element": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "at": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "element",
+                  "at"
+                ],
+                "additionalProperties": false
+              },
+              "camera": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "description": "Beat (relative to the block) when the move starts."
+                    },
+                    "offset": {
+                      "default": 0,
+                      "description": "Extra frames added to `at` (camera moves need not sit on the grid).",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "zoom": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 4
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "fit": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "fraction": {
+                              "default": 0.75,
+                              "type": "number",
+                              "minimum": 0.2,
+                              "maximum": 1
+                            }
+                          },
+                          "required": [
+                            "fit"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ],
+                      "description": "Zoom, or fit an element to a fraction of the frame width."
+                    },
+                    "focus": {
+                      "default": {
+                        "x": 195,
+                        "dy": 0
+                      },
+                      "type": "object",
+                      "properties": {
+                        "element": {
+                          "description": "Look at this element (of the screen currently shown).",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "x": {
+                          "default": 195,
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string",
+                              "const": "element"
+                            }
+                          ]
+                        },
+                        "y": {
+                          "description": "Phone screen y in px (default 422 = centre).",
+                          "type": "number"
+                        },
+                        "dy": {
+                          "default": 0,
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "qy": {
+                      "default": 1180,
+                      "description": "Where on the frame (px from top) the focus point sits.",
+                      "type": "number"
+                    },
+                    "spring": {
+                      "default": "soft",
+                      "type": "string",
+                      "enum": [
+                        "soft",
+                        "fast",
+                        "tap",
+                        "slow",
+                        "snap"
+                      ]
+                    },
+                    "roll": {
+                      "description": "Camera roll in degrees; omit to keep the current roll.",
+                      "type": "number"
+                    },
+                    "whoosh": {
+                      "default": false,
+                      "description": "Emit a short whoosh cue at this move.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "zoom"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "block",
+              "bars",
+              "screen",
+              "scroll",
+              "number"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "skins"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Length in bars (4 beats each)."
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "variants": {
+                "minItems": 2,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "screen": {
+                      "type": "string",
+                      "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+                    },
+                    "scroll": {
+                      "default": 0,
+                      "type": "number"
+                    },
+                    "sticky": {
+                      "default": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "screen"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "every": {
+                "default": 2,
+                "description": "Beats between two variants.",
+                "type": "number"
+              },
+              "title": {
+                "description": "Colours follow the current variant.",
+                "type": "object",
+                "properties": {
+                  "lines": {
+                    "minItems": 1,
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                  },
+                  "at": {
+                    "default": 0,
+                    "description": "Beat (relative to the block) when it enters.",
+                    "type": "number"
+                  },
+                  "to": {
+                    "description": "Beat when it leaves; default: never (until the block ends).",
+                    "type": "number"
+                  },
+                  "y": {
+                    "description": "Top of the text in px (default 270, inside the safe zone).",
+                    "type": "number"
+                  },
+                  "size": {
+                    "default": 120,
+                    "type": "number",
+                    "minimum": 60,
+                    "maximum": 220
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "accent": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "scrim": {
+                    "default": false,
+                    "description": "Soft gradient behind the text; true uses the paper colour.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "lines"
+                ],
+                "additionalProperties": false
+              },
+              "camera": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "description": "Beat (relative to the block) when the move starts."
+                    },
+                    "offset": {
+                      "default": 0,
+                      "description": "Extra frames added to `at` (camera moves need not sit on the grid).",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "zoom": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 4
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "fit": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "fraction": {
+                              "default": 0.75,
+                              "type": "number",
+                              "minimum": 0.2,
+                              "maximum": 1
+                            }
+                          },
+                          "required": [
+                            "fit"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ],
+                      "description": "Zoom, or fit an element to a fraction of the frame width."
+                    },
+                    "focus": {
+                      "default": {
+                        "x": 195,
+                        "dy": 0
+                      },
+                      "type": "object",
+                      "properties": {
+                        "element": {
+                          "description": "Look at this element (of the screen currently shown).",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "x": {
+                          "default": 195,
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string",
+                              "const": "element"
+                            }
+                          ]
+                        },
+                        "y": {
+                          "description": "Phone screen y in px (default 422 = centre).",
+                          "type": "number"
+                        },
+                        "dy": {
+                          "default": 0,
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "qy": {
+                      "default": 1180,
+                      "description": "Where on the frame (px from top) the focus point sits.",
+                      "type": "number"
+                    },
+                    "spring": {
+                      "default": "soft",
+                      "type": "string",
+                      "enum": [
+                        "soft",
+                        "fast",
+                        "tap",
+                        "slow",
+                        "snap"
+                      ]
+                    },
+                    "roll": {
+                      "description": "Camera roll in degrees; omit to keep the current roll.",
+                      "type": "number"
+                    },
+                    "whoosh": {
+                      "default": false,
+                      "description": "Emit a short whoosh cue at this move.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "zoom"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "block",
+              "bars",
+              "variants"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "block": {
+                "type": "string",
+                "const": "endCard"
+              },
+              "id": {
+                "description": "Name used in cue names and error messages (default: block name + index).",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "bars": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Length in bars (4 beats each)."
+              },
+              "titles": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lines": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    },
+                    "at": {
+                      "default": 0,
+                      "description": "Beat (relative to the block) when it enters.",
+                      "type": "number"
+                    },
+                    "to": {
+                      "description": "Beat when it leaves; default: never (until the block ends).",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Top of the text in px (default 270, inside the safe zone).",
+                      "type": "number"
+                    },
+                    "size": {
+                      "default": 120,
+                      "type": "number",
+                      "minimum": 60,
+                      "maximum": 220
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                    },
+                    "scrim": {
+                      "default": false,
+                      "description": "Soft gradient behind the text; true uses the paper colour.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lines"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "screen": {
+                "type": "string",
+                "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "scroll": {
+                "default": 0,
+                "type": "number"
+              },
+              "title": {
+                "description": "Line under the phone, e.g. the promise.",
+                "type": "object",
+                "properties": {
+                  "lines": {
+                    "minItems": 1,
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                  },
+                  "at": {
+                    "default": 0,
+                    "description": "Beat (relative to the block) when it enters.",
+                    "type": "number"
+                  },
+                  "to": {
+                    "description": "Beat when it leaves; default: never (until the block ends).",
+                    "type": "number"
+                  },
+                  "y": {
+                    "description": "Top of the text in px (default 270, inside the safe zone).",
+                    "type": "number"
+                  },
+                  "size": {
+                    "default": 120,
+                    "type": "number",
+                    "minimum": 60,
+                    "maximum": 220
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "accent": {
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  },
+                  "scrim": {
+                    "default": false,
+                    "description": "Soft gradient behind the text; true uses the paper colour.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "lines"
+                ],
+                "additionalProperties": false
+              },
+              "mark": {
+                "default": "monogram",
+                "type": "string",
+                "enum": [
+                  "storefront",
+                  "monogram",
+                  "none"
+                ]
+              },
+              "lockupAt": {
+                "default": 4,
+                "type": "number"
+              },
+              "contactAt": {
+                "default": 5,
+                "type": "number"
+              },
+              "hitAt": {
+                "default": 6,
+                "type": "number"
+              }
+            },
+            "required": [
+              "block",
+              "bars",
+              "screen"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "sound": {
+      "default": {
+        "key": "C",
+        "progression": [
+          "C",
+          "F",
+          "Am",
+          "G"
+        ],
+        "chords": {},
+        "motif": {
+          "notes": [
+            [
+              0,
+              67,
+              0.75
+            ],
+            [
+              0.75,
+              72,
+              0.25
+            ],
+            [
+              1,
+              76,
+              0.75
+            ],
+            [
+              1.75,
+              74,
+              0.25
+            ]
+          ],
+          "ding": 84
+        },
+        "sfx": {},
+        "seed": 21,
+        "loudness": {
+          "lufs": -14,
+          "truePeak": -1.5
+        }
+      },
+      "type": "object",
+      "properties": {
+        "key": {
+          "default": "C",
+          "description": "Tonic note name, e.g. C, F#, Bb.",
+          "type": "string"
+        },
+        "progression": {
+          "default": [
+            "C",
+            "F",
+            "Am",
+            "G"
+          ],
+          "description": "Chord names looped over the groove bars (C, Am, G7, Fmaj7, ...).",
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "chords": {
+          "default": {},
+          "description": "Per-bar overrides: bar number (1-based) to chord name.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "motif": {
+          "default": {
+            "notes": [
+              [
+                0,
+                67,
+                0.75
+              ],
+              [
+                0.75,
+                72,
+                0.25
+              ],
+              [
+                1,
+                76,
+                0.75
+              ],
+              [
+                1.75,
+                74,
+                0.25
+              ]
+            ],
+            "ding": 84
+          },
+          "type": "object",
+          "properties": {
+            "notes": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 24,
+                    "maximum": 100
+                  },
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "description": "[beat, midi note, length in beats]"
+            },
+            "ding": {
+              "default": 84,
+              "description": "Midi note of the final bell, or false.",
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 60,
+                  "maximum": 108
+                },
+                {
+                  "type": "boolean",
+                  "const": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "notes"
+          ],
+          "additionalProperties": false
+        },
+        "sfx": {
+          "default": {},
+          "description": "Overrides keyed by cue name (block:cue) or by cue role.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "mute": {
+                "type": "boolean"
+              },
+              "sound": {
+                "description": "SFX name from the palette (tap, pop, swap, shimmer, bag_swish, payment_ding, order_bell, receipt_chatter, whoosh, rise).",
+                "type": "string"
+              },
+              "gain": {
+                "description": "dB",
+                "type": "number"
+              },
+              "duck": {
+                "description": "dB the music dips for 150 ms",
+                "type": "number"
+              },
+              "pan": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "seed": {
+          "default": 21,
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "loudness": {
+          "default": {
+            "lufs": -14,
+            "truePeak": -1.5
+          },
+          "type": "object",
+          "properties": {
+            "lufs": {
+              "default": -14,
+              "type": "number"
+            },
+            "truePeak": {
+              "default": -1.5,
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "default": {
+        "file": "out/ad.mp4",
+        "crf": 18
+      },
+      "type": "object",
+      "properties": {
+        "file": {
+          "default": "out/ad.mp4",
+          "type": "string"
+        },
+        "crf": {
+          "default": 18,
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 30
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "brand",
+    "capture",
+    "scenes"
+  ],
+  "additionalProperties": false
+}

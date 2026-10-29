@@ -1,0 +1,9 @@
+node_modules/
+.adkit/
+out/
+audio/.venv/
+__pycache__/
+*.tmp
+.DS_Store
+examples/*/out/
+examples/*/.adkit/
