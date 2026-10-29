@@ -50,7 +50,11 @@ function appFingerprint(dir: string): string {
   try { isRepo = git(dir, ['rev-parse', '--is-inside-work-tree']).trim() === 'true'; } catch { /* not a repo */ }
   if (isRepo) {
     const excl = [...SKIP_DIRS].map((d) => `:(exclude,glob)**/${d}/**`).concat([...SKIP_DIRS].map((d) => `:(exclude)${d}`));
-    h.update(`head:${git(dir, ['rev-parse', 'HEAD']).trim()}\0`);
+    // Committed content of the app folder only (blob ids of its files), not the repo HEAD:
+    // a commit elsewhere in the same repo (docs, this very ad) must not invalidate the captures.
+    const tracked = git(dir, ['ls-tree', '-r', '-z', 'HEAD', '--', '.']).split('\0').filter(Boolean)
+      .filter((l) => !l.slice(l.indexOf('\t') + 1).split('/').some((p) => SKIP_DIRS.has(p)));
+    h.update(`tree:${tracked.join('\n')}\0`);
     h.update(git(dir, ['diff', 'HEAD', '--', '.', ...excl]));
     const untracked = git(dir, ['ls-files', '--others', '--exclude-standard', '-z', '--', '.']).split('\0').filter(Boolean)
       .filter((f) => !f.split('/').some((p) => SKIP_DIRS.has(p))).sort();
