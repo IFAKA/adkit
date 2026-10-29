@@ -1,10 +1,26 @@
-# adkit
+# adkit: product ad video generator from one YAML file
 
-Make professional motion-design product ad videos (vertical 1080x1920, 30 fps, with sound) for any web app from **one spec file**, `ad.yaml`.
+**Make professional motion-design app ad videos (vertical 9:16, 1080x1920, with original music and sound effects) from a single `ad.yaml`. Built for AI agents like Claude Code, and for humans.**
 
-A deterministic engine does the repeated work: it photographs your app, places every cue on a beat grid, moves a phone and camera across scenes, renders, synthesises the music and sound effects, and checks the result. A human or an AI agent only writes the creative parts: the story, the copy and the brand.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Node 20+](https://img.shields.io/badge/node-20%2B-brightgreen)
+![Remotion](https://img.shields.io/badge/built%20on-Remotion-0b84f3)
 
-![preview](docs/preview.gif)
+[![adkit preview: phone app ad with kinetic titles](docs/poster.png)](docs/preview.mp4)
+
+*Click the image to play the 7 s preview. The full 30 s example is `examples/horno-lento`.*
+
+adkit turns a running web app into a finished Instagram Reels / TikTok / App Store style ad: a 3D phone, camera moves, kinetic titles, real screenshots of your app, tuned sound design and a loudness-mastered mix (-14 LUFS).
+
+## Why adkit
+
+- **One spec file.** You (or an AI agent) write the story, copy and brand. The engine does everything repetitive.
+- **Deterministic.** The same spec and the same captures give the same frames and the same audio. No stock music or samples: all sound is synthesised, so there is nothing to license.
+- **Fast.** Content-hash caching: nothing changed re-runs in under 1 s; editing one scene re-renders only that scene; `--draft` renders half size in about 35 s.
+- **Checked automatically.** Frame count, beat-grid timing, loudness and true peak, Instagram safe zones, title size and capture files.
+- **Made for AI agents.** Ships a `product-ad` skill (`skills/product-ad/SKILL.md`) that says what the agent must decide and what the engine already does.
+
+**Keywords:** product video, app promo video, motion graphics, Remotion, Playwright, programmatic video, AI video generation, Claude Code skill, Reels, TikTok, App Store preview.
 
 ## Install
 
