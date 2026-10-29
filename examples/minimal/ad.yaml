@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=../../schema/ad.schema.json
+# Minimal example: a 15 s ad (7.5 bars at 120 BPM) for the demo page in site/.
+meta: {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 7.5}
+
+brief:
+  audience: Coffee lovers who want fresh beans without leaving the house.
+  message: "Order in two taps. Fresh coffee at your door."
+  language: en
+  tone: warm, quick, confident
+
+brand:
+  name: Lumen Coffee
+  contact: "lumen.coffee"
+  colors: {paper: "#FAF5EE", paperDeep: "#F0E4D4", ink: "#2A211B", glow: "#FFD9B0", accent: "#B4532A", night: "#14181F"}
+  fonts: {sans: Inter, serif: InstrumentSerif, mark: Fraunces}
+  icon: {text: L, color: "#B4532A", textColor: "#FFF3E6"}
+
+capture: capture.yaml
+
+scenes:
+  - block: reveal
+    bars: 1.5
+    screen: home
+    open: rise
+    titles:
+      - {lines: ["Fresh coffee,", "*two taps* away."], at: 1, to: 5.5, size: 112}
+
+  - block: tapFlow
+    id: order
+    bars: 3
+    start: {screen: home}
+    titles:
+      - {lines: ["Pick a *bag.*"], at: 1, to: 5, size: 120, scrim: true}
+      - {lines: ["Pay *once.*"], at: 7, to: 10.5, size: 120, scrim: true}
+    steps:
+      - {type: screen, at: 0.5, screen: shop, sticky: 117}
+      - {type: lift, at: 2.5, element: productCard, tap: addButton, tapAt: 3}
+      - {type: fly, at: 4, to: cartIcon}
+      - {type: badge, at: 5, element: cartIcon, count: 1}
+      - {type: screen, at: 6, screen: checkout}
+      - {type: tap, at: 8, element: timeChip}
+      - {type: tap, at: 9.5, element: payButton, radius: 28, press: true}
+      - {type: check, at: 10.5}
+      - {type: screen, at: 11, screen: thanks}
+    camera:
+      - {at: 2, zoom: 1.7, focus: {element: productCard}, qy: 1200, spring: fast, whoosh: true}
+      - {at: 5, zoom: 1.4, focus: {y: 230}, qy: 1150}
+      - {at: 7.5, zoom: 1.8, focus: {element: payButton}, qy: 1180, spring: fast, whoosh: true}
+      - {at: 11, zoom: 1.3, focus: {y: 300}, qy: 1150}
+
+  - block: skins
+    bars: 1.5
+    every: 2
+    variants:
+      - {screen: home}
+      - {screen: sage/home}
+      - {screen: plum/home}
+    title: {lines: ["Your *colors.*"], at: 1, to: 5.5, size: 120, scrim: true}
+
+  - block: endCard
+    bars: 1.5
+    screen: home
+    mark: monogram
+    title: {lines: ["Fresh in *48_hours.*"], at: 0, y: 585, size: 100}
+    lockupAt: 2
+    contactAt: 3
+    hitAt: 4
+
+sound:
+  key: A
+  progression: [Am, F, C, G]
+  chords: {}
+  motif:
+    notes: [[0, 69, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]]
+    ding: 81
+
+output: {file: out/lumen.mp4, crf: 18}

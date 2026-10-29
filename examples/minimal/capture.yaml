@@ -1,0 +1,54 @@
+# Photograph the tiny demo page in site/ (a static server, no build step).
+app:
+  dir: site
+  isolate: inplace
+  start: node server.mjs {port}
+  ready: {path: /, timeoutSeconds: 20}
+
+viewport: {width: 390, height: 844, scale: 3}
+locale: en-US
+timezone: UTC
+clock: '2026-03-10T10:00:00Z'
+inputs: [site]
+
+sets:
+  main:
+    screens:
+      - &home
+        name: home
+        steps: [{goto: /}]
+        elements:
+          hero: '#hero'
+      - &shop
+        name: shop
+        steps: [{goto: /}]
+        scroll: {to: '#p1', offset: 190}
+        elements:
+          productCard: '#p1'
+          addButton: '#add1'
+          cartIcon: {selector: '#cart', fixed: true}
+      - name: checkout
+        steps: [{goto: /checkout}]
+        elements:
+          dayChip: '#mon'
+          timeChip: '#morning'
+          payButton: '#pay'
+          cartIcon: {selector: '#cart', fixed: true}
+      - name: thanks
+        steps: [{goto: /thanks}]
+
+  sage:
+    extends: main
+    env: {THEME: sage}
+    theme: {bg: '#f1f5ee', fg: '#1f2d22', accent: '#3f7a4f'}
+    screens: [*home]
+  plum:
+    extends: main
+    env: {THEME: plum}
+    theme: {bg: '#f8f1f6', fg: '#2c1a29', accent: '#7b2d6e'}
+    screens: [*home]
+  ink:
+    extends: main
+    env: {THEME: ink}
+    theme: {bg: '#14181f', fg: '#f2ede4', accent: '#e8a33d'}
+    screens: [*home]
