@@ -103,6 +103,7 @@ export const Capture = z.object({
   }).strict(),
   viewport: z.object({width: z.number().int().default(390), height: z.number().int().default(844), scale: z.number().int().min(1).max(4).default(3)}).strict().default({width: 390, height: 844, scale: 3}),
   locale: z.string().default('en-US'),
+  geolocation: z.object({latitude: z.number(), longitude: z.number()}).optional(),
   timezone: z.string().default('UTC'),
   clock: z.string().optional().describe('ISO time to freeze the browser clock at, so dates in screenshots are stable.'),
   inputs: z.array(z.string()).default([]).describe('Files or folders (relative to the spec) that change what the app shows; hashed into the capture cache key.'),

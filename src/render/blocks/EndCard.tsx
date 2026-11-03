@@ -52,6 +52,7 @@ export const EndLockup: React.FC<{m: Model}> = ({m}) => {
   const sweep = ramp(f, hitAt, hitAt + 18);
   const pulse = f >= hitAt ? 1 + 0.045 * (1 - Math.min(1, hit)) * Math.sin(Math.min(1, hit) * Math.PI) + 0.03 * (1 - clamp01(ramp(f, hitAt, hitAt + 12))) : 1;
   const words = brand.name.split(' ');
+  const nameSize = Math.min(146, Math.floor(920 / (brand.name.length * 0.6))); // long names shrink to fit 1080 px
   const bi = brand.icon;
   return (
     <>
@@ -63,7 +64,7 @@ export const EndLockup: React.FC<{m: Model}> = ({m}) => {
               <AppIconFace icon={{text: bi.text, color: bi.color, textColor: bi.textColor}} mono={150 / 84} />
             </div>
           )}
-          <div style={{marginTop: 14, fontFamily: sans, fontWeight: 800, fontSize: 146, lineHeight: 1, letterSpacing: '-0.055em', color: brand.colors.ink, display: 'flex', gap: 30}}>
+          <div style={{marginTop: 14, fontFamily: sans, fontWeight: 800, fontSize: nameSize, lineHeight: 1, letterSpacing: '-0.055em', color: brand.colors.ink, display: 'flex', gap: Math.round(nameSize * 0.2)}}>
             {words.map((w, i) => {
               const p = clamp01(spr(f, lockup + 2 + i * 3, BOUNCY));
               return <span key={i} style={{display: 'inline-block', opacity: clamp01(p * 2), transform: `translateY(${(1 - p) * 60}px) scale(${0.9 + 0.1 * p})`, filter: p < 1 ? `blur(${(1 - p) * 8}px)` : undefined}}>{w}</span>;

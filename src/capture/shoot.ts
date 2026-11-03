@@ -50,6 +50,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
     const context = await browser.newContext({
       viewport: {width: W, height: H}, deviceScaleFactor: SCALE, isMobile: true, hasTouch: true,
       locale: cap.locale, timezoneId: cap.timezone, reducedMotion: 'no-preference',
+      ...(cap.geolocation ? {geolocation: cap.geolocation, permissions: ['geolocation']} : {}),
     });
     if (cap.clock) {
       // Move the page's Date to the chosen time and let it run on from there. (Playwright's own fake clock freezes
