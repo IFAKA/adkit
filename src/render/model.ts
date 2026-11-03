@@ -196,7 +196,7 @@ export function buildModel(props: RenderProps): Model {
               else if (st.scroll) target = scrollFor(ref, st.scroll.element, st.scroll.y);
               const nxt = nextScreenAt(f);
               const animate = s.steps.some((x) => x.type === 'lift' && stepF(x) > f && stepF(x) < nxt);
-              cur = pushLayer(b, f, true, ref, !target ? [[0, 0]] : animate ? [[0, 0], [f + 6, target, SLOW]] : [[0, target]], st.sticky ?? 0);
+              cur = pushLayer(b, f, st.slide, ref, !target ? [[0, 0]] : animate ? [[0, 0], [f + 6, target, SLOW]] : [[0, target]], st.sticky ?? 0);
               break;
             }
             case 'tap': {

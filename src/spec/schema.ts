@@ -104,6 +104,7 @@ export const Capture = z.object({
   viewport: z.object({width: z.number().int().default(390), height: z.number().int().default(844), scale: z.number().int().min(1).max(4).default(3)}).strict().default({width: 390, height: 844, scale: 3}),
   locale: z.string().default('en-US'),
   geolocation: z.object({latitude: z.number(), longitude: z.number()}).optional(),
+  safeArea: z.object({top: z.number().default(0), bottom: z.number().default(0)}).strict().optional().describe('Phone safe-area insets in px (env(safe-area-inset-*)), e.g. {top: 47, bottom: 34} for a notch phone, so apps leave room for the home indicator like on a real device.'),
   timezone: z.string().default('UTC'),
   clock: z.string().optional().describe('ISO time to freeze the browser clock at, so dates in screenshots are stable.'),
   inputs: z.array(z.string()).default([]).describe('Files or folders (relative to the spec) that change what the app shows; hashed into the capture cache key.'),
@@ -170,7 +171,7 @@ export const CameraKey = z.object({
 const Cam = z.array(CameraKey).default([]);
 
 const TapFlowStep = z.discriminatedUnion('type', [
-  z.object({type: z.literal('screen'), at: posBeat, screen: ScreenRef, scroll: z.union([z.number(), z.object({element: str, y: z.number()}).strict()]).optional().describe('Scroll in px, or bring an element to screen-y.'), sticky: z.number().optional().describe('Pin the top N px (header) while scrolled.')}).strict(),
+  z.object({type: z.literal('screen'), at: posBeat, screen: ScreenRef, slide: z.boolean().default(true).describe('false = hard cut (what a tab switch in a real app does) instead of a slide-in.'), scroll: z.union([z.number(), z.object({element: str, y: z.number()}).strict()]).optional().describe('Scroll in px, or bring an element to screen-y.'), sticky: z.number().optional().describe('Pin the top N px (header) while scrolled.')}).strict(),
   z.object({type: z.literal('tap'), at: posBeat, element: str, x: z.number().min(0).max(1).default(0.5).describe('Where along the element width the finger lands.'), radius: z.number().default(16), press: z.boolean().default(false).describe('Pop the element out and press it.'), highlight: z.boolean().default(true), pan: z.number().optional()}).strict(),
   z.object({type: z.literal('lift'), at: posBeat, element: str, tap: str.optional().describe('Element of the lifted card the finger presses.'), tapAt: posBeat.optional()}).strict(),
   z.object({type: z.literal('fly'), at: posBeat, to: str.describe('Element the lifted card flies into (e.g. the cart icon).')}).strict(),

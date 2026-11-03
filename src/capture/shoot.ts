@@ -71,6 +71,10 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = css; document.head.append(s); });
     })();`});
     const page = await context.newPage();
+    if (cap.safeArea) {
+      const cdp = await context.newCDPSession(page);
+      await cdp.send('Emulation.setSafeAreaInsetsOverride' as never, {insets: {top: cap.safeArea.top, bottom: cap.safeArea.bottom, left: 0, right: 0}} as never);
+    }
     page.on('pageerror', (e) => o.detail(`page error: ${e.message}`));
 
     const settle = async (extra: number) => {

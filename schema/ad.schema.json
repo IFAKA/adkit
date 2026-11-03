@@ -316,6 +316,36 @@
           "default": "en-US",
           "type": "string"
         },
+        "geolocation": {
+          "type": "object",
+          "properties": {
+            "latitude": {
+              "type": "number"
+            },
+            "longitude": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "latitude",
+            "longitude"
+          ]
+        },
+        "safeArea": {
+          "description": "Phone safe-area insets in px (env(safe-area-inset-*)), e.g. {top: 47, bottom: 34} for a notch phone, so apps leave room for the home indicator like on a real device.",
+          "type": "object",
+          "properties": {
+            "top": {
+              "default": 0,
+              "type": "number"
+            },
+            "bottom": {
+              "default": 0,
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
         "timezone": {
           "default": "UTC",
           "type": "string"
@@ -770,6 +800,14 @@
                   "additionalProperties": false
                 }
               },
+              "pings": {
+                "default": [],
+                "description": "More ping sounds (beats) that have no bubble.",
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
               "counter": {
                 "default": {
                   "start": 3,
@@ -1210,6 +1248,11 @@
                         "screen": {
                           "type": "string",
                           "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+                        },
+                        "slide": {
+                          "default": true,
+                          "description": "false = hard cut (what a tab switch in a real app does) instead of a slide-in.",
+                          "type": "boolean"
                         },
                         "scroll": {
                           "description": "Scroll in px, or bring an element to screen-y.",
