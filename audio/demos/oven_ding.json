@@ -1,0 +1,9 @@
+{
+  "meaning": "Oven timer ding of the bakery: the loaf is ready, a small bell rung once and left to ring out",
+  "seed": 4,
+  "layers": [
+    {"model": "modal", "preset": "handbell", "note": "C6", "at": 0.0, "gain": -5, "params": {"decay": 2.6, "beat_hz": 1.8}},
+    {"model": "fm", "preset": "fm_bell", "note": "C6", "at": 0.0, "gain": -22, "params": {"dur": 0.1}}
+  ],
+  "fx": [{"type": "reverb", "rt60": 1.6, "wet": 0.18, "damp_hz": 7000}]
+}

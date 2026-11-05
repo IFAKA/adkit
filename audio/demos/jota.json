@@ -1,0 +1,426 @@
+{
+ "bpm": 172,
+ "meter": {
+  "beats": 3,
+  "unit": 4
+ },
+ "swing": 0,
+ "key": "D minor",
+ "seed": 11,
+ "instruments": {
+  "bandurria": {
+   "model": "pluck",
+   "preset": "bandurria",
+   "octave": 5,
+   "gain": -8,
+   "pan": -0.25,
+   "humanize": {
+    "timing_ms": 5,
+    "velocity": 0.06
+   },
+   "params": {
+    "decay": 0.9
+   },
+   "fx": [
+    {
+     "type": "reverb",
+     "rt60": 0.9,
+     "wet": 0.12
+    }
+   ]
+  },
+  "guitar": {
+   "model": "pluck",
+   "preset": "guitar",
+   "octave": 3,
+   "gain": -9,
+   "pan": 0.25,
+   "humanize": {
+    "timing_ms": 8,
+    "velocity": 0.08
+   },
+   "params": {
+    "decay": 1.4
+   },
+   "fx": [
+    {
+     "type": "reverb",
+     "rt60": 0.9,
+     "wet": 0.1
+    }
+   ]
+  },
+  "bass": {
+   "model": "pluck",
+   "preset": "bass",
+   "octave": 2,
+   "gain": -15,
+   "pan": 0,
+   "params": {
+    "decay": 0.9
+   }
+  },
+  "palmas": {
+   "model": "drums",
+   "gain": -10,
+   "pan": 0.1,
+   "humanize": {
+    "timing_ms": 5,
+    "velocity": 0.1
+   },
+   "variations": 4
+  },
+  "castanets": {
+   "model": "drums",
+   "gain": -10,
+   "pan": -0.3,
+   "humanize": {
+    "timing_ms": 4,
+    "velocity": 0.1
+   },
+   "variations": 4
+  }
+ },
+ "patterns": {
+  "motif": {
+   "bars": 1,
+   "notes": [
+    [
+     0,
+     5,
+     0.5,
+     0.95
+    ],
+    [
+     0.5,
+     6,
+     0.5,
+     0.75
+    ],
+    [
+     1,
+     8,
+     1,
+     0.85
+    ],
+    [
+     2,
+     7,
+     1,
+     0.7
+    ]
+   ]
+  },
+  "melody_b": {
+   "bars": 2,
+   "notes": [
+    [
+     0,
+     8,
+     0.5,
+     0.9
+    ],
+    [
+     0.5,
+     9,
+     0.5,
+     0.7
+    ],
+    [
+     1,
+     8,
+     0.5,
+     0.75
+    ],
+    [
+     1.5,
+     7,
+     0.5,
+     0.7
+    ],
+    [
+     2,
+     5,
+     1,
+     0.8
+    ],
+    [
+     3,
+     6,
+     0.5,
+     0.85
+    ],
+    [
+     3.5,
+     5,
+     0.5,
+     0.7
+    ],
+    [
+     4,
+     3,
+     1,
+     0.8
+    ],
+    [
+     5,
+     1,
+     1,
+     0.9
+    ]
+   ]
+  },
+  "tremolo": {
+   "bars": 1,
+   "notes": [
+    [
+     0,
+     5,
+     3,
+     0.7
+    ]
+   ],
+   "params": {
+    "tremolo_hz": 13
+   }
+  },
+  "rasgueo": {
+   "bars": 1,
+   "notes": [
+    [
+     0,
+     "c1",
+     0.5,
+     0.9
+    ],
+    [
+     0,
+     "c3",
+     0.5,
+     0.8
+    ],
+    [
+     0,
+     "c2+",
+     0.5,
+     0.7
+    ],
+    [
+     1,
+     "c3",
+     0.5,
+     0.55
+    ],
+    [
+     1,
+     "c2+",
+     0.5,
+     0.5
+    ],
+    [
+     2,
+     "c3",
+     0.5,
+     0.6
+    ],
+    [
+     2,
+     "c2+",
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  "bass_oom": {
+   "bars": 1,
+   "notes": [
+    [
+     0,
+     "c1",
+     0.9,
+     0.95
+    ],
+    [
+     2,
+     "c3",
+     0.5,
+     0.7
+    ]
+   ]
+  },
+  "palmas_3": {
+   "bars": 1,
+   "hits": [
+    [
+     0,
+     "palmas",
+     1.0
+    ],
+    [
+     1,
+     "palmas_sorda",
+     0.55
+    ],
+    [
+     2,
+     "palmas_sorda",
+     0.6
+    ],
+    [
+     2.5,
+     "palmas_sorda",
+     0.4
+    ]
+   ]
+  },
+  "cast_3": {
+   "bars": 1,
+   "hits": [
+    [
+     0,
+     "castanets",
+     0.9
+    ],
+    [
+     1,
+     "castanets",
+     0.5
+    ],
+    [
+     1.5,
+     "castanets",
+     0.35
+    ],
+    [
+     2,
+     "castanets",
+     0.6
+    ],
+    [
+     2.5,
+     "castanets_roll",
+     0.5
+    ]
+   ]
+  },
+  "motif_end": {
+   "bars": 1,
+   "notes": [
+    [
+     0,
+     5,
+     0.5,
+     0.9
+    ],
+    [
+     0.5,
+     3,
+     0.5,
+     0.7
+    ],
+    [
+     1,
+     1,
+     2,
+     0.9
+    ]
+   ]
+  }
+ },
+ "sections": [
+  {
+   "name": "intro",
+   "bars": 2,
+   "mood": "dry, from far away: a lone bandurria and hand claps",
+   "chords": [
+    "Dm"
+   ],
+   "tracks": {
+    "bandurria": "tremolo",
+    "palmas": "palmas_3"
+   },
+   "automation": {
+    "bandurria": {
+     "gain": [
+      [
+       0,
+       -14
+      ],
+      [
+       2,
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "A",
+   "bars": 4,
+   "mood": "bright, spinning, the jota turns",
+   "chords": [
+    "Dm",
+    "Dm",
+    "A7",
+    "Dm"
+   ],
+   "tracks": {
+    "bandurria": [
+     "motif",
+     "motif",
+     "motif",
+     "motif_end"
+    ],
+    "guitar": "rasgueo",
+    "bass": "bass_oom",
+    "palmas": "palmas_3",
+    "castanets": "cast_3"
+   }
+  },
+  {
+   "name": "B",
+   "bars": 2,
+   "mood": "answer, higher",
+   "chords": [
+    "Gm",
+    "A7"
+   ],
+   "tracks": {
+    "bandurria": "melody_b",
+    "guitar": "rasgueo",
+    "bass": "bass_oom",
+    "palmas": "palmas_3",
+    "castanets": "cast_3"
+   },
+   "automation": {
+    "master": {
+     "gain": [
+      [
+       0,
+       0
+      ],
+      [
+       2,
+       -3
+      ]
+     ]
+    }
+   }
+  }
+ ],
+ "master": {
+  "fx": [
+   {
+    "type": "saturate",
+    "drive": 0.15,
+    "mix": 0.4
+   },
+   {
+    "type": "reverb",
+    "rt60": 0.8,
+    "wet": 0.07
+   }
+  ],
+  "gain": 7
+ }
+}

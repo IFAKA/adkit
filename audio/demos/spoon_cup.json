@@ -1,0 +1,10 @@
+{
+  "meaning": "Spoon tapped on a ceramic coffee cup: the bakery ad's tap sound, a small warm clink for button presses",
+  "seed": 2,
+  "layers": [
+    {"model": "modal", "preset": "ceramic_cup", "note": "D7", "at": 0.0, "gain": -4, "params": {"decay": 0.28, "strike_pos": 0.15}},
+    {"model": "modal", "preset": "metal_bar", "note": "A7", "at": 0.0, "gain": -16, "params": {"decay": 0.08, "hardness": 1}},
+    {"model": "paper", "at": 0.0, "gain": -34, "params": {"dur": 0.05, "density": 20}}
+  ],
+  "fx": [{"type": "reverb", "rt60": 0.35, "wet": 0.1}]
+}

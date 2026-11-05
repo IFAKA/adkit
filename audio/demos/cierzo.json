@@ -1,0 +1,8 @@
+{
+  "meaning": "Cierzo, the cold dry north wind of Zaragoza: the app shows the weather and the wind makes the map screen feel outdoors",
+  "seed": 8,
+  "layers": [
+    {"model": "wind", "at": 0, "gain": -3, "params": {"dur": 3, "strength": 0.9, "gustiness": 0.9, "gust_hz": 0.5, "centre": 500, "brightness": 0.7, "whistle": 0.35, "whistle_hz": 800}}
+  ],
+  "fx": [{"type": "widen", "amount": 0.3}]
+}

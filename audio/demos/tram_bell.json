@@ -1,0 +1,10 @@
+{
+  "meaning": "Zaragoza tram bell: the city map app shows live tram stops, so a struck brass dome bell announces the tram arriving",
+  "seed": 3,
+  "layers": [
+    {"model": "modal", "preset": "tram_bell", "note": "E6", "at": 0.0, "gain": -4, "pan": -0.1, "params": {"decay": 2.2, "strike_pos": 0.22}},
+    {"model": "modal", "preset": "tram_bell", "note": "E6", "at": 0.28, "gain": -6, "pan": 0.1, "params": {"decay": 2.4, "velocity": 0.85, "strike_pos": 0.3}},
+    {"model": "modal", "preset": "metal_bar", "note": "E5", "at": 0.0, "gain": -22, "params": {"decay": 0.5, "hardness": 1}}
+  ],
+  "fx": [{"type": "reverb", "rt60": 1.1, "wet": 0.12, "predelay_ms": 8, "damp_hz": 9000}]
+}

@@ -1,0 +1,9 @@
+{
+  "meaning": "Water drop on a fountain pin: a map pin lands on the Plaza del Pilar fountain, tuned to the key of the music",
+  "seed": 5,
+  "layers": [
+    {"model": "drop", "note": "A5", "at": 0.0, "gain": -3, "params": {"rise": 1.6, "damping": 0.6, "plink": 0.4}},
+    {"model": "drop", "note": "E6", "at": 0.11, "gain": -12, "params": {"rise": 1.2, "damping": 0.7, "velocity": 0.6}}
+  ],
+  "fx": [{"type": "reverb", "rt60": 0.7, "wet": 0.15, "damp_hz": 8000}]
+}
