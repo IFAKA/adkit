@@ -45,7 +45,7 @@ const setup = (m: Model) => {
   const fs = FONT * (c.size ?? 1);
   const items: Item[] = c.items.map((x, i) => ({at: x.at - t0, side: x.side, text: x.text, icon: x.icon, ...measure(x.text, c.look, !!x.icon, fs), i}));
   // the full pile is centred in the safe area (older items scroll off the top and fade)
-  const top = c.icon ? ICON_CLEAR : SAFE_TOP;
+  const top = c.pileTop ?? (c.icon ? ICON_CLEAR : SAFE_TOP);
   const pile = Math.min(SAFE_BOTTOM - top, items.reduce((a, j) => a + j.h * 0.8 + 6, 0) + 0.2 * Math.max(...items.map((j) => j.h)));
   const BOTTOM = Math.min(SAFE_BOTTOM, (top + SAFE_BOTTOM) / 2 + pile / 2);
   const centerCy = (top + SAFE_BOTTOM) / 2;
@@ -166,13 +166,19 @@ const Counter: React.FC<{m: Model; s: S; f: number; icon: {text: string; color: 
   const done = f >= lastA ? 1 + 0.35 * Math.exp(-(f - lastA) / 2.5) * Math.cos((f - lastA) * 1.1) : 1;
   const warm = easeInOut(ramp(f, s.E - 1, s.iEnd - 1));
   const night = m.spec.brand.colors.night;
+  const tile = m.chaos!.tile;
+  const glyph = tile ? tile.glyph : 'chat';
+  const tileColor = tile?.color ?? (glyph === 'chat' ? undefined : m.spec.brand.colors.accent);
+  const tileBg = tileColor ? `linear-gradient(160deg, ${mix(tileColor, '#FFFFFF', 0.12)}, ${mix(tileColor, '#000000', 0.12)})` : 'linear-gradient(160deg,#3CD26F,#1FA855)';
   return (
     <div style={{position: 'absolute', left: W / 2 - 42, top: cy - 42, width: 84, height: 84, transform: `translateX(${buzz}px) scale(${base * (1 + 0.07 * hit)}, ${base * (1 - 0.09 * hit)})`, transformOrigin: '50% 50%'}}>
       {s.center ? (
         <div style={{position: 'absolute', inset: 0, borderRadius: 42, background: 'radial-gradient(circle at 40% 35%, #FFFFFF, #8EC5FF 55%, #3B82F6)', opacity: 1 - easeInOut(ramp(f, s.E - 4, s.E)), boxShadow: `0 0 ${40 + 80 * hit}px rgba(120,180,255,0.8)`}} />
       ) : <div style={{position: 'absolute', inset: 0, borderRadius: lerp(24, 18.8, mm), overflow: 'hidden', boxShadow: warm > 0.3 ? '0 6px 18px rgba(90,50,10,0.35)' : '0 10px 30px rgba(0,0,0,0.4)'}}>
-        <div style={{position: 'absolute', inset: 0, background: 'linear-gradient(160deg,#3CD26F,#1FA855)', opacity: 1 - mm, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          <svg width="46" height="46" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C7 3 3 6.800 3 11.500c0 2.100.8 4 2.100 5.500L4 21l4.300-1.300c1.100.5 2.300.8 3.700.8 5 0 9-3.800 9-8.500S17 3 12 3z" /></svg>
+        <div style={{position: 'absolute', inset: 0, background: tileBg, opacity: 1 - mm, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          {glyph === 'chat' ? (
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C7 3 3 6.800 3 11.500c0 2.100.8 4 2.100 5.500L4 21l4.300-1.300c1.100.5 2.300.8 3.700.8 5 0 9-3.800 9-8.500S17 3 12 3z" /></svg>
+          ) : glyph ? <span style={{fontSize: 46, lineHeight: 1}}>{glyph}</span> : null}
         </div>
         <AppIconFace icon={icon} opacity={mm} />
       </div>}

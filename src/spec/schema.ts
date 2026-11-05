@@ -167,6 +167,7 @@ export const Title = z.object({
   color: hex.optional(),
   accent: hex.optional(),
   scrim: z.union([z.boolean(), hex]).default(false).describe('Soft gradient behind the text; true uses the paper colour.'),
+  instant: z.boolean().default(false).describe('Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.'),
 }).strict();
 
 const common = {
@@ -250,6 +251,11 @@ export const Chaos = z.object({
   into: z.enum(['icon', 'center']).default('icon').describe('icon = items fly into an icon and an iconOpen block must follow; center = items collapse to one point and a flash cuts to the next block.'),
   flyBeats: beat.default(1).describe('Beats before the end of the block when the items fly in.'),
   title: Title.optional().describe('Drawn inside the shaking scene; default colours are white and green.'),
+  pileTop: z.number().min(250).max(1200).optional().describe('Top of the pile in px. Titles sit above it: keep titles (y + their height) above this line so nothing overlaps. Default 600 with into: icon, 250 with into: center.'),
+  tile: z.object({
+    glyph: z.union([z.literal('chat'), z.string().refine((s) => graphemes(s) >= 1 && graphemes(s) <= 3, 'glyph is one emoji or at most 3 characters'), z.literal(false)]).default('chat').describe('Drawn on the tile the items fly into: "chat" = a chat bubble (default), an emoji / up to 3 characters, or false = none.'),
+    color: hex.optional().describe('Tile colour. Default: a green gradient for the chat glyph, the brand accent otherwise.'),
+  }).strict().optional().describe('The tile the items fly into (before it becomes the app icon; into: icon only).'),
 }).strict();
 
 export const IconOpen = z.object({
@@ -263,6 +269,7 @@ export const Reveal = z.object({
   block: z.literal('reveal'), ...common,
   screen: ScreenRef, scroll: z.number().default(0),
   open: z.enum(['auto', 'icon', 'rise']).default('auto').describe('icon = grows out of the app icon (after iconOpen); rise = rises into frame.'),
+  camera: Cam.describe('Replaces the default push-in. Use it to fit the whole phone (zoom below 1.1) or to centre the key UI above the bottom 400 px.'),
 }).strict();
 
 export const TapFlow = z.object({
@@ -316,6 +323,11 @@ export const EndCard = z.object({
   mark: z.enum(['storefront', 'monogram', 'none']).default('monogram'),
   note: z.string().max(60).optional().describe('A small line under the contact line (e.g. "free, no sign-up"). Kept out of the bottom 400 px.'),
   lockupAt: posBeat.default(4), contactAt: posBeat.default(5), hitAt: posBeat.default(6),
+  phone: z.object({
+    scale: z.number().min(0.4).max(1.4).default(1.1),
+    y: z.number().min(-600).max(900).default(535).describe('Phone centre offset from the frame centre, px. Default 535 puts the phone in the bottom half and crops it; about 0.8 with y 370 shows the whole phone above the bottom 400 px.'),
+    x: z.number().min(-400).max(400).default(110),
+  }).strict().default({scale: 1.1, y: 535, x: 110}).describe('Where the phone rests during the end card.'),
 }).strict();
 
 export const Block = z.discriminatedUnion('block', [Chaos, IconOpen, Reveal, TapFlow, Whip, Notification, StatCountUp, Skins, EndCard]);

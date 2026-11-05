@@ -19,10 +19,11 @@ export const phonePose = (m: Model, f: number): Pose => {
   const rEnd = rv ? rv.end : 0;
   const eStart = m.end ? m.end.start : m.plan.total;
   const k = m.bf / 15;
-  let y = track(f, [[0, BASE_Y], [eStart, 535, HEAVY]]);
+  const ep = (m.end?.spec as {phone?: {scale: number; y: number; x: number}} | undefined)?.phone ?? {scale: 1.1, y: 535, x: 110};
+  let y = track(f, [[0, BASE_Y], [eStart, ep.y, HEAVY]]);
   let rx = track(f, [[0, 5], [rEnd, 0, SOFT], [eStart, 9, HEAVY]]);
   let ry = track(f, [[0, -9], [rEnd, 0, SOFT], [eStart, -20, HEAVY]]);
-  let s = track(f, [[0, BASE_S], [eStart, 1.1, HEAVY]]);
+  let s = track(f, [[0, BASE_S], [eStart, ep.scale, HEAVY]]);
   let rz = 0;
   let x = 0;
   const z = 0;
@@ -88,7 +89,7 @@ export const phonePose = (m: Model, f: number): Pose => {
     const t = f - m.end.start;
     ry += Math.sin(t / 40) * 5;
     y += Math.sin(t / 33) * 10;
-    x = 110 + Math.sin(t / 50) * 8;
+    x = ep.x + Math.sin(t / 50) * 8;
   }
   return {x, y, z, rx, ry, rz, s};
 };
@@ -101,7 +102,7 @@ export const camera = (m: Model, f: number): Cam => {
   const val = (key: 'zoom' | 'sx' | 'sy' | 'qy') => track(f, shots.map((k) => [k.f, k[key], k.spring] as Key), CAM);
   const rv = m.reveal;
   const medAt = shots[1]?.f ?? 0;
-  const zoomBase = rv && f < medAt ? 1 + 0.12 * ramp(f, rv.start, medAt) : val('zoom');
+  const zoomBase = rv && shots.length > 1 && f < medAt && !(rv.spec as {camera: unknown[]}).camera.length ? 1 + 0.12 * ramp(f, rv.start, medAt) : val('zoom');
   const zoom = zoomBase * (1 + 0.012 * Math.sin(f / 40));
   const rollKeys: Key[] = [[0, 0], ...m.roll];
   const rot = noise2D('cr', f / 80, 2) * 0.1 + track(f, rollKeys, CAM);

@@ -765,6 +765,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -950,11 +955,51 @@
                         "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                       }
                     ]
+                  },
+                  "instant": {
+                    "default": false,
+                    "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                    "type": "boolean"
                   }
                 },
                 "required": [
                   "lines"
                 ],
+                "additionalProperties": false
+              },
+              "pileTop": {
+                "description": "Top of the pile in px. Titles sit above it: keep titles (y + their height) above this line so nothing overlaps. Default 600 with into: icon, 250 with into: center.",
+                "type": "number",
+                "minimum": 250,
+                "maximum": 1200
+              },
+              "tile": {
+                "description": "The tile the items fly into (before it becomes the app icon; into: icon only).",
+                "type": "object",
+                "properties": {
+                  "glyph": {
+                    "default": "chat",
+                    "description": "Drawn on the tile the items fly into: \"chat\" = a chat bubble (default), an emoji / up to 3 characters, or false = none.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "chat"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "boolean",
+                        "const": false
+                      }
+                    ]
+                  },
+                  "color": {
+                    "description": "Tile colour. Default: a green gradient for the chat glyph, the brand accent otherwise.",
+                    "type": "string",
+                    "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                  }
+                },
                 "additionalProperties": false
               }
             },
@@ -1037,6 +1082,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1154,6 +1204,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1179,6 +1234,121 @@
                   "icon",
                   "rise"
                 ]
+              },
+              "camera": {
+                "default": [],
+                "description": "Replaces the default push-in. Use it to fit the whole phone (zoom below 1.1) or to centre the key UI above the bottom 400 px.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "description": "Beat (relative to the block) when the move starts."
+                    },
+                    "offset": {
+                      "default": 0,
+                      "description": "Extra frames added to `at` (camera moves need not sit on the grid).",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "zoom": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 4
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "fit": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "fraction": {
+                              "default": 0.75,
+                              "type": "number",
+                              "minimum": 0.2,
+                              "maximum": 1
+                            }
+                          },
+                          "required": [
+                            "fit"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ],
+                      "description": "Zoom, or fit an element to a fraction of the frame width."
+                    },
+                    "focus": {
+                      "default": {
+                        "x": 195,
+                        "dy": 0
+                      },
+                      "type": "object",
+                      "properties": {
+                        "element": {
+                          "description": "Look at this element (of the screen currently shown).",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "x": {
+                          "default": 195,
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string",
+                              "const": "element"
+                            }
+                          ]
+                        },
+                        "y": {
+                          "description": "Phone screen y in px (default 422 = centre).",
+                          "type": "number"
+                        },
+                        "dy": {
+                          "default": 0,
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "qy": {
+                      "default": 1180,
+                      "description": "Where on the frame (px from top) the focus point sits.",
+                      "type": "number"
+                    },
+                    "spring": {
+                      "default": "soft",
+                      "type": "string",
+                      "enum": [
+                        "soft",
+                        "fast",
+                        "tap",
+                        "slow",
+                        "snap"
+                      ]
+                    },
+                    "roll": {
+                      "description": "Camera roll in degrees; omit to keep the current roll.",
+                      "type": "number"
+                    },
+                    "whoosh": {
+                      "default": false,
+                      "description": "Emit a short whoosh cue at this move.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "zoom"
+                  ],
+                  "additionalProperties": false
+                }
               }
             },
             "required": [
@@ -1260,6 +1430,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1863,6 +2038,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1953,6 +2133,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -2205,6 +2390,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -2510,6 +2700,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -2601,6 +2796,11 @@
                         "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                       }
                     ]
+                  },
+                  "instant": {
+                    "default": false,
+                    "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -2802,6 +3002,11 @@
                           "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                         }
                       ]
+                    },
+                    "instant": {
+                      "default": false,
+                      "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -2871,6 +3076,11 @@
                         "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                       }
                     ]
+                  },
+                  "instant": {
+                    "default": false,
+                    "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -2903,6 +3113,37 @@
               "hitAt": {
                 "default": 6,
                 "type": "number"
+              },
+              "phone": {
+                "default": {
+                  "scale": 1.1,
+                  "y": 535,
+                  "x": 110
+                },
+                "description": "Where the phone rests during the end card.",
+                "type": "object",
+                "properties": {
+                  "scale": {
+                    "default": 1.1,
+                    "type": "number",
+                    "minimum": 0.4,
+                    "maximum": 1.4
+                  },
+                  "y": {
+                    "default": 535,
+                    "description": "Phone centre offset from the frame centre, px. Default 535 puts the phone in the bottom half and crops it; about 0.8 with y 370 shows the whole phone above the bottom 400 px.",
+                    "type": "number",
+                    "minimum": -600,
+                    "maximum": 900
+                  },
+                  "x": {
+                    "default": 110,
+                    "type": "number",
+                    "minimum": -400,
+                    "maximum": 400
+                  }
+                },
+                "additionalProperties": false
               }
             },
             "required": [

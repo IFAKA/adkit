@@ -88,3 +88,34 @@ describe('brand icon image and end card note', () => {
     expect(AdSpec.safeParse(s).success).toBe(false);
   });
 });
+
+describe('layout options (chaos tile, pileTop, instant title, reveal camera, end card phone)', () => {
+  const spec = () => structuredClone(load('horno-lento').spec) as any;
+  it('accepts a chaos tile glyph (emoji, none, chat) and a pileTop', () => {
+    const s = spec();
+    for (const tile of [{glyph: '🔍'}, {glyph: false}, {glyph: 'chat'}, {glyph: '🌡', color: '#D92A22'}]) {
+      s.scenes[0].tile = tile;
+      s.scenes[0].pileTop = 760;
+      expect(AdSpec.safeParse(s).success, JSON.stringify(tile)).toBe(true);
+    }
+    s.scenes[0].tile = {glyph: 'toolong'};
+    expect(AdSpec.safeParse(s).success).toBe(false);
+  });
+  it('accepts an instant title, and rejects an unknown title key', () => {
+    const s = spec();
+    s.scenes[0].titles = [{lines: ['Hola'], instant: true}];
+    expect(AdSpec.safeParse(s).success).toBe(true);
+    s.scenes[0].titles = [{lines: ['Hola'], instant: 'yes'}];
+    expect(AdSpec.safeParse(s).success).toBe(false);
+  });
+  it('accepts a reveal camera and an end card phone placement', () => {
+    const s = structuredClone(load('minimal').spec) as any;
+    const rv = s.scenes.find((x: any) => x.block === 'reveal');
+    const end = s.scenes.find((x: any) => x.block === 'endCard');
+    if (rv) rv.camera = [{at: 0, zoom: 0.9, qy: 1000}];
+    end.phone = {scale: 0.8, y: 410};
+    expect(AdSpec.safeParse(s).success).toBe(true);
+    end.phone = {scale: 5};
+    expect(AdSpec.safeParse(s).success).toBe(false);
+  });
+});

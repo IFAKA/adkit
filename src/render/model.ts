@@ -74,7 +74,7 @@ export type Model = {
   roll: Key[];
   colorReqs: ColorReq[];
   /** key moments */
-  chaos?: {block: Placed; icon?: Placed; into: 'icon' | 'center'; look: 'bubbles' | 'cards' | 'tabs' | 'toasts'; size?: number; flyAt: number; counter: {start: number; rise: number; cap: number; label?: string} | false; items: {at: number; side: 'in' | 'out'; text: string; icon?: string}[]};
+  chaos?: {block: Placed; icon?: Placed; into: 'icon' | 'center'; look: 'bubbles' | 'cards' | 'tabs' | 'toasts'; size?: number; pileTop?: number; tile?: {glyph: string | false; color?: string}; flyAt: number; counter: {start: number; rise: number; cap: number; label?: string} | false; items: {at: number; side: 'in' | 'out'; text: string; icon?: string}[]};
   reveal?: Placed;
   openFromIcon: boolean;
   end?: Placed;
@@ -178,7 +178,7 @@ export function buildModel(props: RenderProps): Model {
     switch (s.block) {
       case 'chaos': {
         m.chaos = {
-          block: b, icon: s.into === 'icon' ? blocks[bi + 1] : undefined, into: s.into, look: s.look, size: s.size, flyAt: b.a.flyAt, counter: s.counter,
+          block: b, icon: s.into === 'icon' ? blocks[bi + 1] : undefined, into: s.into, look: s.look, size: s.size, pileTop: s.pileTop, tile: s.tile, flyAt: b.a.flyAt, counter: s.counter,
           items: s.items.map((x) => ({at: b.start + (x.frame !== undefined ? x.frame : fr(x.beat!)), side: x.side, text: x.text, icon: x.icon})),
         };
         break;
@@ -338,7 +338,8 @@ export function buildModel(props: RenderProps): Model {
     return r;
   };
   const shots: Shot[] = [];
-  if (m.reveal) {
+  const ownReveal = m.reveal && (m.reveal.spec as {camera: unknown[]}).camera.length > 0;
+  if (m.reveal && !ownReveal) {
     shots.push({f: 0, zoom: 1.12, sx: 195, sy: 422, qy: 1270, spring: CAM});
     shots.push({f: m.reveal.start + Math.round(85 * sc), zoom: 1.33, sx: 195, sy: 300, qy: 1180, spring: CAM});
   }
