@@ -115,6 +115,8 @@ const PhoneScene: React.FC<{m: Model}> = ({m}) => {
   return (
     <AbsoluteFill>
       <SceneBackdrop m={m} />
+      {/* titles sit between the backdrop and the phone: a title that is still on screen while the phone moves under it is hidden by the phone, never seen through the screen */}
+      <Titles m={m} />
       {blurStage ? (
         <MotionBlur shutterAngle={200} samples={6}>
           {stage}
@@ -122,7 +124,6 @@ const PhoneScene: React.FC<{m: Model}> = ({m}) => {
       ) : (
         stage
       )}
-      <Titles m={m} />
       {inEnd && <EndLockup m={m} />}
     </AbsoluteFill>
   );
