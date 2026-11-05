@@ -12,6 +12,7 @@ Each chain item is {"type": ..., params}:
   widen       amount [0..1] (mid/side)
   duck        key (name of another stem, in score.py), depth_db [0..24], release [0.02..1] s
   limit       ceiling_db [-12..0]
+  compress    threshold_db [-40..0], ratio [1..20], attack_ms [0.5..100], release_ms [10..1000], makeup_db [0..24], detect_hz [0..400] (highpass on the level detector, so bass does not pump the bus)
 """
 import numpy as np
 from .core import *
@@ -86,6 +87,24 @@ def limit(x, seed, ceiling_db=-1.0):
     return np.minimum(x * g[:, None], ceil)
 
 
+def compress(x, seed, threshold_db=-18, ratio=3, attack_ms=12, release_ms=140, makeup_db=0, detect_hz=0):
+    """Feed-forward bus compressor (peak detector on 0.7 ms blocks, linked stereo, smooth gain curve)."""
+    B = 32; n = len(x); nb = -(-n // B)
+    d = hp(x, float(detect_hz), 2) if detect_hz > 0 else x
+    a = np.zeros(nb * B); a[:n] = np.abs(d).max(1)
+    lv = todb(a.reshape(nb, B).max(1))
+    over = np.maximum(lv - float(threshold_db), 0) * (1 - 1 / max(float(ratio), 1.0))
+    ca = np.exp(-B / SR / (max(attack_ms, .5) / 1000)); cr = np.exp(-B / SR / (max(release_ms, 10) / 1000))
+    gr = np.zeros(nb); cur = 0.0
+    for i in range(nb):
+        o = over[i]
+        cur = ca * cur + (1 - ca) * o if o > cur else cr * cur + (1 - cr) * o
+        gr[i] = cur
+    g = db(-gr + float(makeup_db))
+    gs = np.interp(np.arange(n), (np.arange(nb) + .5) * B, g)
+    return x * gs[:, None]
+
+
 def apply_fx(x, chain, seed=0, keys=None):
     x = as_stereo(np.asarray(x, dtype=float))
     for i, it in enumerate(chain or []):
@@ -107,5 +126,6 @@ def apply_fx(x, chain, seed=0, keys=None):
             name = q.pop('key', None)
             x = duck(x, s, (keys or {}).get(name), **q)
         elif t == 'limit': x = limit(x, s, **q)
+        elif t == 'compress': x = compress(x, s, **q)
         else: raise ValueError(f"unknown fx type '{t}'")
     return x

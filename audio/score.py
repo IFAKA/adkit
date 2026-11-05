@@ -30,6 +30,7 @@ import synth  # noqa: E402
 from synth.core import SR, db, nsamp, pan_stereo, as_stereo, note_to_midi, mtof, biquad, sweep_lp, fade, rng  # noqa: E402
 from synth.wavio import write_wav  # noqa: E402
 from synth import fx as fxm  # noqa: E402
+from synth import sampler as samplerm, samplelib  # noqa: E402
 
 
 class ScoreError(Exception):
@@ -200,12 +201,13 @@ def build(music, base_dir=None, seed=None):
                     if len(n_) < 2: raise ScoreError(f'{where}: note {n_} needs [beat, pitch, length, velocity]')
                     beat, pitch = float(n_[0]), n_[1]
                     ln = float(n_[2]) if len(n_) > 2 else 1.0; vel = float(n_[3]) if len(n_) > 3 else .8
+                    sdir = str(n_[4]) if len(n_) > 4 else None
                     if not 0 <= beat < pb * meter.beats: raise ScoreError(f'{where}: note at beat {beat} is outside pattern "{pname}" ({pb} bar(s) x {meter.beats} beats)')
                     bar_in = b + int(beat // meter.beats)
                     if bar_in >= nb: continue
                     cc = chords[bar_in % len(chords)]
                     for m in h.pitches(pitch, cc, h.octave):
-                        events[inst].append(dict(pos=bar_no * meter.beats + b * meter.beats + beat, kind='note', midi=m + tr, len=ln, vel=vel, beatinbar=int(beat % meter.beats), pp=pt.get('params')))
+                        events[inst].append(dict(pos=bar_no * meter.beats + b * meter.beats + beat, kind='note', midi=m + tr, len=ln, vel=vel, beatinbar=int(beat % meter.beats), pp=pt.get('params'), dir=sdir))
                 for h_ in pt.get('hits', []):
                     if len(h_) < 2: raise ScoreError(f'{where}: hit {h_} needs [beat, kind, velocity]')
                     beat = float(h_[0])
@@ -251,6 +253,7 @@ def eval_curve(c, n, log=False):
 # ---------------------------------------------------------------- render
 
 def render_instrument(name, patch, evs, plan, base_dir, seed, N, idx):
+    if patch['model'] == 'sampler': return render_sampler(name, patch, evs, plan, seed, N, idx)
     meter, swing = plan['meter'], plan['swing']
     model, preset, params = patch['model'], patch.get('preset'), dict(patch.get('params') or {})
     nvar = max(1, int(patch.get('variations', 3)))
@@ -276,7 +279,7 @@ def render_instrument(name, patch, evs, plan, base_dir, seed, N, idx):
             pr, ckey = preset, round(freq, 3)
         else:
             pr, ckey = e['name'], e['name']
-            if model not in ('drums',) and e['name'] not in synth.PRESETS.get(model, []):
+            if model not in ('drums',) and model in synth.PRESETS and e['name'] not in synth.PRESETS[model]:
                 raise ScoreError(f'instrument "{name}": hit "{e["name"]}" is not a preset of model "{model}"')
         key = (ckey, vel, round(dur_s, 3) if 'dur' in p else 0, k % nvar, json.dumps(e.get('pp'), sort_keys=True))
         if key not in cache:
@@ -294,6 +297,56 @@ def render_instrument(name, patch, evs, plan, base_dir, seed, N, idx):
         m = min(len(y), N - i)
         yy = y[:m] if y.ndim == 1 else y[:m].mean(1)
         stem[i:i + m, 0] += yy; stem[i:i + m, 1] += yy
+    return stem
+
+
+def render_sampler(name, patch, evs, plan, seed, N, idx):
+    """Sampled instrument (audio/synth/sampler.py). Notes that share a beat and a pattern with `strum_ms` are a strum:
+    the notes of the chord start strum_ms apart (+-20%), low to high on a down strum ("d"), high to low on an up strum ("u",
+    softer; 5th element of a note, or params.strum_dir). params: strum_ms, strum_dir, artic ("tremolo"), ring (no release cut)."""
+    meter, swing = plan['meter'], plan['swing']
+    S = samplerm.Sampler(patch.get('preset') or patch.get('set') or '', seed, idx)
+    base = dict(patch.get('params') or {})
+    hum = patch.get('humanize') or {}
+    r = rng(seed, 'human', idx)
+    acc = float(patch.get('meter_accent', 0))
+    stem = np.zeros((N, 2))
+    ordered = sorted(evs, key=lambda e: (e['pos'], e.get('midi', 0), e.get('name', '')))
+    groups, order = {}, []
+    for e in ordered:
+        k = (e['pos'], e['kind'])
+        if k not in groups: groups[k] = []; order.append(k)
+        groups[k].append(e)
+    for k in order:
+        g = groups[k]
+        p = dict(base); p.update(g[0].get('pp') or {})
+        t0 = meter.to_s(g[0]['pos'], swing)
+        if hum.get('timing_ms'): t0 += r.uniform(-1, 1) * float(hum['timing_ms']) / 1000
+        strum = float(p.get('strum_ms', 0)) if g[0]['kind'] == 'note' and len(g) > 1 else 0.0
+        sdir = (g[0].get('dir') or p.get('strum_dir') or 'd')[0]
+        if strum: g = sorted(g, key=lambda e: e['midi'], reverse=(sdir == 'u'))
+        for j, e in enumerate(g):
+            vel = e['vel']
+            if hum.get('velocity'): vel += r.uniform(-1, 1) * float(hum['velocity'])
+            if acc: vel *= 1 - acc * (1 - meter.accents[e['beatinbar']]) if abs(e['pos'] % 1) < 1e-9 else 1 - acc * .6
+            t = t0
+            if strum:
+                t += j * strum / 1000 * float(r.uniform(.8, 1.2))
+                vel *= (1 - .18 * j / max(1, len(g) - 1)) * (.88 if sdir == 'u' else 1.0)
+            vel = float(np.clip(vel, .05, 1.0))
+            ep = dict(p); ep.update(e.get('pp') or {})
+            if e['kind'] == 'note':
+                y = S.note(e['midi'], vel, e['len'] * meter.unit_s, ep.get('artic'), bool(ep.get('ring')))
+            else:
+                y = S.hit(e['name'], vel)
+                if 'roll' in e['name']:  # a roll fills `roll_beats` (default 1) and is cut with a short fade
+                    n = int(float(ep.get('roll_beats', 1)) * meter.unit_s * SR); f = min(n, int(.12 * SR))
+                    if n < len(y): y = y[:n].copy(); y[-f:] *= np.linspace(1, 0, f)
+            i = int(round(t * SR))
+            if i < 0: y = y[-i:]; i = 0
+            if i >= N: continue
+            m = min(len(y), N - i)
+            stem[i:i + m, 0] += y[:m]; stem[i:i + m, 1] += y[:m]
     return stem
 
 
@@ -345,6 +398,9 @@ def content_hash(music, seed=None, base_dir=None):
     h.update(json.dumps(music, sort_keys=True, separators=(',', ':')).encode()); h.update(str(seed if seed is not None else music.get('seed', 0)).encode())
     for p in music.get('instruments', {}).values():
         if p.get('model') == 'sample': h.update(synth.sample.content_hash(p.get('params', {}), base_dir).encode())
+        if p.get('model') == 'sampler':
+            lk = samplelib.load_lock()
+            for pk in samplerm.SETS[p.get('preset') or p.get('set')]['packs']: h.update(samplelib.pack_key(lk['packs'][pk]).encode())
     return h.hexdigest()
 
 
@@ -363,7 +419,7 @@ def main(argv=None):
             os.makedirs(os.path.join(a.out_dir, 'stems'), exist_ok=True)
             for n, s in stems.items(): write_wav(os.path.join(a.out_dir, 'stems', f'{n}.wav'), s)
         with open(os.path.join(a.out_dir, 'cues.json'), 'w') as fh: json.dump(cues, fh, indent=1)
-    except (ScoreError, ValueError, OSError, json.JSONDecodeError) as e:
+    except (ScoreError, samplelib.SampleError, ValueError, OSError, json.JSONDecodeError, KeyError) as e:
         print(f'score: {e}', file=sys.stderr); return 1
     print(f"music ok {len(mix) / SR:.1f} s {cues['total_bars']} bars {cues['meter']['beats']}/{cues['meter']['unit']} hash {content_hash(music, a.seed, base)[:12]}")
     return 0
