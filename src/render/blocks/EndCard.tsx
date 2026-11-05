@@ -72,12 +72,12 @@ export const EndLockup: React.FC<{m: Model}> = ({m}) => {
         </div>
       )}
       {brand.contact && (
-        <div style={{position: 'absolute', left: 60, width: 960, top: 895, textAlign: 'center', fontFamily: sans, fontWeight: 700, fontSize: 46, letterSpacing: '-0.02em', color: brand.colors.ink, opacity: clamp01(contact * 1.5), transform: `translateY(${(1 - contact) * 30}px)`}}>
+        <div style={{position: 'absolute', left: 60, width: 960, top: spec.note ? 815 : 895, textAlign: 'center', fontFamily: sans, fontWeight: 700, fontSize: 46, letterSpacing: '-0.02em', color: brand.colors.ink, opacity: clamp01(contact * 1.5), transform: `translateY(${(1 - contact) * 30}px)`}}>
           <span style={{display: 'inline-block', padding: '20px 40px', borderRadius: 70, background: rgba(mix(brand.colors.paper, '#FFFFFF', 0.7), 0.94), boxShadow: `0 18px 44px rgba(60,35,5,0.3), inset 0 0 0 ${2 + 4 * (1 - sweep)}px ${rgba(accent, 0.5)}`}}>{brand.contact}</span>
         </div>
       )}
       {spec.note && (
-        <div style={{position: 'absolute', left: 60, width: 960, top: 1010, textAlign: 'center', fontFamily: sans, fontWeight: 500, fontSize: 34, letterSpacing: '-0.01em', color: rgba(brand.colors.ink, 0.72), opacity: clamp01(contact * 1.5), transform: `translateY(${(1 - contact) * 20}px)`}}>{spec.note}</div>
+        <div style={{position: 'absolute', left: 60, width: 960, top: 925, textAlign: 'center', fontFamily: sans, fontWeight: 500, fontSize: 34, letterSpacing: '-0.01em', color: rgba(brand.colors.ink, 0.72), opacity: clamp01(contact * 1.5), transform: `translateY(${(1 - contact) * 20}px)`}}>{spec.note}</div>
       )}
     </>
   );

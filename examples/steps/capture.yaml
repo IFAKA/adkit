@@ -1,0 +1,37 @@
+# Photograph the fake map app in site/ (a static server, no build step).
+# "map" shows the pins; "map-bare" is the same page WITHOUT pins (the textured map needs it for the pop step).
+app:
+  dir: site
+  isolate: inplace
+  start: node server.mjs {port}
+  ready: {path: /, timeoutSeconds: 20}
+
+viewport: {width: 390, height: 844, scale: 3}
+locale: en-US
+timezone: UTC
+clock: '2026-03-10T10:00:00Z'
+inputs: [site]
+
+sets:
+  main:
+    screens:
+      - name: map
+        steps: [{goto: /}]
+        elements:
+          searchText: '#searchText'
+          pin1: '#pin1'
+          pin2: '#pin2'
+          pin3: '#pin3'
+          pin4: '#pin4'
+          locate: '#locate'
+      - name: map-bare
+        steps: [{goto: '/?bare'}]
+      - name: sheet
+        steps: [{goto: /sheet}]
+        elements:
+          go: '#go'
+      - name: list
+        steps: [{goto: /list}]
+        elements:
+          row1: '#row1'
+          row6: '#row6'

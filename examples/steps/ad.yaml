@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=../../schema/ad.schema.json
+# Example "steps": a fake map app. Shows chaos look "cards", and the tapFlow steps type, pop (with an "under" capture),
+# pulse, a sheet transition, fade and swipe with scroll, plus an end card note.
+meta: {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 10.75}
+
+brief:
+  audience: People in a city who need a pharmacy, a bus stop or a bakery right now.
+  message: "Everything near you, on one map."
+  language: en
+  tone: calm, clear, quick
+
+brand:
+  name: Mapa Cerca
+  contact: "mapacerca.example"
+  colors: {paper: "#F4F1EA", paperDeep: "#E8E2D2", ink: "#1D2A33", glow: "#BFD8F5", accent: "#1F6FEB", night: "#10171E"}
+  fonts: {sans: Inter, serif: InstrumentSerif, mark: Fraunces}
+  icon: {text: M, color: "#1F6FEB", textColor: "#FFFFFF"}
+
+capture: capture.yaml
+
+scenes:
+  - block: chaos
+    id: tabs
+    bars: 2
+    look: cards
+    counter: {start: 2, rise: 30, cap: 50, label: "tabs"}
+    pings: [4]
+    items:
+      - {frame: -40, icon: "💊", text: "Pharmacy open now?"}
+      - {frame: -32, icon: "🚌", text: "Bus 21 times", side: out}
+      - {frame: -24, icon: "🥖", text: "Bakery near me"}
+      - {frame: -16, icon: "🏧", text: "Cash machine"}
+      - {beat: 1, icon: "🅿️", text: "Parking, Plaza"}
+      - {beat: 1.5, icon: "☕", text: "Coffee open Sunday", side: out}
+      - {beat: 2, icon: "🚲", text: "Bike rental"}
+      - {beat: 2.5, icon: "💊", text: "Late pharmacy"}
+      - {beat: 3, icon: "🏥", text: "Health centre"}
+      - {beat: 3.5, icon: "🚌", text: "Night bus"}
+    title: {lines: ["Too many *tabs.*"], at: 1, to: 5, size: 120, y: 440}
+
+  - block: iconOpen
+    bars: 0.25
+
+  - block: reveal
+    bars: 1.5
+    screen: map
+    open: icon
+
+  - block: tapFlow
+    id: find
+    bars: 5.5
+    start: {screen: map}
+    titles:
+      - {lines: ["Search *once.*"], at: 0.5, to: 5.5, size: 112, scrim: true}
+      - {lines: ["Pins *appear.*"], at: 7, to: 12, size: 112, scrim: true}
+      - {lines: ["Scroll the *list.*"], at: 17, to: 21.5, size: 112, scrim: true}
+    steps:
+      - {type: type, at: 1, element: searchText, text: "pharmacy open now", beats: 3}
+      - {type: pop, at: 5, elements: [pin1, pin2, pin3, pin4], stagger: 0.5, style: pin, under: map-bare}
+      - {type: pulse, at: 8, element: locate, count: 2}
+      - {type: screen, at: 11, screen: sheet, transition: sheet, sheetHeight: 460}
+      - {type: tap, at: 13, element: go, radius: 27, press: true}
+      - {type: screen, at: 15, screen: list, transition: fade}
+      - {type: swipe, at: 17, from: row6, to: row6, beats: 2, scroll: 360}
+    camera:
+      - {at: 1, zoom: 1.5, focus: {element: searchText}, qy: 1100, spring: fast}
+      - {at: 5, zoom: 1.0, focus: {y: 422}, qy: 1180}
+      - {at: 12, zoom: 1.25, focus: {y: 600}, qy: 1180}
+
+  - block: endCard
+    bars: 1.5
+    screen: map
+    mark: monogram
+    title: {lines: ["Near you, *now.*"], at: 0, y: 585, size: 100}
+    note: "free, no sign-up"
+    lockupAt: 2
+    contactAt: 3
+    hitAt: 4
+
+sound:
+  key: C
+  progression: [C, Am, F, G]
+  chords: {}
+  motif:
+    notes: [[0, 67, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]]
+    ding: 84
+
+output: {file: out/steps.mp4, crf: 18}
