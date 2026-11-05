@@ -45,6 +45,7 @@
     "adkit": "node bin/adkit.mjs",
     "schema": "tsx src/spec/export-schema.ts",
     "test": "vitest run",
+    "test:audio": "${ADKIT_CACHE:-$HOME/.cache/adkit}/venv/bin/python -m pytest audio/tests -q",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

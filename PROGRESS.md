@@ -22,3 +22,11 @@ Status log. Newest decisions last. `BLOCKED:` lines mark steps that failed three
 - Hold-frame detection (skip identical frames), hardware (VideoToolbox) encode, a persistent warm browser between runs, an esbuild-bundled CLI to replace tsx.
 - Schema fields: brand.photo, reveal camera shots, chart region, chat bubble style. Only 1080x1920.
 - The audio was measured, not listened to.
+
+## Sound kit (phase 2a)
+- [x] `audio/synth/` physical-model synthesis (modal, pluck, liquid, particles, noise, FM/subtractive, drums, sample layer, fx), numpy only
+- [x] `audio/sounddesign.py` (SOUND json, `meaning` required), `audio/score.py` (MUSIC json, real 3/4 and 6/8 grids, cues.json), `audio/tools/spectrogram.py` (PNG + stats)
+- [x] demos (tram bell, water drop, cierzo, spoon/cup, oven ding, 3/4 jota) and `npm run test:audio`
+- Decisions: scipy is not in the venv, so filters are causal biquads built from the closed-form pole response + FFT convolution, and Karplus-Strong runs one numpy step per string period. Models return peak 0.5; levels are set by layer gain in dB. Samples need license CC0/own/public-domain. Meter: pattern positions are in units of the unit note; bpm counts dotted quarters for 6/8, 9/8, 12/8.
+- Not built yet (phase 2b): wiring sounds and music into `ad.yaml`, a "genericness check" (flag sounds that do not match their `meaning`), mixing the new sounds into `audio/build.py` and the loudness master, SFX snapping to `cues.json`.
+- The sounds were looked at (spectrograms), not listened to.
