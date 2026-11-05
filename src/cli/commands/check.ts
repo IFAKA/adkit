@@ -92,6 +92,16 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   out.push({check: 'safe-zone', ok: !unsafe.length, msg: unsafe.length ? `text inside the top ${SAFE_TOP}px / bottom ${SAFE_BOTTOM}px at frames ${[...new Set(unsafe.map((b) => b.frame))].slice(0, 6).join(', ')} (${unsafe[0].block})` : `no text in the top ${SAFE_TOP}px or bottom ${SAFE_BOTTOM}px (${boxes.length} title boxes)`});
   out.push({check: 'title-size', ok: !small.length, msg: small.length ? `title font ${small[0].fontSize}px < ${MIN_TITLE_PX}px in ${small[0].block}` : `all titles >= ${MIN_TITLE_PX}px`});
 
+  // titles that fade out while the next one is already entering (the compiler only refuses a true overlap)
+  const FADE = 8;
+  const ts = [...plan.titles].sort((a, b) => a.inAt - b.inAt);
+  const clash: string[] = [];
+  ts.forEach((a, i) => {
+    const end = a.outAt !== undefined ? a.outAt + FADE : a.until;
+    for (const c of ts.slice(i + 1)) if (c.inAt < end) clash.push(`${a.block}#${a.index + 1} (visible until frame ${end}) and ${c.block}#${c.index + 1} (enters at ${c.inAt})`);
+  });
+  out.push({check: 'title-overlap', ok: !clash.length, msg: clash.length ? `two titles on screen at once: ${clash.slice(0, 3).join('; ')}. Let the first leave at least 1 beat before the next enters.` : 'no two titles are visible at the same time'});
+
   // the video file
   const video = path.resolve(p.dir, opts.video ?? spec.output.file);
   if (!fs.existsSync(video)) {
