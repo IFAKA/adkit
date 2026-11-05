@@ -1,5 +1,5 @@
 export type Box = {x: number; y: number; w: number; h: number};
-export type ScreenEntry = {file: string; fullFile: string; fullHeight: number; scrollY: number; sha: string; elements: Record<string, Box>};
+export type ScreenEntry = {file: string; fullFile: string; fullHeight: number; scrollY: number; sha: string; elements: Record<string, Box>; /** Recorded frame sequence (files in capture order, one per video frame; a still held for several frames repeats its file). */ frames?: string[]};
 export type SetEntry = {theme: {bg: string; fg: string; accent: string}; screens: Record<string, ScreenEntry>};
 export type Manifest = {scale: number; viewport: {w: number; h: number}; /** Phone safe-area insets the pages were shot with (the capture then includes the status-bar and home-indicator areas). */ safeArea?: {top: number; bottom: number}; sets: Record<string, SetEntry>};
 

@@ -26,6 +26,11 @@ adkit does all repeated work (capture, timing, camera, render, audio, checks). Y
 - When the story is about a map, keep the map in view: the phone shows the map in at least the top 40 % the whole time. Never open a bottom sheet to full height in the ad; use the half (peek) state. Show one interaction the way a person does it, in one phone: tap the tab, tap the pin, the card opens; do not fade to a different full-screen page. adkit cannot see the sheet state, so check this by looking at the tile.
 - Several services in a row: give each at least 0.8 s (24 frames) with its tab tap visible and its map with pins visible. Make the montage longer rather than faster.
 
+## Real transitions, not cross-fades
+- A tap that changes the screen (a tab, a pin, a sheet) is not two pictures with a fade between them. Capture the real animation: a capture screen with a `record` step (`{record: {click: '#tab', elements: {tab: '#tab'}, before: 5, frames: 24}}`) steps the page clock and every CSS/Web animation 1/30 s at a time and keeps one screenshot per frame. In `tapFlow` use `{type: screen, screen: NAME, transition: live}`: the frames play from `at`, then the final capture holds. Screens may follow each other without a `goto`: the page keeps its state, so one drawer or one map stays one continuous thing across the whole story.
+- `record.elements` are measured just before the action: point the `tap` step at them. `before` still frames are the finger touching; align the `tap` step with the screen step.
+- Keep `fade` for a change that is really a new scene, never for a step inside one interaction. Add motion only on top of the real one: tap, press, camera.
+
 ## You must NOT do by hand
 - No frame numbers, no pixel positions for the phone or camera, no video editing, no manual audio or loudness work. Give lengths in bars and times in beats; the compiler places and checks them.
 - Do not edit generated files in `.adkit/` or `out/`.

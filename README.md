@@ -81,7 +81,7 @@ sets:
   main:
     screens:
       - name: shop
-        steps: [{goto: /}, {click: 'button.accept'}, {wait: 500}]   # goto click fill select wait evaluate scroll
+        steps: [{goto: /}, {click: 'button.accept'}, {wait: 500}]   # goto click fill select wait evaluate scroll record (record: the real animation of a click as a frame sequence; play it with tapFlow transition: live)
         scroll: {to: '#p1', offset: 190}
         elements: {productCard: '#p1', cartIcon: {selector: '#cart', fixed: true}}
   sage: {extends: main, env: {THEME: sage}, theme: {bg, fg, accent}, screens: [...]}

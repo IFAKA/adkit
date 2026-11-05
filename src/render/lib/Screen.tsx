@@ -21,10 +21,12 @@ export const Screen: React.FC<{m: Model; layer: Layer; f: number; scroll: number
   const im = imgOf(m, layer.ref);
   const [failed, setFailed] = useState(false);
   const h = im?.h ?? SCREEN_H;
+  // a recorded transition: one captured frame per video frame, then the final capture
+  const liveSrc = layer.seq && f >= layer.at && f - layer.at < layer.seq.length ? layer.seq[f - layer.at] : undefined;
   return (
     <div style={{position: 'absolute', inset: 0, overflow: 'hidden', background: bg}}>
       <div style={{position: 'absolute', left: 0, top: 0, width: SCREEN_W, height: h, transform: `translateY(${INSET - scroll}px)`}}>
-        {im && !failed ? <SafeImg src={im.src} style={{width: SCREEN_W, height: h}} onFail={() => setFailed(true)} /> : null}
+        {liveSrc ? <SafeImg key={liveSrc} src={liveSrc} style={{width: SCREEN_W, height: SCREEN_H}} /> : im && !failed ? <SafeImg src={im.src} style={{width: SCREEN_W, height: h}} onFail={() => setFailed(true)} /> : null}
         {layer.holes.map((hl, i) => {
           const op = hl.opacity(f);
           return op > 0 ? (

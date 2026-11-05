@@ -77,6 +77,7 @@ function evaluateFiles(spec: Ad): string[] {
   const out = new Set<string>();
   for (const set of Object.values(spec.capture.sets)) for (const s of set.screens) for (const st of s.steps) {
     if (st.evaluate && typeof st.evaluate === 'object' && st.evaluate.file) out.add(st.evaluate.file);
+    if (st.record?.evaluate) out.add(st.record.evaluate);
   }
   return [...out].sort();
 }

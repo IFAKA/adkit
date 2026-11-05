@@ -49,6 +49,9 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
   const entry: SetEntry = {theme: o.theme ?? {bg: '#ffffff', fg: '#000000', accent: o.accent}, screens: {}};
   let themeDone = !!o.theme;
   const vars: Record<string, string> = {};
+  let clockOn = false;
+  /** The recording of the screen being shot: files in capture order (a held still repeats its file) and boxes measured before actions. */
+  let seq: {name: string; dir: string; files: string[]; boxes: Record<string, Box>; n: number} | undefined;
   const sub = (s: string) => s.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (m, k: string) => (k in vars ? vars[k] : m));
 
   const browser = await chromium.launch();
@@ -110,6 +113,42 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       }, {offset, within});
     };
 
+
+    /**
+     * Records the real animation of one action. The page clock (timers, requestAnimationFrame, performance.now) is stopped and advanced
+     * 1/fps s at a time, and every CSS/Web animation is paused and set to the same time, so each frame is exact and the result is repeatable.
+     */
+    const record = async (r: NonNullable<Step['record']>) => {
+      if (!seq) throw new Error('a record step needs a screen with a name');
+      const sq = seq;
+      const shot = async () => {
+        const f = `${String(sq.n++).padStart(3, '0')}.png`;
+        await page.screenshot({path: path.join(sq.dir, f)});
+        return path.join(path.basename(sq.dir), f);
+      };
+      for (const [n, sel] of Object.entries(r.elements)) {
+        const b = await boxOf(page.locator(sub(sel)), true, false);
+        if (b) sq.boxes[n] = b; else o.detail(`WARN ${sq.name}.${n}: element not found (${sel}), skipped`);
+      }
+      if (r.before > 0) { const still = await shot(); for (let i = 0; i < r.before; i++) sq.files.push(still); }
+      const now = await page.evaluate('Date.now()') as number;
+      if (!clockOn) { await page.clock.install({time: now}); clockOn = true; }
+      await page.clock.pauseAt(now + 20);
+      await page.evaluate(`(() => { window.__adkitRec = {base: new WeakMap(), pending: []}; })()`);
+      const act = r.click !== undefined ? `(() => { const e = document.querySelector(${JSON.stringify(sub(r.click))}); if (!e) throw new Error('record click: not found'); e.click(); })()`
+        : r.evaluate !== undefined ? fs.readFileSync(path.resolve(o.specDir, r.evaluate), 'utf8') : '';
+      if (!act) throw new Error('a record step needs click or evaluate');
+      await page.evaluate(act);
+      const ms = (k: number) => Math.round((k * 1000) / r.fps);
+      for (let k = 1; k <= r.frames; k++) {
+        await page.clock.runFor(ms(k) - ms(k - 1));
+        await page.evaluate(`((t) => { const R = window.__adkitRec; for (const a of document.getAnimations()) { if (!R.base.has(a)) { R.base.set(a, a.currentTime || 0); a.pause(); R.pending.push(a); } a.currentTime = R.base.get(a) + t; } })(${ms(k)})`);
+        sq.files.push(await shot());
+      }
+      await page.evaluate(`(() => { for (const a of window.__adkitRec.pending) { try { a.finish(); } catch { a.play(); } } })()`);
+      await page.clock.resume();
+    };
+
     const runStep = async (st: Step) => {
       if (st.goto !== undefined) {
         const u = sub(st.goto);
@@ -132,6 +171,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
         if (!code) throw new Error('evaluate step needs a file or a script');
         const res = await page.evaluate(code);
         if (ev.save) vars[ev.save] = res == null ? '' : String(res);
+      } else if (st.record !== undefined) {
+        await record(st.record);
       } else if (st.scroll !== undefined) {
         if (typeof st.scroll === 'number') await page.evaluate((v) => window.scrollTo(0, v), st.scroll);
         else await bringToTop(sub(st.scroll.to), st.scroll.offset, st.scroll.within);
@@ -177,6 +218,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
     for (const [idx, screen] of o.screens.entries()) {
       const t0 = Date.now();
       const label = `${setName}/${screen.name ?? `step${idx + 1}`}`;
+      seq = screen.name ? {name: screen.name, dir: path.join(setDir, `${screen.name}.seq`), files: [], boxes: {}, n: 0} : undefined;
+      if (seq) { fs.rmSync(seq.dir, {recursive: true, force: true}); fs.mkdirSync(seq.dir, {recursive: true}); }
       try {
         for (const [i, st] of screen.steps.entries()) {
           try { await runStep(st); } catch (e) {
@@ -203,7 +246,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
           entry.theme = {bg: cssToHex(t.bg), fg: cssToHex(t.fg), accent: o.accent};
           themeDone = true;
         }
-        const elements: Record<string, Box> = {};
+        const elements: Record<string, Box> = {...(seq?.boxes ?? {})};
         for (const [n, spec] of Object.entries(screen.elements)) {
           const s = typeof spec === 'string' ? {selector: spec, fixed: false} : spec;
           const b = await boxOf(page.locator(sub(s.selector)), s.fixed || screen.drawer, screen.drawer);
@@ -220,8 +263,13 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
           await fullShot(fullFile, fullHeight);
           await page.evaluate((v) => window.scrollTo(0, v), scrollY);
         }
-        const sha = createHash('sha256').update(fs.readFileSync(fullFile)).digest('hex');
+        const shaH = createHash('sha256').update(fs.readFileSync(fullFile));
+        // a recorded sequence is part of the screen: its frames change the hash too
+        if (seq) for (const f of [...new Set(seq.files)]) shaH.update(fs.readFileSync(path.join(setDir, f)));
+        const sha = shaH.digest('hex');
         const sc: ScreenEntry = {file: `${rel}.png`, fullFile: `${rel}-full.png`, fullHeight, scrollY, sha, elements};
+        if (seq && seq.files.length) sc.frames = seq.files.map((f) => `captures/${setName}/${f}`);
+        else if (seq) fs.rmSync(seq.dir, {recursive: true, force: true});
         entry.screens[screen.name] = sc;
         const n = Object.keys(elements).length;
         o.log(`capture ${label} ok ${((Date.now() - t0) / 1000).toFixed(1)}s elements=${n}`);

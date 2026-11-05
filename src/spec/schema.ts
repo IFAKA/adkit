@@ -59,7 +59,7 @@ export const ElementSpec = z.union([
   z.object({selector: str, fixed: z.boolean().default(false).describe('Sticky/fixed element: its box is stored in viewport coordinates, not page coordinates.')}).strict(),
 ]);
 
-const StepKeys = ['goto', 'click', 'fill', 'select', 'wait', 'evaluate', 'scroll'] as const;
+const StepKeys = ['goto', 'click', 'fill', 'select', 'wait', 'evaluate', 'scroll', 'record'] as const;
 export const CaptureStep = z.object({
   goto: z.string().optional().describe('Path or URL. {var} is replaced by values saved with evaluate+save.'),
   click: z.union([str, z.object({selector: str, tap: z.boolean().default(false)}).strict()]).optional().describe('Playwright selector.'),
@@ -68,6 +68,14 @@ export const CaptureStep = z.object({
   wait: z.union([z.number().int().min(0), z.object({for: str, state: z.enum(['visible', 'hidden', 'attached', 'detached']).default('visible'), timeoutMs: z.number().int().optional()}).strict()]).optional().describe('Milliseconds, or wait for a selector.'),
   evaluate: z.union([str, z.object({file: str.optional(), script: str.optional(), save: str.optional().describe('Store the returned value as {name} for later steps.')}).strict()]).optional().describe('JavaScript run in the page (inline, or {file}).'),
   scroll: z.union([z.number(), z.object({to: str, offset: z.number().default(0), within: str.optional()}).strict()]).optional(),
+  record: z.object({
+    click: str.optional().describe('CSS selector of the element to press (a plain click in the page).'),
+    evaluate: str.optional().describe('Or a JavaScript file run in the page to do the action. It must be synchronous (the page clock is stopped while recording).'),
+    elements: z.record(z.string(), str).default({}).describe('Named elements (CSS selectors) whose boxes are measured just BEFORE the action, in viewport px: where the finger lands. They are added to the screen\'s elements.'),
+    before: z.number().int().min(0).default(0).describe('Still frames of the page before the action (the finger touches during these).'),
+    frames: z.number().int().min(1).max(240).default(20).describe('Frames recorded after the action at `fps`.'),
+    fps: z.number().int().min(10).max(60).default(30).describe('Frame rate of the recording; set it to the video frame rate.'),
+  }).strict().optional().describe('Records the REAL animation of an action as a frame sequence: the page clock and every CSS/Web animation are stepped one frame at a time, so the result is exact and repeatable. The screen is then played in a tapFlow with `transition: live`. A screen may follow another one without a `goto`: it continues from the same page state.'),
 }).strict().superRefine((s, ctx) => {
   const n = StepKeys.filter((k) => s[k] !== undefined).length;
   if (n !== 1) ctx.addIssue({code: 'custom', message: `each step needs exactly one of: ${StepKeys.join(', ')} (found ${n})`});
@@ -204,7 +212,7 @@ const Cam = z.array(CameraKey).default([]);
 const TapFlowStep = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('screen'), at: posBeat, screen: ScreenRef,
-    transition: z.enum(['slide', 'cut', 'fade', 'sheet', 'zoom']).default('slide').describe('slide = pushes in from the right; cut = hard cut (a tab switch); fade = cross-fade; zoom = grows in from slightly smaller; sheet = the bottom of the new screen rises over the old one (capture the page with the sheet open, pinned to the bottom).'),
+    transition: z.enum(['slide', 'cut', 'fade', 'sheet', 'zoom', 'live']).default('slide').describe('live = play the recorded frame sequence of this screen (a capture screen with a `record` step) from `at`, then hold its final frame: the real app transition, no cross-fade. slide = pushes in from the right; cut = hard cut (a tab switch); fade = cross-fade; zoom = grows in from slightly smaller; sheet = the bottom of the new screen rises over the old one (capture the page with the sheet open, pinned to the bottom).'),
     sheetHeight: z.number().min(120).max(800).default(520).describe('transition sheet: height of the sheet in screen px.'),
     scroll: z.union([z.number(), z.object({element: str, y: z.number()}).strict()]).optional().describe('Scroll in px, or bring an element to screen-y.'),
     sticky: z.number().optional().describe('Pin the top N px (header) while scrolled.'),
@@ -281,7 +289,7 @@ export const Reveal = z.object({
 
 export const TapFlow = z.object({
   block: z.literal('tapFlow'), ...common,
-  start: z.object({screen: ScreenRef, scroll: z.number().default(0), transition: z.enum(['slide', 'cut', 'fade', 'zoom']).default('fade').describe('How this screen replaces the previous block\'s screen. Default fade: a cross-fade, never a hard cut.')}).strict(),
+  start: z.object({screen: ScreenRef, scroll: z.number().default(0), transition: z.enum(['slide', 'cut', 'fade', 'zoom', 'live']).default('fade').describe('How this screen replaces the previous block\'s screen. Default fade: a cross-fade, never a hard cut.')}).strict(),
   steps: z.array(TapFlowStep).min(1),
   camera: Cam,
 }).strict();

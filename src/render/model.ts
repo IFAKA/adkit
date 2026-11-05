@@ -22,7 +22,7 @@ export type Theme = {bg: string; fg: string; accent: string};
 /** A colour that the browser reads from the captured image (the page background around a box). */
 export type ColorReq = {id: string; ref: Ref; box: Box; mode: 'inside' | 'outside'};
 
-export type Transition = 'slide' | 'cut' | 'fade' | 'sheet' | 'zoom';
+export type Transition = 'slide' | 'cut' | 'fade' | 'sheet' | 'zoom' | 'live';
 export type Pop = {at: number; box: Box; style: 'pin' | 'ring' | 'scale'; under?: Ref; cover: ColorReq};
 export type TypeItem = {at: number; dur: number; box: Box; text: string; fontSize: number; color?: string; mask: ColorReq};
 
@@ -35,6 +35,8 @@ export type Layer = {
   /** a sheet layer keeps the screen under it visible until this frame */
   holdUntil: number;
   ref: Ref;
+  /** transition live: the recorded frames of the screen, one per video frame from `at`; after the last one the final capture is shown */
+  seq?: string[];
   scroll: Key[];
   sticky: number;
   holes: Hole[];
@@ -159,10 +161,15 @@ export function buildModel(props: RenderProps): Model {
 
   const pushLayer = (b: Placed, at: number, transition: Transition, ref: Ref, scroll: Key[], sticky = 0, sheetHeight = 520): Layer => {
     const l: Layer = {index: m.layers.length, at, transition, sheetHeight, holdUntil: -1, ref, scroll, sticky, pops: [], types: [], pulses: [], swipes: [], holes: [], highlights: [], press: [], bg: req(ref, {x: 0, y: 0, w: SCREEN_W, h: 60}, 'inside', 'bg'), next: Infinity, nextSlides: false, nextTransition: 'cut'};
+    if (transition === 'live') {
+      const fr = manifest.sets[ref.set]?.screens[ref.name]?.frames;
+      if (!fr?.length) throw new Error(`screen ${ref.key}: transition live needs a capture screen with a record step (no recorded frames)`);
+      l.seq = fr.map((p) => imageUrl(p));
+    }
     const prev = m.layers[m.layers.length - 1];
     if (prev) {
       prev.next = at;
-      prev.nextSlides = transition !== 'cut';
+      prev.nextSlides = transition !== 'cut' && transition !== 'live';
       prev.nextTransition = transition;
       if (prev.transition === 'sheet' && m.layers.length >= 2) m.layers[m.layers.length - 2].holdUntil = at;
     }
