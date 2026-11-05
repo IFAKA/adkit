@@ -12,7 +12,7 @@ Status log. Newest decisions last. `BLOCKED:` lines mark steps that failed three
 - [x] cache proof (b.mp4 == c.mp4, scripts/cache-proof.sh), determinism proof (CPU raster, fixed chunks)
 - [x] README, docs/preview.mp4, docs/poster.png
 - [x] generic blocks: `chaos` (replaces chatChaos; looks bubbles/cards/tabs/toasts, into icon/center), relaxed story order, tapFlow screen transitions (cut/fade/zoom/sheet) and steps pop/type/pulse/swipe, brand.icon.image, endCard.note, examples/steps
-- audio tailoring: phase 2 (kit, instruments, palette not built; a later step rebuilds audio)
+- audio tailoring: phase 2 done (kit 2a, wiring 2b); sounds are looked at, never listened to
 
 ## Decisions
 - GPU Chrome is not byte-stable (blurred shadows differ by one level). Default is CPU raster + single raster thread + fixed 30-frame chunks. GPU only for --draft.
@@ -30,7 +30,7 @@ Status log. Newest decisions last. `BLOCKED:` lines mark steps that failed three
 - [x] `audio/sounddesign.py` (SOUND json, `meaning` required), `audio/score.py` (MUSIC json, real 3/4 and 6/8 grids, cues.json), `audio/tools/spectrogram.py` (PNG + stats)
 - [x] demos (tram bell, water drop, cierzo, spoon/cup, oven ding, 3/4 jota) and `npm run test:audio`
 - Decisions: scipy is not in the venv, so filters are causal biquads built from the closed-form pole response + FFT convolution, and Karplus-Strong runs one numpy step per string period. Models return peak 0.5; levels are set by layer gain in dB. Samples need license CC0/own/public-domain. Meter: pattern positions are in units of the unit note; bpm counts dotted quarters for 6/8, 9/8, 12/8.
-- Not built yet (phase 2b): wiring sounds and music into `ad.yaml`, a "genericness check" (flag sounds that do not match their `meaning`), mixing the new sounds into `audio/build.py` and the loudness master, SFX snapping to `cues.json`.
+- Phase 2b built: sound map + music in `ad.yaml`, genericness check, meters, ducking, spectrogram PNGs. Old text: wiring sounds and music into `ad.yaml`, a "genericness check" (flag sounds that do not match their `meaning`), mixing the new sounds into `audio/build.py` and the loudness master, SFX snapping to `cues.json`.
 - The sounds were looked at (spectrograms), not listened to.
 
 ## Real instruments (sampled)

@@ -1,12 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {CliError} from '../util';
 
 const AD = `# yaml-language-server: $schema=https://raw.githubusercontent.com/IFAKA/adkit/main/schema/ad.schema.json
 # adkit spec. You write this file; the engine does the rest.
 # Run: adkit capture && adkit render && adkit check && adkit tile
 
-meta: {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 7.5}   # 7.5 bars at 120 BPM = 15 s
+meta: {fps: 30, width: 1080, height: 1920, bars: 7.5}   # 7.5 bars; the tempo is in sound.music (120 BPM, 4/4: 15 s)
 
 brief:                       # why this ad exists (for you and for AI agents; not drawn)
   audience: Who is this for?
@@ -50,9 +51,33 @@ scenes:                      # lengths are in bars (4 beats = 2 s at 120 BPM); a
     contactAt: 3
     hitAt: 4
 
-sound: {key: A, progression: [Am, F, C, G]}
+sound: sound.yaml            # music and sounds are written per product; see sound.yaml
 
 output: {file: out/ad.mp4}
+`;
+
+const SOUND = `# TODO: this is a placeholder, not a sound design. adkit has no default sounds: every cue needs a sound.
+# 1. Write the music in music.json for THIS product (meter, key, instruments that mean something).
+# 2. For each cue (see "Sound" in the README for roles), define a sound that is an object in the product's world
+#    under 'sounds:' (with a 'meaning' of at least 4 words) and map it under 'cues:'.
+# Until then every cue kind is "silent", so the ad renders without sound effects.
+music: {file: music.json}
+sounds: {}
+cues:
+  cut: silent
+  title: silent
+  tap: silent
+  pop: silent
+  whoosh: silent
+  hit: silent
+  chime: silent
+  ping: silent
+  riser: silent
+  swap: silent
+  tick: silent
+mix:
+  loudness: {lufs: -14, truePeak: -1.5}
+  duckMusic: 1.5
 `;
 
 const CAPTURE = `# How to photograph your app. adkit never changes the app folder (isolate: copy works in .adkit/).
@@ -81,6 +106,9 @@ export function init(dir: string) {
   fs.mkdirSync(d, {recursive: true});
   fs.writeFileSync(path.join(d, 'ad.yaml'), AD);
   fs.writeFileSync(path.join(d, 'capture.yaml'), CAPTURE);
+  fs.writeFileSync(path.join(d, 'sound.yaml'), SOUND);
+  // a starting score to rewrite: the music of the minimal example (the rest of the example is not copied)
+  fs.copyFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../examples/minimal/music.json'), path.join(d, 'music.json'));
   fs.writeFileSync(path.join(d, '.gitignore'), '.adkit/\nout/\n');
-  console.log(`adkit init     created ${path.relative(process.cwd(), d) || '.'}/ad.yaml and capture.yaml. Edit them, then run: adkit capture`);
+  console.log(`adkit init     created ${path.relative(process.cwd(), d) || '.'}/ad.yaml, capture.yaml, sound.yaml and music.json. Edit them (write the music and sounds for your product), then run: adkit capture`);
 }

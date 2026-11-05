@@ -53,18 +53,18 @@ Output: `out/ad.mp4` next to `ad.yaml`. Logs: `.adkit/logs/`.
 ## The spec
 
 ```yaml
-meta:    {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 7.5}
+meta:    {fps: 30, width: 1080, height: 1920, bars: 7.5}   # the tempo is sound.music.bpm
 brief:   {audience, message, language, tone}      # for people and agents; not drawn
 brand:   {name, tagline, contact, colors, fonts, icon (path or {image})}
 capture: capture.yaml                              # or inline; see below
 scenes:  [ ...blocks, in order... ]
-sound:   {key, progression, chords, motif, sfx, seed, loudness}
+sound:   {music, sounds, cues, mix, seed}          # see "Sound"
 output:  {file: out/ad.mp4, crf: 18}
 ```
 
-The full reference is the JSON Schema `schema/ad.schema.json` (use it in your editor: `# yaml-language-server: $schema=...`). Errors name the file, line and path: `ad.yaml:42 scenes[1].bars: length must be a multiple of 0.25 bars`.
+The full reference is the JSON Schema `schema/ad.schema.json` (use it in your editor: `# yaml-language-server: $schema=...`). Errors name the file, line and path: `ad.yaml:42 scenes[1].bars: length 1.3 bars is not a whole number of beats`.
 
-Time is musical. A scene's length is in **bars** (4 beats; 2 s at 120 BPM and 30 fps). Everything inside a scene is placed in **beats** from the scene start. The compiler turns this into frames, puts every cue on a beat or off-beat (`frame % 15` is 0 or 7 at 120 BPM / 30 fps) and fails on off-grid cues, overlapping events, overlapping titles, or a wrong story order.
+Time is musical. A scene's length is in **bars** (the music's meter, 4 beats in 4/4; 2 s at 120 BPM and 30 fps). Everything inside a scene is placed in **beats** from the scene start. The compiler turns this into frames, puts every cue on a beat or off-beat (`frame % 15` is 0 or 7 at 120 BPM / 30 fps) and fails on off-grid cues, overlapping events, overlapping titles, or a wrong story order.
 
 Text: `*word*` is drawn in the accent colour; `_` is a non-breaking space.
 Environment variables in the spec: `${APP_DIR:-/default/path}`.
@@ -120,6 +120,75 @@ Story order: `chaos` (optional) first, `endCard` last, `iconOpen` only right aft
 | `swipe` | `at`, `from`, `to`, `beats`, `scroll` | A finger drags from one element to another. With `scroll` (px) the page scrolls and the finger stays on the same content (whoosh) |
 
 Examples: `examples/minimal/ad.yaml` (15 s), `examples/horno-lento/ad.yaml` (30 s, a shop app, most blocks) and `examples/steps/ad.yaml` (20 s, a fake map app: chaos `cards`, `type`, `pop` with `under`, `pulse`, `sheet` and `fade` transitions, `swipe` with scroll, `endCard.note`).
+
+## Sound
+
+adkit has **no default sounds and no default song**. Every ad carries its own music and its own sounds, written for that product, as data in `ad.yaml` (or a `sound.yaml` it points to). The sounds are synthesised, so nothing is licensed.
+
+```yaml
+sound: sound.yaml          # or inline
+```
+```yaml
+# sound.yaml
+music: {file: music.json}   # a MUSIC object (or inline): bpm, meter, key, instruments, patterns, sections
+sounds:                      # what each sound IS, in this product's world
+  bag_thump:
+    meaning: "A paper bag of beans set down on the counter, because the ad sells bagged coffee"   # required, 4+ words
+    layers: [{model: kick, params: {tune: 0.75}, gain: -4}]
+    fx: [{type: lowpass, hz: 900}]
+    # tune: chord          # follow the chord playing at the cue time (notes are written in the music's key)
+cues:                        # which sound plays at which cue
+  tap: bag_thump             # a sound name
+  paid: {sound: counter_bell, gain: -3, pan: 0.2, duck: 3}
+  cut: silent                # "silent" = on purpose no sound
+mix: {loudness: {lufs: -14, truePeak: -1.5}, duckMusic: 1.5}
+```
+
+A cue key is a cue name (`block:cue`, strongest), a role, or a kind (weakest). Cue fields: `sound`, `gain` (dB), `pan` (-1..1), `duck` (dB the music dips), `variations` (default 3: seeds rotate per occurrence so repeats do not sound the same), `align: end` (a sound with a duration, like a riser, ends when the cue ends), `reason` (why two roles share one sound). `mix.duckMusic` is the default duck; `mix.musicGain` shifts the music (dB).
+
+**Cue roles.** Each is one kind, so you can map by kind (`tap`, `pop`, `whoosh`, `hit`, `chime`, `ping`, `riser`, `swap`, `tick`, `title`, `cut`) as a shortcut, but a sound per role is better.
+
+| role | kind | when |
+|---|---|---|
+| `cut` | cut | hard cut at the start of every block (optional: needs no sound) |
+| `title-in` | title | a title appears (needs a sound only for the first title of a phone block, "strong") (optional: needs no sound) |
+| `title-out` | title | a title leaves (optional: needs no sound) |
+| `riser-chaos` | riser | chaos block: the build-up over the whole block (has a duration) |
+| `ping` | ping | chaos block: an item arrives |
+| `bubble-pop` | pop | chaos block: the pile bursts or collapses (3 cues) |
+| `icon-morph` | swap | iconOpen: the pile turns into the app icon |
+| `drop` | hit | reveal: the first beat of the phone scene |
+| `app-open` | whoosh | reveal: the phone rises in |
+| `screen-swap` | swap | the app screen changes |
+| `sheet-up` | whoosh | tapFlow: a sheet slides up |
+| `pop-in` | pop | tapFlow pop step: an element pops out |
+| `type-tick` | tick | tapFlow type step: one character group typed (every half beat) |
+| `pulse` | ping | tapFlow pulse step: an element pulses |
+| `swipe` | whoosh | tapFlow swipe step |
+| `tap` | tap | a finger taps an element (pan from the step) |
+| `lift` | pop | tapFlow: an element lifts off the page |
+| `fly` | whoosh | tapFlow: the lifted element flies away (2 beats) |
+| `badge` | pop | tapFlow: a count badge appears |
+| `paid` | chime | tapFlow check step: the success tick |
+| `whip-out` | whoosh | whip: the old scene leaves |
+| `whip-spin` | whoosh | whip: the spin into the next scene (2 beats) |
+| `notification` | chime | notification: the banner slides in |
+| `order-lands` | pop | notification: the new item lands in the list |
+| `count` | ping | statCountUp: the number counts up (has a duration) |
+| `count-done` | chime | statCountUp: the number arrives |
+| `bars-riser` | riser | statCountUp: the chart bars grow (2 beats) |
+| `skin-swap` | swap | skins: the look changes to the next variant |
+| `macro` | whoosh | camera move with `whoosh: true` |
+| `cta-whoosh` | whoosh | endCard: the end card enters (2 beats) |
+| `lockup` | pop | endCard: the brand lockup lands |
+| `contact` | title | endCard: the contact line appears |
+| `final-hit` | hit | endCard: the last beat |
+
+**The genericness check** (in `adkit build`, and again in `adkit check`) FAILS when: a cue that is emitted has no sound (map it, or say `silent`); a sound has no `meaning` or one under 4 words; there is no `music`; the music is shorter than the ad; a cue points at a sound that is not defined (a name from the old built-in palette such as `tap` or `payment_ding` gets a clear message). It WARNS when two cue keys share one sound with no `reason`, a cue key matches nothing, a sound is unused, or the music is longer than the ad. `adkit check` also writes spectrogram PNGs to `.adkit/audio/` (`mix.png`, `music.png`, `sounds/NAME.png` and `.wav`) and prints their paths: look at them.
+
+**Meter.** The grid comes from `music.meter` and `music.bpm`. A bar has `meter.beats` beats. The beat is a quarter in x/4 and an eighth in x/8 (3/4 works, and 6/8 is six eighths). For 6/8, 9/8 and 12/8 the BPM counts dotted quarters (override: `meter.bpm_counts`). Frames per beat (`fps * seconds per beat`) must be a whole number of at least 4, else the compile fails and lists nearby valid BPM values (30 fps: 3/4 at 180 BPM is 10 frames per beat). The off-beat is half a beat, rounded down to a frame (`floor`; 15 frames per beat gives 7). Scene lengths must be a whole number of beats.
+
+**Audio build.** `audio/build.py` renders the music (`score.py`), renders every cue at its time (`sounddesign.py`), ducks the music, then masters to -14 LUFS with the true peak checked after an AAC round trip. Music and sounds are cached by content hash. Details: `audio/README.md`.
 
 ## CLI
 

@@ -3,61 +3,25 @@
 Synthesises the ad's soundtrack (music + SFX) from a plan JSON. Synthesised with numpy; sampled instruments (real recordings, CC0 or free-use, never in git) are optional: see "Real instruments".
 Same plan JSON -> byte-identical WAV (all randomness comes from `np.random.default_rng(seed)`).
 
-    python3 audio/build.py --plan PLAN.json --out OUT.wav [--workdir DIR]
+    python3 audio/build.py --plan PLAN.json --out OUT.wav [--workdir DIR] [--base-dir D] [--cache-dir D] [--png-dir D]
     -> audio ok -14.0 LUFS -1.6 dBTP 30.0 s
 
 Needs numpy and ffmpeg. From TypeScript use `buildAudio` / `audioKey` in `src/audio/index.ts` (makes `.adkit/venv` for you).
 
 ## How it works
-- `dsp.py` filters (FFT, zero phase), reverb. `instruments.py` instruments and the SFX palette.
-- `music.py` reads `sections` and `sound`: chord per bar = `sound.progression` cycling from the drop bar, with
-  `sound.chords` (1-based bar number -> chord) overrides; the last bar resolves to `sound.key`. Notes of the logo come from `sound.motif`.
-  - chaos: clashing pings (at the `ping` cues), drone, rising noise, thumps, reverse swell into the end of the section
-  - breath: silence until the drop
-  - drop: boom + shimmer + the motif; groove: electric piano, pad, bass, kitchen percussion, motif hints every 4 bars
-  - lift: marimba arpeggio + dense whisk; swaps: an accent on every beat; final: ringing chord + motif + oven-timer ding
-- `mix.py` places SFX from `cues` (role first, then `kind`), ducks the music under them.
-- `build.py` mixes, then masters: look-ahead limiter and gain, measured with ffmpeg `ebur128`, repeated until
-  `sound.loudness.lufs` (+-0.1) and `truePeak` are met. Output is exactly `durationSeconds` long.
-
-## Roles
-| role | sound | gain dB |
-|---|---|---|
-| ping, riser-chaos, drop, lockup, final-hit, cut, contact, title-out | music (no SFX) | - |
-| title-in (only if `strong`) | shimmer | -17 |
-| bubble-pop-NN | pop | -15 |
-| icon-morph | swap | -11 |
-| app-open, macro-N, whip-*, cta-whoosh | whoosh | -14 |
-| order-lands | pop | -11 |
-| lift, badge | pop | -8 |
-| tap-N-* | tap (cue `pan` used) | -8 |
-| fly | bag_swish | -10 |
-| paid, count-done | payment_ding | -8, -9 |
-| notification | order_bell | -8 |
-| count | receipt_chatter | -13 |
-| bars-riser | rise | -9 |
-| skin-N | swap | -10 |
-| screen-swap | swap | -12 |
-
-Unknown roles fall back by `kind`: tap -> tap, pop -> pop, whoosh -> whoosh, hit -> hit, chime -> payment_ding,
-ping -> ping, riser -> rise, swap -> swap, title -> tick. `cut` gets nothing. Pitched sounds are tuned to the chord playing at the cue time.
-
-## Overrides: `sound.sfx`
-Keys are a cue name (`block:cue`) or a role. The cue name wins over the role.
-
-    sfx:
-      paid: {sound: order_bell, gain: -6}
-      "customer:tap-2-addButton": {mute: true}
-      cta-whoosh: {gain: -10, duck: 3, pan: 0.3}
-
-Fields: `mute`, `sound`, `gain` (dB), `duck` (dB the music dips for 150 ms), `pan` (-1..1).
-Palette: tap, tick, pop, swap, shimmer, bag_swish, payment_ding, order_bell, receipt_chatter, ping, hit, whoosh, rise.
+- `build.py` reads the plan (`music`, `sounds`, `placements`, `mix`; written by `adkit build`), renders the music with `score.py`
+  (cached), pads or cuts it to the ad length, renders each placement with `sounddesign.py` at its time (`mix.py`), ducks the
+  music under the cues, then masters: look-ahead limiter and gain, measured with ffmpeg `ebur128`, repeated until
+  `mix.loudness.lufs` (+-0.1) and `truePeak` hold after an AAC round trip.
+- `mix.py` caches every render under `--cache-dir` by sha256(code hash + content). `tune: chord` sounds are transposed to the chord root at the cue time.
+- No default sounds, no default song, no palette. TypeScript resolves cue -> sound (`src/engine/sound-check.ts`); the README "Sound" section lists the cue roles.
+- `--png-dir DIR` writes `mix.png`, `music.png`, `sounds/NAME.png/.wav`; `--pngs-only` writes only those.
 
 ## Sound design and music as data
 Phase 2a. The engine only renders what the data describes: no default sounds, no default song. An agent writes tailor-made
 sounds and music from the product's own world (a tram bell, water on a fountain pin, the cierzo wind). Same JSON + seed =
 same bytes. Pure numpy (no scipy). Everything is in `audio/synth/`; the CLIs are `sounddesign.py`, `score.py` and `tools/spectrogram.py`.
-Not wired into `ad.yaml` yet (phase 2b).
+Wired into `ad.yaml` (`sound:`), see the README "Sound".
 
     ~/.cache/adkit/venv/bin/python audio/sounddesign.py SOUND.json --out out.wav      # one sound
     ~/.cache/adkit/venv/bin/python audio/score.py MUSIC.json --out-dir out/            # mix.wav + stems/ + cues.json
