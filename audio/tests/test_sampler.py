@@ -155,3 +155,16 @@ def test_real_jota_samples_deterministic():
     a, _, _ = score.render_music(m, base); b, _, _ = score.render_music(m, base)
     assert a.tobytes() == b.tobytes()
     assert np.isfinite(a).all() and np.abs(a).max() <= 1.0
+
+
+def test_sampler_as_sound_layer_real_castanets_and_errors():
+    import sounddesign
+    if samplelib.missing(sm.SETS['castanets']['packs'], json.load(open(REAL_LOCK))):
+        pytest.skip('run python3 audio/fetch_samples.py first')
+    snd = {'meaning': 'castanets hit on the title: the jota of the city', 'layers': [{'model': 'sampler', 'params': {'set': 'castanets', 'hit': 'strike', 'vel': 0.8}}]}
+    a = sounddesign.render_sound(snd, 3); b = sounddesign.render_sound(snd, 3)
+    assert a.tobytes() == b.tobytes() and np.isfinite(a).all() and np.abs(a).max() > 0.05
+    with pytest.raises(sounddesign.SoundError, match='params.set'):
+        sounddesign.render_sound({'meaning': 'one two three', 'layers': [{'model': 'sampler', 'params': {}}]}, 1)
+    with pytest.raises(sounddesign.SoundError, match='hit'):
+        sounddesign.render_sound({'meaning': 'one two three', 'layers': [{'model': 'sampler', 'params': {'set': 'castanets'}}]}, 1)
