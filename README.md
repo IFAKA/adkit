@@ -55,7 +55,7 @@ Output: `out/ad.mp4` next to `ad.yaml`. Logs: `.adkit/logs/`.
 ```yaml
 meta:    {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 7.5}
 brief:   {audience, message, language, tone}      # for people and agents; not drawn
-brand:   {name, tagline, contact, colors, fonts, icon}
+brand:   {name, tagline, contact, colors, fonts, icon (path or {image})}
 capture: capture.yaml                              # or inline; see below
 scenes:  [ ...blocks, in order... ]
 sound:   {key, progression, chords, motif, sfx, seed, loudness}
@@ -93,17 +93,33 @@ adkit never changes your app folder when `isolate: copy` (it works in `.adkit/wo
 
 | block | what it shows |
 | --- | --- |
-| `chatChaos` | Dark scene, message bubbles pile up faster and faster, counter climbs, a title shakes in, bubbles fly into the chat icon |
-| `iconOpen` | The chat icon morphs into your app icon |
+| `chaos` | Dark scene where the problem piles up faster and faster. `items` (text, optional emoji `icon`, `side`, `beat` or `frame`) in a `look`: `bubbles` (chat), `cards`, `tabs` or `toasts`. A red `counter` climbs (or `counter: false`). A title shakes in. `into: icon` flies the items into an icon (an `iconOpen` block must follow); `into: center` collapses them to one point and cuts to the next block. `flyBeats` sets when they fly. Must be the first block, if used. |
+| `iconOpen` | The icon morphs into your app icon (`brand.icon`, or `brand.icon.image`). Only right after a `chaos` with `into: icon`. |
 | `reveal` | Warm light blooms, the phone opens from the icon (or rises), push-in, 1-2 titles |
-| `tapFlow` | Ordered steps on the captured app: `screen`, `tap`, `lift` (card pops out), `fly` (card flies to a target), `badge`, `check`; camera keys with zoom / focus on elements |
+| `tapFlow` | Ordered steps on the captured app (see below), plus camera keys with zoom / focus on elements |
 | `whip` | Whip-pan from one phone to the next (zero length) |
 | `notification` | A banner drops in and a card slides into the screen |
 | `statCountUp` | A number counts up with a ring and chart bars |
 | `skins` | The same screen in other colour variants every N beats |
-| `endCard` | Promise line, brand lockup, contact, final hit |
+| `endCard` | Promise line, brand lockup, contact, optional `note` (a small line under the contact, kept out of the bottom 400 px), final hit |
 
-Examples: `examples/minimal/ad.yaml` (15 s) and `examples/horno-lento/ad.yaml` (30 s, all blocks).
+Story order: `chaos` (optional) first, `endCard` last, `iconOpen` only right after a `chaos` with `into: icon`, one `reveal` before any other phone block. Everything else is free. A 15 s ad needs only `reveal`, `tapFlow`, `endCard`.
+
+#### tapFlow steps
+
+| step | fields | what it does (cue) |
+| --- | --- | --- |
+| `screen` | `at`, `screen`, `transition` (`slide` default, `cut`, `fade`, `zoom`, `sheet`), `sheetHeight`, `scroll`, `sticky` | Shows another captured screen. `sheet`: the bottom `sheetHeight` px of the new capture rises over the old screen (capture the page with the sheet open and pinned to the bottom). (swap, or whoosh for sheet) |
+| `tap` | `at`, `element`, `x`, `radius`, `press`, `highlight` | Finger tap with highlight (tap) |
+| `lift` / `fly` | `element`, `tap`, `tapAt` / `to` | A card pops out, then flies to a target (pop, whoosh) |
+| `badge` | `element`, `count` | A count badge lands on an element (pop) |
+| `check` | `size` | Success check (chime) |
+| `pop` | `at`, `elements[]`, `stagger` (beats, default 0.5), `style` (`pin` / `ring` / `scale`), `under` | The elements are hidden, then appear one after another. The capture shows them in their final place. `under` is a capture of the same page without them; needed on textured backgrounds such as a map. (one pop per element) |
+| `type` | `at`, `element`, `text`, `beats`, `fontSize`, `color` | Types text into an input that is empty in the capture, with a caret (a tick every half beat) |
+| `pulse` | `at`, `element`, `color`, `count` | Rings grow from an element, one per beat (ping) |
+| `swipe` | `at`, `from`, `to`, `beats`, `scroll` | A finger drags from one element to another. With `scroll` (px) the page scrolls and the finger stays on the same content (whoosh) |
+
+Examples: `examples/minimal/ad.yaml` (15 s), `examples/horno-lento/ad.yaml` (30 s, a shop app, most blocks) and `examples/steps/ad.yaml` (20 s, a fake map app: chaos `cards`, `type`, `pop` with `under`, `pulse`, `sheet` and `fade` transitions, `swipe` with scroll, `endCard.note`).
 
 ## CLI
 

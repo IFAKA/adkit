@@ -11,6 +11,8 @@ Status log. Newest decisions last. `BLOCKED:` lines mark steps that failed three
 - [x] renderer (Remotion) and golden comparison: SSIM 0.9733, -14.1 vs -14.0 LUFS
 - [x] cache proof (b.mp4 == c.mp4, scripts/cache-proof.sh), determinism proof (CPU raster, fixed chunks)
 - [x] README, docs/preview.mp4, docs/poster.png
+- [x] generic blocks: `chaos` (replaces chatChaos; looks bubbles/cards/tabs/toasts, into icon/center), relaxed story order, tapFlow screen transitions (cut/fade/zoom/sheet) and steps pop/type/pulse/swipe, brand.icon.image, endCard.note, examples/steps
+- audio tailoring: phase 2 (kit, instruments, palette not built; a later step rebuilds audio)
 
 ## Decisions
 - GPU Chrome is not byte-stable (blurred shadows differ by one level). Default is CPU raster + single raster thread + fixed 30-frame chunks. GPU only for --draft.
