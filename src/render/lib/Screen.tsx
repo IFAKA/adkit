@@ -33,13 +33,14 @@ export const Screen: React.FC<{m: Model; layer: Layer; f: number; scroll: number
         })}
         {children}
       </div>
-      <div style={{position: 'absolute', left: 0, top: 0, width: SCREEN_W, height: INSET, background: bg, zIndex: 5, fontFamily: sans, color: t.fg}}>
+      <div style={{position: 'absolute', left: 0, top: 0, width: SCREEN_W, height: m.safe.top > 0 ? m.safe.top : INSET, background: m.safe.top > 0 ? 'transparent' : bg, zIndex: 5, fontFamily: sans, color: t.fg, pointerEvents: 'none'}}>
         <div style={{position: 'absolute', left: 36, top: 14, fontWeight: 700, fontSize: 16, letterSpacing: -0.2}}>9:41</div>
         <svg style={{position: 'absolute', right: 30, top: 16}} width="64" height="14" viewBox="0 0 64 14" fill={t.fg}>
           <rect x="0" y="9" width="3" height="5" rx="1" /><rect x="5" y="6" width="3" height="8" rx="1" /><rect x="10" y="3" width="3" height="11" rx="1" /><rect x="15" y="0" width="3" height="14" rx="1" />
           <rect x="26" y="1" width="30" height="13" rx="4" fill="none" stroke={t.fg} strokeWidth="1.2" opacity="0.5" /><rect x="28" y="3" width="22" height="9" rx="2.5" /><rect x="58" y="5" width="2" height="5" rx="1" opacity="0.5" />
         </svg>
       </div>
+      {m.safe.bottom > 0 && <div style={{position: 'absolute', left: (SCREEN_W - 134) / 2, bottom: Math.max(6, Math.round(m.safe.bottom / 4)), width: 134, height: 5, borderRadius: 3, background: t.fg, opacity: 0.88, zIndex: 6}} />}
       {layer.sticky > 0 && scroll > 0 && im && !failed ? (
         <div style={{position: 'absolute', left: 0, top: INSET, width: SCREEN_W, height: layer.sticky, overflow: 'hidden', opacity: ramp(scroll, 0, 30), boxShadow: `0 6px 18px ${rgba(t.fg, 0.1)}`}}>
           <SafeImg src={im.file} style={{width: SCREEN_W, height: SCREEN_H}} />

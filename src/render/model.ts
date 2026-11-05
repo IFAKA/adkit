@@ -6,7 +6,9 @@ import {CAM, CAM_SLOW, CAM_SNAP, CAM_SPRINGS, setFps, type Key, type Spring} fro
 export const SCREEN_W = 390;
 export const SCREEN_H = 844;
 /** Room for the status bar: captured pages start below it. */
-export const INSET = 46;
+export let INSET = 46;
+/** A capture shot with safeArea already holds the status-bar area (and the home-indicator area): nothing is pushed down then. */
+export function setInset(n: number) { INSET = n; }
 /** frames a popped element is drawn on top of its cover */
 export const POP_DUR = 24;
 export const BASE_S = 1.5; // phone scale at rest
@@ -83,6 +85,8 @@ export type Model = {
   sheenGroups: number[];
   themeOf: (set: string) => Theme;
   mainTheme: Theme;
+  /** Safe-area insets of the capture (0 when it was shot without safeArea). */
+  safe: {top: number; bottom: number};
   imageUrl: (p: string) => string;
   photo?: string;
 };
@@ -103,6 +107,8 @@ export const unionBox = (a: Box, b: Box): Box => {
 export function buildModel(props: RenderProps): Model {
   const {plan, spec, manifest} = props;
   setFps(plan.fps);
+  const safe = manifest.safeArea ?? {top: 0, bottom: 0};
+  setInset(manifest.safeArea ? 0 : 46);
   const bf = plan.beat;
   const fr = (b: number) => Math.floor(b * bf + 1e-9);
   const sc = bf / 15; // scale of the fixed frame counts that were tuned at 15 frames per beat
@@ -142,7 +148,7 @@ export function buildModel(props: RenderProps): Model {
 
   const m: Model = {
     plan, spec, manifest, bf, layers: [], taps: [], lifts: [], badges: [], notifs: [], shots: [], roll: [], colorReqs: [],
-    openFromIcon: false, whips: [], skins: [], sheenGroups: [], themeOf, mainTheme: themeOf('main'), imageUrl,
+    openFromIcon: false, whips: [], skins: [], sheenGroups: [], themeOf, mainTheme: themeOf('main'), safe, imageUrl,
   };
   if (props.photo) m.photo = imageUrl(props.photo);
   const req = (ref: Ref, box: Box, mode: 'inside' | 'outside', tag: string): ColorReq => {

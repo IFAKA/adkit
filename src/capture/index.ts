@@ -99,7 +99,7 @@ export async function runCapture(opts: CaptureOptions): Promise<CaptureResult> {
 
   const appDir = resolveAppDir(spec, specDir);
   const app = cap.app;
-  const patch: Manifest = {scale: cap.viewport.scale, viewport: {w: cap.viewport.width, h: cap.viewport.height}, sets: {}};
+  const patch: Manifest = {scale: cap.viewport.scale, viewport: {w: cap.viewport.width, h: cap.viewport.height}, ...(cap.safeArea ? {safeArea: cap.safeArea} : {}), sets: {}};
 
   try {
     // Sets are independent (own work copy, own server, own browser), so they run side by side.

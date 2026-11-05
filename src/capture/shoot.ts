@@ -2,10 +2,16 @@ import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import {chromium, type Locator, type Page} from 'playwright';
+import {chromium, type BrowserContext, type Locator, type Page} from 'playwright';
 import type {z} from 'zod';
 import type {Capture as CaptureSchema} from '../spec/schema';
 import type {Box, ScreenEntry, SetEntry} from './manifest';
+
+/** Phone safe-area insets: env(safe-area-inset-top/bottom) read these values in every page of this tab, also after navigation. */
+export async function applySafeArea(context: BrowserContext, page: Page, a: {top: number; bottom: number}) {
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Emulation.setSafeAreaInsetsOverride' as never, {insets: {top: a.top, bottom: a.bottom, left: 0, right: 0}} as never);
+}
 
 type Capture = z.infer<typeof CaptureSchema>;
 type Screen = Capture['sets'][string]['screens'][number];
@@ -75,10 +81,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = css; document.head.append(s); });
     })();`});
     const page = await context.newPage();
-    if (cap.safeArea) {
-      const cdp = await context.newCDPSession(page);
-      await cdp.send('Emulation.setSafeAreaInsetsOverride' as never, {insets: {top: cap.safeArea.top, bottom: cap.safeArea.bottom, left: 0, right: 0}} as never);
-    }
+    if (cap.safeArea) await applySafeArea(context, page, cap.safeArea);
     page.on('pageerror', (e) => o.detail(`page error: ${e.message}`));
 
     const settle = async (extra: number) => {
