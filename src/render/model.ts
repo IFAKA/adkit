@@ -352,7 +352,7 @@ export function buildModel(props: RenderProps): Model {
   blocks.forEach((b) => {
     const s = b.spec as BlockSpec;
     if (b.kind === 'endCard') {
-      shots.push({f: b.start, zoom: 1.0, sx: 195, sy: 422, qy: 1230, spring: CAM});
+      shots.push({f: b.start, zoom: 1.0, sx: 195, sy: 422, qy: 1230, spring: CAM_SLOW});
       return;
     }
     const keys = 'camera' in s ? s.camera : [];
