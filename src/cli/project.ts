@@ -7,6 +7,7 @@ import type {Manifest} from '../capture/manifest';
 import {loadSpec} from '../spec/load';
 import type {Ad} from '../spec/schema';
 import {listFiles, Reporter, sha, CliError} from './util';
+import crypto from 'node:crypto';
 
 export const PKG_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -26,6 +27,7 @@ export function openProject(arg: string | undefined): Project {
   const {spec, dir} = loadSpec(file);
   const plan = compile(spec);
   const adkit = path.join(dir, '.adkit');
+  stageIcon(spec, dir, adkit);
   return {spec, plan, file, dir, adkit, rep: new Reporter(path.join(adkit, 'logs'))};
 }
 
@@ -39,4 +41,18 @@ export function readManifest(p: Project, key: string): Manifest {
   const f = path.join(p.adkit, 'captures', key, 'manifest.json');
   if (!fs.existsSync(f)) throw new CliError('no captures yet: run "adkit capture" first');
   return JSON.parse(fs.readFileSync(f, 'utf8')) as Manifest;
+}
+
+/** Copy brand.icon.image into the bundler's public folder under a content-hashed name, and point the spec at the copy (so caches follow the file's bytes). */
+function stageIcon(spec: Ad, dir: string, adkit: string): void {
+  const img = spec.brand.icon.image;
+  if (!img) return;
+  const src = path.resolve(dir, img);
+  if (!fs.existsSync(src)) throw new CliError(`brand.icon.image: file not found: ${src}`);
+  const bytes = fs.readFileSync(src);
+  const name = `brand/icon-${crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 10)}${path.extname(src).toLowerCase()}`;
+  const dest = path.join(adkit, 'public', name);
+  fs.mkdirSync(path.dirname(dest), {recursive: true});
+  if (!fs.existsSync(dest)) fs.writeFileSync(dest, bytes);
+  spec.brand.icon.image = name;
 }

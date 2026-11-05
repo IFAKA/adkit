@@ -194,6 +194,11 @@
               "default": "#FFF3DC",
               "type": "string",
               "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "image": {
+              "description": "Path (relative to ad.yaml) of a real app icon. It is drawn instead of the monogram, cropped to the rounded icon shape.",
+              "type": "string",
+              "pattern": "\\.(png|svg)$"
             }
           },
           "additionalProperties": false
@@ -2871,6 +2876,11 @@
                   "monogram",
                   "none"
                 ]
+              },
+              "note": {
+                "description": "A small line under the contact line (e.g. \"free, no sign-up\"). Kept out of the bottom 400 px.",
+                "type": "string",
+                "maxLength": 60
               },
               "lockupAt": {
                 "default": 4,

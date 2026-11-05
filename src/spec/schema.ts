@@ -49,6 +49,7 @@ export const Brand = z.object({
     text: z.string().min(1).max(3).default('A'),
     color: hex.default('#B8742B'),
     textColor: hex.default('#FFF3DC'),
+    image: z.string().regex(/\.(png|svg)$/i, 'icon image must be a .png or .svg file').optional().describe('Path (relative to ad.yaml) of a real app icon. It is drawn instead of the monogram, cropped to the rounded icon shape.'),
   }).strict().default({text: 'A', color: '#B8742B', textColor: '#FFF3DC'}),
 }).strict();
 
@@ -290,6 +291,7 @@ export const EndCard = z.object({
   screen: ScreenRef, scroll: z.number().default(0),
   title: Title.optional().describe('Line under the phone, e.g. the promise.'),
   mark: z.enum(['storefront', 'monogram', 'none']).default('monogram'),
+  note: z.string().max(60).optional().describe('A small line under the contact line (e.g. "free, no sign-up"). Kept out of the bottom 400 px.'),
   lockupAt: posBeat.default(4), contactAt: posBeat.default(5), hitAt: posBeat.default(6),
 }).strict();
 

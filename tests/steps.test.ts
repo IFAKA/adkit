@@ -66,3 +66,23 @@ describe('chaos block', () => {
     expect(AdSpec.safeParse(raw).success).toBe(false);
   });
 });
+
+describe('brand icon image and end card note', () => {
+  const spec = () => structuredClone(load('minimal').spec) as any;
+  it('accepts a png or svg icon path and a short note', () => {
+    const s = spec();
+    s.brand.icon.image = 'assets/icon.png';
+    s.scenes.at(-1).note = 'free, no sign-up';
+    expect(AdSpec.safeParse(s).success).toBe(true);
+    s.brand.icon.image = 'assets/icon.svg';
+    expect(AdSpec.safeParse(s).success).toBe(true);
+  });
+  it('rejects other image types and a long note', () => {
+    const s = spec();
+    s.brand.icon.image = 'assets/icon.jpg';
+    expect(AdSpec.safeParse(s).success).toBe(false);
+    s.brand.icon.image = undefined;
+    s.scenes.at(-1).note = 'x'.repeat(61);
+    expect(AdSpec.safeParse(s).success).toBe(false);
+  });
+});

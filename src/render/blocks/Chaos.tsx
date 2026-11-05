@@ -5,7 +5,7 @@ import {MotionBlur} from '../lib/Blur';
 import {H, W, type Model} from '../model';
 import {useFonts} from '../lib/fonts';
 import {SNAP, clamp01, easeInOut, lerp, mix, ramp, rgba, spr} from '../lib/anim';
-import {AppIconFace} from '../lib/AppIcon';
+import {AppIconFace, brandIcon} from '../lib/AppIcon';
 import {Title} from '../lib/Title';
 import {ICON_FRAME_CY, ICON_FRAME_PX} from '../choreo';
 import type {Title as TitleSpec} from '../../spec/schema';
@@ -211,8 +211,7 @@ export const ChaosScene: React.FC<{m: Model; chatTitles: {spec: TitleSpec; inAt:
   const f = abs - s.t0;
   const flying = f >= s.flyAt;
   const ispec = (m.chaos!.icon?.spec ?? {}) as {text?: string; color?: string};
-  const bi = m.spec.brand.icon;
-  const icon = {text: ispec.text ?? bi.text, color: ispec.color ?? bi.color, textColor: bi.textColor};
+  const icon = brandIcon(m, {...(ispec.text ? {text: ispec.text} : {}), ...(ispec.color ? {color: ispec.color} : {})});
   return (
     <AbsoluteFill>
       <NightBg f={f} night={m.spec.brand.colors.night} />

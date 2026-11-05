@@ -1,6 +1,6 @@
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
-import {AppIconFace} from '../lib/AppIcon';
+import {AppIconFace, brandIcon} from '../lib/AppIcon';
 import {useFonts} from '../lib/fonts';
 import {BOUNCY, SNAP, clamp01, mix, ramp, rgba, spr} from '../lib/anim';
 import type {Model} from '../model';
@@ -40,7 +40,7 @@ export const EndLockup: React.FC<{m: Model}> = ({m}) => {
   const f = useCurrentFrame();
   const {sans} = useFonts();
   const end = m.end!;
-  const spec = end.spec as {mark: 'storefront' | 'monogram' | 'none'};
+  const spec = end.spec as {mark: 'storefront' | 'monogram' | 'none'; note?: string};
   const brand = m.spec.brand;
   const accent = m.themeOf(m.layers[m.layers.length - 1]?.ref.set ?? 'main').accent;
   const lockup = end.a.lockup;
@@ -53,7 +53,6 @@ export const EndLockup: React.FC<{m: Model}> = ({m}) => {
   const pulse = f >= hitAt ? 1 + 0.045 * (1 - Math.min(1, hit)) * Math.sin(Math.min(1, hit) * Math.PI) + 0.03 * (1 - clamp01(ramp(f, hitAt, hitAt + 12))) : 1;
   const words = brand.name.split(' ');
   const nameSize = Math.min(146, Math.floor(920 / (brand.name.length * 0.6))); // long names shrink to fit 1080 px
-  const bi = brand.icon;
   return (
     <>
       {f >= lockup - 1 && (
@@ -61,7 +60,7 @@ export const EndLockup: React.FC<{m: Model}> = ({m}) => {
           {spec.mark === 'storefront' && <Storefront color={accent} light={mix(brand.colors.paper, '#FFFFFF', 0.6)} p={draw} size={150} />}
           {spec.mark === 'monogram' && (
             <div style={{position: 'relative', width: 150, height: 150, borderRadius: 34, overflow: 'hidden', opacity: clamp01(draw * 2), transform: `scale(${0.7 + 0.3 * draw})`, boxShadow: '0 12px 18px rgba(80,50,10,0.28)'}}>
-              <AppIconFace icon={{text: bi.text, color: bi.color, textColor: bi.textColor}} mono={150 / 84} />
+              <AppIconFace icon={brandIcon(m)} mono={150 / 84} />
             </div>
           )}
           <div style={{marginTop: 14, fontFamily: sans, fontWeight: 800, fontSize: nameSize, lineHeight: 1, letterSpacing: '-0.055em', color: brand.colors.ink, display: 'flex', gap: Math.round(nameSize * 0.2)}}>
@@ -76,6 +75,9 @@ export const EndLockup: React.FC<{m: Model}> = ({m}) => {
         <div style={{position: 'absolute', left: 60, width: 960, top: 895, textAlign: 'center', fontFamily: sans, fontWeight: 700, fontSize: 46, letterSpacing: '-0.02em', color: brand.colors.ink, opacity: clamp01(contact * 1.5), transform: `translateY(${(1 - contact) * 30}px)`}}>
           <span style={{display: 'inline-block', padding: '20px 40px', borderRadius: 70, background: rgba(mix(brand.colors.paper, '#FFFFFF', 0.7), 0.94), boxShadow: `0 18px 44px rgba(60,35,5,0.3), inset 0 0 0 ${2 + 4 * (1 - sweep)}px ${rgba(accent, 0.5)}`}}>{brand.contact}</span>
         </div>
+      )}
+      {spec.note && (
+        <div style={{position: 'absolute', left: 60, width: 960, top: 1010, textAlign: 'center', fontFamily: sans, fontWeight: 500, fontSize: 34, letterSpacing: '-0.01em', color: rgba(brand.colors.ink, 0.72), opacity: clamp01(contact * 1.5), transform: `translateY(${(1 - contact) * 20}px)`}}>{spec.note}</div>
       )}
     </>
   );

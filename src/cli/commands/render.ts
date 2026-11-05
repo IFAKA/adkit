@@ -57,7 +57,7 @@ export async function render(p: Project, flags: RenderFlags = {}): Promise<Rende
   }
 
   // 1. the Remotion bundle, cached by render sources + captures
-  const bundleKey = sha(engineVersion(), cap.key).slice(0, 16);
+  const bundleKey = sha(engineVersion(), cap.key, p.spec.brand.icon.image ?? '').slice(0, 16);
   const bundleDir = path.join(p.adkit, 'bundle', bundleKey);
   await stage('bundle', async () => {
     if (fs.existsSync(path.join(bundleDir, 'index.html'))) return;

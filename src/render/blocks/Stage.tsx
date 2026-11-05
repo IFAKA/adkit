@@ -5,7 +5,7 @@ import {Phone} from '../lib/Phone';
 import {Lift, Screen, colorOf} from '../lib/Screen';
 import {INSET, POP_DUR, SCREEN_H} from '../model';
 import {Check, CartBadge, Highlight, Pulse, Swipe, Tap} from '../lib/Ui';
-import {AppIconFace} from '../lib/AppIcon';
+import {AppIconFace, brandIcon} from '../lib/AppIcon';
 import {useColors} from '../lib/colors';
 import {useFonts} from '../lib/fonts';
 import {BOUNCY, SNAP, SOFT, clamp01, easeInOut, lerp, ramp, rgba, spr, track} from '../lib/anim';
@@ -39,10 +39,9 @@ const OpenIcon: React.FC<{m: Model; f: number; zoom: number; qy: number; pose: R
   const fade = 1 - ramp(e, 0.72, 0.96);
   if (f < at || fade <= 0.001) return null;
   const k = w / ICON_FRAME_PX;
-  const bi = m.spec.brand.icon;
   return (
     <div style={{position: 'absolute', left: cx - w / 2, top: cy - h / 2, width: w, height: h, borderRadius: r, overflow: 'hidden', opacity: fade, boxShadow: '0 8px 24px rgba(90,50,10,0.35)'}}>
-      <AppIconFace icon={{text: bi.text, color: bi.color, textColor: bi.textColor}} mono={(ICON_FRAME_PX / 84) * Math.min(k, 3.2)} textOpacity={1 - ramp(e, 0.45, 0.8)} />
+      <AppIconFace icon={brandIcon(m)} mono={(ICON_FRAME_PX / 84) * Math.min(k, 3.2)} textOpacity={1 - ramp(e, 0.45, 0.8)} />
     </div>
   );
 };
