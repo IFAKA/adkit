@@ -179,17 +179,27 @@ const TapFlowStep = z.discriminatedUnion('type', [
   z.object({type: z.literal('check'), at: posBeat, size: z.number().default(150)}).strict(),
 ]);
 
-export const ChatChaos = z.object({
-  block: z.literal('chatChaos'), ...common,
-  messages: z.array(z.object({
-    text: str,
-    side: z.enum(['in', 'out']).default('in'),
-    beat: posBeat.optional().describe('Grid time: also emits a "ping" cue.'),
-    frame: z.number().int().optional().describe('Free time in frames from block start (may be negative = already on screen).'),
-  }).strict().refine((m) => (m.beat === undefined) !== (m.frame === undefined), 'give exactly one of beat or frame')).min(3),
-  pings: z.array(posBeat).default([]).describe('More ping sounds (beats) that have no bubble.'),
-  counter: z.object({start: z.number().int().default(3), rise: z.number().int().default(44), cap: z.number().int().default(99)}).strict().default({start: 3, rise: 44, cap: 99}),
-  flyBeats: beat.default(1).describe('Beats before the end of the block when the bubbles fly into the icon.'),
+const graphemes = (s: string) => [...new Intl.Segmenter(undefined, {granularity: 'grapheme'}).segment(s)].length;
+
+export const ChaosItem = z.object({
+  text: str,
+  icon: z.string().refine((s) => graphemes(s) >= 1 && graphemes(s) <= 3, 'icon is one emoji or at most 3 characters').optional().describe('Emoji or up to 3 characters drawn on the item (cards, tabs, toasts). Bubbles have no icon.'),
+  side: z.enum(['in', 'out']).default('in').describe('in = from the world to you (left); out = your own reply (right, tinted).'),
+  beat: posBeat.optional().describe('Grid time: also emits a "ping" cue.'),
+  frame: z.number().int().optional().describe('Free time in frames from block start (may be negative = already on screen).'),
+}).strict().refine((m) => (m.beat === undefined) !== (m.frame === undefined), 'give exactly one of beat or frame');
+
+export const Chaos = z.object({
+  block: z.literal('chaos'), ...common,
+  items: z.array(ChaosItem).min(3).describe('What piles up: messages, results, tabs or notifications. They arrive faster and faster.'),
+  look: z.enum(['bubbles', 'cards', 'tabs', 'toasts']).default('bubbles').describe('bubbles = chat messages; cards = stacked app / search result cards; tabs = browser or app tabs piling up; toasts = notification banners.'),
+  pings: z.array(posBeat).default([]).describe('More ping sounds (beats) that have no item.'),
+  counter: z.union([
+    z.object({start: z.number().int().default(3), rise: z.number().int().default(44), cap: z.number().int().default(99), label: z.string().max(24).optional().describe('Small text under the counter (e.g. "open tabs").')}).strict(),
+    z.literal(false),
+  ]).default({start: 3, rise: 44, cap: 99}).describe('The red count that climbs while items pile up, or false for none.'),
+  into: z.enum(['icon', 'center']).default('icon').describe('icon = items fly into an icon and an iconOpen block must follow; center = items collapse to one point and a flash cuts to the next block.'),
+  flyBeats: beat.default(1).describe('Beats before the end of the block when the items fly in.'),
   title: Title.optional().describe('Drawn inside the shaking scene; default colours are white and green.'),
 }).strict();
 
@@ -258,7 +268,7 @@ export const EndCard = z.object({
   lockupAt: posBeat.default(4), contactAt: posBeat.default(5), hitAt: posBeat.default(6),
 }).strict();
 
-export const Block = z.discriminatedUnion('block', [ChatChaos, IconOpen, Reveal, TapFlow, Whip, Notification, StatCountUp, Skins, EndCard]);
+export const Block = z.discriminatedUnion('block', [Chaos, IconOpen, Reveal, TapFlow, Whip, Notification, StatCountUp, Skins, EndCard]);
 export type BlockSpec = z.infer<typeof Block>;
 
 /* ------------------------------------------------------------------ the whole spec */

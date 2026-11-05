@@ -78,4 +78,33 @@ describe('compile', () => {
     const {spec} = load('minimal');
     expect(JSON.stringify(compile(clone(spec)))).toBe(JSON.stringify(compile(clone(spec))));
   });
+
+  describe('story order', () => {
+    it('accepts a chaos block that flies to the centre, with no iconOpen', () => {
+      const s = clone(load('horno-lento').spec);
+      (s.scenes[0] as any).into = 'center';
+      s.scenes.splice(1, 1); // drop iconOpen
+      (s.scenes[0] as any).bars += 0.25;
+      expect(() => compile(s)).not.toThrow();
+    });
+    it('rejects an iconOpen after a chaos that goes to the centre', () => {
+      const s = clone(load('horno-lento').spec);
+      (s.scenes[0] as any).into = 'center';
+      expect(() => compile(s)).toThrow(/iconOpen/);
+    });
+    it('rejects a chaos with into: icon that has no iconOpen', () => {
+      const s = clone(load('horno-lento').spec);
+      s.scenes.splice(1, 1);
+      expect(() => compile(s)).toThrow(/iconOpen/);
+    });
+    it('rejects a chaos that is not first', () => {
+      const s = clone(load('horno-lento').spec);
+      const [c, i] = s.scenes.splice(0, 2);
+      s.scenes.splice(1, 0, c, i);
+      expect(() => compile(s)).toThrow(/first block/);
+    });
+    it('accepts an ad with no chaos at all', () => {
+      expect(() => load('minimal')).not.toThrow();
+    });
+  });
 });

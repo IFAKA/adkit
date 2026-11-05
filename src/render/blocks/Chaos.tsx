@@ -11,29 +11,33 @@ import {ICON_FRAME_CY, ICON_FRAME_PX} from '../choreo';
 import type {Title as TitleSpec} from '../../spec/schema';
 
 const FONT = 38;
-const measure = (text: string) => {
+type Look = 'bubbles' | 'cards' | 'tabs' | 'toasts';
+const measure = (text: string, look: Look, hasIcon: boolean) => {
+  const extra = look === 'bubbles' ? 100 : 100 + (hasIcon || look !== 'tabs' ? 70 : 0);
   const textW = text.length * FONT * 0.53;
-  const w = Math.min(700, textW + 100);
-  const lines = Math.ceil(textW / (w - 64));
-  return {w, h: lines * 48 + 52};
+  const w = Math.min(700, textW + extra);
+  const lines = Math.ceil(textW / (w - extra + 36));
+  return {w, h: look === 'tabs' ? Math.max(1, lines) * 48 + 36 : lines * 48 + 52};
 };
+const CENTER_CY = 800;
 const BOTTOM = 1500;
 const FLY_DUR = 9;
 const FLY_GAP = 0.8;
 const ICON_TOP_CY = 317;
 
-type Item = {at: number; side: 'in' | 'out'; text: string; w: number; h: number; i: number};
+type Item = {at: number; side: 'in' | 'out'; text: string; icon?: string; w: number; h: number; i: number};
 
 /** Everything of the chat scene that depends only on the model (local frames: 0 = start of the chatChaos block). */
 const setup = (m: Model) => {
-  const c = m.chat!;
+  const c = m.chaos!;
+  const center = !c.icon;
   const t0 = c.block.start;
   const E = c.block.end - t0; // end of the chat block
-  const iEnd = c.icon.end - t0;
-  const morph = c.icon.a.morph - t0;
+  const iEnd = c.icon ? c.icon.end - t0 : E;
+  const morph = c.icon ? c.icon.a.morph - t0 : E;
   const flyAt = c.flyAt - t0;
   const ref = E - 5;
-  const items: Item[] = c.messages.map((x, i) => ({at: x.at - t0, side: x.side, text: x.text, ...measure(x.text), i}));
+  const items: Item[] = c.items.map((x, i) => ({at: x.at - t0, side: x.side, text: x.text, icon: x.icon, ...measure(x.text, c.look, !!x.icon), i}));
   const place = (b: Item, f: number) => {
     const p = clamp01(spr(f, b.at, SNAP));
     const buzz = Math.sin((f - b.at) * 2.4) * 7 * Math.max(0, 1 - (f - b.at) / 10);
@@ -45,11 +49,34 @@ const setup = (m: Model) => {
   const flyers = items.filter((b) => b.at <= flyAt - 2 && place(b, 200).cy >= 800).sort((a, b) => b.i - a.i).map((b, k) => ({i: b.i, start: flyAt + Math.round(k * FLY_GAP)}));
   const flyStart: Record<number, number> = Object.fromEntries(flyers.map((x) => [x.i, x.start]));
   const arrivals = flyers.map((x) => x.start + FLY_DUR);
-  const glide: [number, number] = [E + 5, iEnd];
-  const iconCy = (f: number) => lerp(ICON_TOP_CY, ICON_FRAME_CY, easeInOut(ramp(f, glide[0], glide[1])));
-  return {t0, E, iEnd, morph, flyAt, ref, items, place, flyers, flyStart, arrivals, iconCy, glide};
+  const glide: [number, number] = center ? [E, E] : [E + 5, iEnd];
+  const iconCy = (f: number) => center ? CENTER_CY : lerp(ICON_TOP_CY, ICON_FRAME_CY, easeInOut(ramp(f, glide[0], glide[1])));
+  return {center, look: c.look as Look, t0, E, iEnd, morph, flyAt, ref, items, place, flyers, flyStart, arrivals, iconCy, glide};
 };
 type S = ReturnType<typeof setup>;
+
+const ItemBox: React.FC<{b: Item; q: {left: number; bottom: number}; look: Look; out: boolean; alpha: number; tx: number; ty: number; sx: number; sy: number; rot: number; sans: string}> = ({b, q, look, out, alpha, tx, ty, sx, sy, rot, sans}) => {
+  const base: React.CSSProperties = {position: 'absolute', left: q.left, top: q.bottom - b.h, width: b.w, height: b.h, opacity: alpha, transformOrigin: 'center', transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${sx}, ${sy})`, fontFamily: sans, fontWeight: 500, fontSize: FONT, lineHeight: '48px', letterSpacing: '-0.01em', boxSizing: 'border-box'};
+  if (look === 'bubbles') {
+    return (
+      <div style={{...base, background: out ? '#D9FDD3' : '#FFFFFF', color: '#111B21', borderRadius: 30, borderTopLeftRadius: out ? 30 : 8, borderTopRightRadius: out ? 8 : 30, boxShadow: '0 14px 34px rgba(0,0,0,0.45)', padding: '12px 30px 0'}}>
+        {b.text}
+        <div style={{position: 'absolute', right: 30, bottom: 8, fontSize: 21, lineHeight: '24px', color: out ? '#4E8F6A' : '#8696A0', fontWeight: 500}}>
+          {`${9 + Math.floor(b.i / 5)}:${String(12 + b.i * 3).padStart(2, '0')}${out ? '  \u2713\u2713' : ''}`}
+        </div>
+      </div>
+    );
+  }
+  const icon = b.icon ? <span style={{fontSize: 44, lineHeight: '48px', marginRight: 18, flex: 'none'}}>{b.icon}</span> : null;
+  const row: React.CSSProperties = {display: 'flex', alignItems: 'center'};
+  if (look === 'cards') {
+    return <div style={{...base, ...row, background: out ? '#EAF4FF' : '#FFFFFF', color: '#14202B', borderRadius: 26, boxShadow: '0 16px 38px rgba(0,0,0,0.5)', padding: '0 30px', borderLeft: `10px solid ${out ? '#3B82F6' : '#F59E0B'}`}}>{icon}<span style={{lineHeight: '48px'}}>{b.text}</span></div>;
+  }
+  if (look === 'tabs') {
+    return <div style={{...base, ...row, background: '#DFE3EA', color: '#1F2937', borderRadius: '22px 22px 6px 6px', boxShadow: '0 10px 26px rgba(0,0,0,0.45)', padding: '0 26px', borderBottom: '5px solid #9AA3B2'}}>{icon}<span style={{flex: 1}}>{b.text}</span><span style={{marginLeft: 16, opacity: 0.5, fontSize: 34}}>{'\u00d7'}</span></div>;
+  }
+  return <div style={{...base, ...row, background: 'rgba(24,28,38,0.94)', color: '#F4F6FA', borderRadius: 999, boxShadow: '0 14px 34px rgba(0,0,0,0.55)', padding: '0 34px', border: '2px solid rgba(255,255,255,0.12)'}}>{icon}<span>{b.text}</span></div>;
+};
 
 const BubbleField: React.FC<{m: Model; s: S; f: number; layer?: 'all' | 'static' | 'fly'}> = ({m, s, f, layer = 'all'}) => {
   const {sans} = useFonts();
@@ -96,12 +123,7 @@ const BubbleField: React.FC<{m: Model; s: S; f: number; layer?: 'all' | 'static'
         }
         if (alpha <= 0.002) return null;
         return (
-          <div key={b.i} style={{position: 'absolute', left: q.left, top: q.bottom - b.h, width: b.w, height: b.h, opacity: alpha, transformOrigin: 'center', transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${sx}, ${sy})`, background: out ? '#D9FDD3' : '#FFFFFF', color: '#111B21', borderRadius: 30, borderTopLeftRadius: out ? 30 : 8, borderTopRightRadius: out ? 8 : 30, boxShadow: '0 14px 34px rgba(0,0,0,0.45)', fontFamily: sans, fontWeight: 500, fontSize: FONT, lineHeight: '48px', letterSpacing: '-0.01em', padding: '12px 30px 0', boxSizing: 'border-box'}}>
-            {b.text}
-            <div style={{position: 'absolute', right: 30, bottom: 8, fontSize: 21, lineHeight: '24px', color: out ? '#4E8F6A' : '#8696A0', fontWeight: 500}}>
-              {`${9 + Math.floor(b.i / 5)}:${String(12 + b.i * 3).padStart(2, '0')}${out ? '  ✓✓' : ''}`}
-            </div>
-          </div>
+          <ItemBox key={b.i} b={b} q={q} look={s.look} out={out} alpha={alpha} tx={tx} ty={ty} sx={sx} sy={sy} rot={rot} sans={sans} />
         );
       })}
     </AbsoluteFill>
@@ -110,7 +132,8 @@ const BubbleField: React.FC<{m: Model; s: S; f: number; layer?: 'all' | 'static'
 
 const Counter: React.FC<{m: Model; s: S; f: number; icon: {text: string; color: string; textColor: string}}> = ({m, s, f, icon}) => {
   const {sans} = useFonts();
-  const cn = m.chat!.counter;
+  const cfg = m.chaos!.counter;
+  const cn = cfg || {start: 0, rise: 0, cap: 0, label: undefined as string | undefined};
   const k = clamp01(f / s.ref);
   const cnt = (g: number) => Math.round(cn.start + cn.rise * Math.pow(Math.min(g, s.flyAt) / s.ref, 1.5));
   const n0 = cnt(f);
@@ -132,14 +155,16 @@ const Counter: React.FC<{m: Model; s: S; f: number; icon: {text: string; color: 
   const night = m.spec.brand.colors.night;
   return (
     <div style={{position: 'absolute', left: W / 2 - 42, top: cy - 42, width: 84, height: 84, transform: `translateX(${buzz}px) scale(${base * (1 + 0.07 * hit)}, ${base * (1 - 0.09 * hit)})`, transformOrigin: '50% 50%'}}>
-      <div style={{position: 'absolute', inset: 0, borderRadius: lerp(24, 18.8, mm), overflow: 'hidden', boxShadow: warm > 0.3 ? '0 6px 18px rgba(90,50,10,0.35)' : '0 10px 30px rgba(0,0,0,0.4)'}}>
+      {s.center ? (
+        <div style={{position: 'absolute', inset: 0, borderRadius: 42, background: 'radial-gradient(circle at 40% 35%, #FFFFFF, #8EC5FF 55%, #3B82F6)', opacity: 1 - easeInOut(ramp(f, s.E - 4, s.E)), boxShadow: `0 0 ${40 + 80 * hit}px rgba(120,180,255,0.8)`}} />
+      ) : <div style={{position: 'absolute', inset: 0, borderRadius: lerp(24, 18.8, mm), overflow: 'hidden', boxShadow: warm > 0.3 ? '0 6px 18px rgba(90,50,10,0.35)' : '0 10px 30px rgba(0,0,0,0.4)'}}>
         <div style={{position: 'absolute', inset: 0, background: 'linear-gradient(160deg,#3CD26F,#1FA855)', opacity: 1 - mm, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
           <svg width="46" height="46" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C7 3 3 6.800 3 11.500c0 2.100.8 4 2.100 5.500L4 21l4.300-1.300c1.100.5 2.300.8 3.700.8 5 0 9-3.800 9-8.500S17 3 12 3z" /></svg>
         </div>
         <AppIconFace icon={icon} opacity={mm} />
-      </div>
-      {badgeS > 0.01 && (
-        <div style={{position: 'absolute', top: -16, right: -26 - (n >= 10 ? 8 : 0) - (n >= cn.cap ? 12 : 0), transform: `scale(${badgeS * (1 + 0.12 * hit) * done})`, minWidth: 52, height: 52, padding: '0 12px', boxSizing: 'border-box', borderRadius: 26, background: '#FF3B30', color: '#fff', fontFamily: sans, fontWeight: 800, fontSize: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(255,59,48,0.55)', border: `3px solid ${night}`}}>{n >= cn.cap && arrived === s.arrivals.length ? `${cn.cap}+` : n}</div>
+      </div>}
+      {cfg && badgeS > 0.01 && (
+        <div style={{position: 'absolute', top: -16, right: -26 - (n >= 10 ? 8 : 0) - (n >= cn.cap ? 12 : 0), transform: `scale(${badgeS * (1 + 0.12 * hit) * done})`, minWidth: 52, height: 52, padding: '0 12px', boxSizing: 'border-box', borderRadius: 26, background: '#FF3B30', color: '#fff', fontFamily: sans, fontWeight: 800, fontSize: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(255,59,48,0.55)', border: `3px solid ${night}`}}>{n >= cn.cap && arrived === s.arrivals.length ? `${cn.cap}+` : n}{cn.label && n >= cn.cap && arrived === s.arrivals.length ? ` ${cn.label}` : ''}</div>
       )}
     </div>
   );
@@ -161,7 +186,8 @@ const Shake: React.FC<{f: number; s: S; children: React.ReactNode}> = ({f, s, ch
 
 /** Warmth grows out of the icon: dark, amber, deep brown, then the paper colour. */
 const Bloom: React.FC<{m: Model; s: S; f: number}> = ({m, s, f}) => {
-  const bl = (m.chat!.icon.spec as {bloom: {core: string; edge: string}}).bloom;
+  if (s.center) return null;
+  const bl = (m.chaos!.icon!.spec as {bloom: {core: string; edge: string}}).bloom;
   const b0 = s.E - 5;
   if (f < b0) return null;
   const g = ramp(f, b0, b0 + 3);
@@ -179,12 +205,12 @@ const Bloom: React.FC<{m: Model; s: S; f: number}> = ({m, s, f}) => {
   );
 };
 
-export const ChatScene: React.FC<{m: Model; chatTitles: {spec: TitleSpec; inAt: number; outAt?: number}[]}> = ({m, chatTitles}) => {
+export const ChaosScene: React.FC<{m: Model; chatTitles: {spec: TitleSpec; inAt: number; outAt?: number}[]}> = ({m, chatTitles}) => {
   const abs = useCurrentFrame();
   const s = React.useMemo(() => setup(m), [m]);
   const f = abs - s.t0;
   const flying = f >= s.flyAt;
-  const ispec = m.chat!.icon.spec as {text?: string; color?: string};
+  const ispec = (m.chaos!.icon?.spec ?? {}) as {text?: string; color?: string};
   const bi = m.spec.brand.icon;
   const icon = {text: ispec.text ?? bi.text, color: ispec.color ?? bi.color, textColor: bi.textColor};
   return (

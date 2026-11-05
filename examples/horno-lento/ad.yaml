@@ -19,11 +19,11 @@ capture: capture.yaml
 
 scenes:
   # 1. The problem: WhatsApp bubbles pile up, faster and faster, then fly into the chat icon.
-  - block: chatChaos
+  - block: chaos
     id: hook
     bars: 1.75
     pings: [6, 6.5]
-    messages:
+    items:
       - {frame: -42, text: "Buen día! Pregunta por las tortas"}
       - {frame: -35, text: "¿Hacen envíos?"}
       - {frame: -28, text: "¿Cuánto sale el pan de campo?"}

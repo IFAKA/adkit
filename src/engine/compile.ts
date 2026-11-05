@@ -48,10 +48,12 @@ export function compile(spec: Ad): Plan {
   const at = (k: string) => kinds.indexOf(k as never);
   blocks.forEach((b, i) => {
     if (b.kind === 'iconOpen') {
-      if (kinds[i - 1] !== 'chatChaos') problems.push(`scenes[${i}] (iconOpen): must come right after a chatChaos block`);
+      const prev = blocks[i - 1];
+      if (!prev || prev.kind !== 'chaos' || (prev.spec as {into?: string}).into === 'center') problems.push(`scenes[${i}] (iconOpen): must come right after a chaos block with into: icon`);
       if (b.spec.bars !== 0.25) problems.push(`scenes[${i}] (iconOpen): bars must be 0.25 (one beat), got ${b.spec.bars}`);
     }
-    if (b.kind === 'chatChaos' && kinds[i + 1] !== 'iconOpen') problems.push(`scenes[${i}] (chatChaos): must be followed by an iconOpen block`);
+    if (b.kind === 'chaos' && i !== 0) problems.push(`scenes[${i}] (chaos): must be the first block`);
+    if (b.kind === 'chaos' && (b.spec as {into?: string}).into !== 'center' && kinds[i + 1] !== 'iconOpen') problems.push(`scenes[${i}] (chaos): with into: icon it must be followed by an iconOpen block`);
     if (b.kind === 'whip' && !(PHONE_BLOCKS.has(kinds[i - 1] ?? '') && PHONE_BLOCKS.has(kinds[i + 1] ?? ''))) problems.push(`scenes[${i}] (whip): needs a phone block on both sides`);
     if (b.kind === 'endCard' && i !== blocks.length - 1) problems.push(`scenes[${i}] (endCard): must be the last block`);
     if (PHONE_BLOCKS.has(b.kind) && b.kind !== 'reveal' && (at('reveal') < 0 || at('reveal') > i)) problems.push(`scenes[${i}] (${b.kind}): needs a reveal block before it (that is where the phone appears)`);
@@ -80,7 +82,7 @@ export function compile(spec: Ad): Plan {
     A.start = b.start;
     A.end = b.end;
     if (b.kind !== 'whip') push(b, 'cut', b.start, 'cut', 'cut');
-    // titles of every block (the chatChaos / skins / endCard ones are single "title" fields)
+    // titles of every block (the chaos / skins / endCard ones are single "title" fields)
     const tl = 'titles' in s ? [...s.titles] : [];
     if ('title' in s && s.title) tl.unshift(s.title);
     tl.forEach((ti, n) => {
@@ -94,12 +96,12 @@ export function compile(spec: Ad): Plan {
     });
 
     switch (s.block) {
-      case 'chatChaos': {
+      case 'chaos': {
         const L = b.end - b.start;
         A.flyAt = b.end - fr(s.flyBeats);
         if (A.flyAt <= b.start) problems.push(`${b.id}: flyBeats ${s.flyBeats} is longer than the block`);
         push(b, 'riser', b.start, 'riser', 'riser-chaos', {dur: L});
-        const pingBeats = [...new Set([...s.messages.flatMap((m) => (m.beat !== undefined ? [m.beat] : [])), ...s.pings])].sort((x, y) => x - y);
+        const pingBeats = [...new Set([...s.items.flatMap((m) => (m.beat !== undefined ? [m.beat] : [])), ...s.pings])].sort((x, y) => x - y);
         pingBeats.forEach((pb, k) => push(b, `ping-${String(k + 1).padStart(2, '0')}`, within(b, `ping ${k + 1}`, pb), 'ping', 'ping'));
         push(b, 'bubble-pop-01', A.flyAt, 'pop', 'bubble-pop');
         push(b, 'bubble-pop-02', A.flyAt + half, 'pop', 'bubble-pop');
@@ -239,7 +241,7 @@ export function compile(spec: Ad): Plan {
   const sections: Section[] = [];
   const sec = (role: Section['role'], a: number, b2: number, block?: string) => sections.push({role, startFrame: a, endFrame: b2, startSeconds: +(a / fps).toFixed(4), endSeconds: +(b2 / fps).toFixed(4), ...(block ? {block} : {})});
   for (const b of blocks) {
-    if (b.kind === 'chatChaos') sec('chaos', b.start, b.end, b.id);
+    if (b.kind === 'chaos') sec('chaos', b.start, b.end, b.id);
     if (b.kind === 'iconOpen') sec('breath', b.start, b.end, b.id);
     if (b.kind === 'reveal') sec('drop', b.start, b.start, b.id);
     if (b.kind === 'skins') sec('swaps', b.start, b.end, b.id);

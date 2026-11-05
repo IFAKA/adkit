@@ -11,7 +11,7 @@ import {parallax} from './lib/Camera';
 import {Title} from './lib/Title';
 import {mix, ramp, rgba, spr, SNAP} from './lib/anim';
 import {camera} from './choreo';
-import {ChatScene} from './blocks/Chat';
+import {ChaosScene} from './blocks/Chaos';
 import {Stage, layerVisible} from './blocks/Stage';
 import {EndLockup, EndRing} from './blocks/EndCard';
 
@@ -75,7 +75,7 @@ const Titles: React.FC<{m: Model}> = ({m}) => {
     <>
       {m.plan.titles.map((t, i) => {
         const blk = m.plan.blocks.find((b) => b.id === t.block)!;
-        if (blk.kind === 'chatChaos') return null;
+        if (blk.kind === 'chaos') return null;
         const outAt = t.outAt ?? (t.until >= m.plan.total ? 99999 : t.until);
         if (f < t.inAt - 1 || f > outAt + 12) return null;
         const vis = m.layers.filter((l) => layerVisible(l, t.inAt));
@@ -132,18 +132,18 @@ export const Ad: React.FC<RenderProps> = (props) => {
   const m = useMemo(() => buildModel(props), [props]);
   const fonts = useMemo(() => loadBrandFonts(props.spec.brand.fonts), [props.spec.brand.fonts]);
   const f = useCurrentFrame();
-  const chatEnd = m.chat ? m.chat.icon.end : 0;
+  const chatEnd = m.chaos ? (m.chaos.icon ?? m.chaos.block).end : 0;
   const k = m.bf / 15;
   const inWhip = m.whips.some((w) => f >= w.out - Math.round(6 * k) && f < w.spin + Math.round(22 * k));
-  const chatTitles = m.chat ? m.plan.titles.filter((t) => t.block === m.chat!.block.id).map((t) => ({spec: t.spec, inAt: t.inAt, outAt: t.outAt})) : [];
-  const showChat = !!m.chat && f < chatEnd;
+  const chatTitles = m.chaos ? m.plan.titles.filter((t) => t.block === m.chaos!.block.id).map((t) => ({spec: t.spec, inAt: t.inAt, outAt: t.outAt})) : [];
+  const showChat = !!m.chaos && f < chatEnd;
   return (
     <DraftCtx.Provider value={!!props.draft}>
     <FontsCtx.Provider value={fonts}>
       <ColorsProvider model={m}>
         <AbsoluteFill style={{background: '#000'}}>
           {showChat ? (
-            <ChatLocal m={m} titles={chatTitles} />
+            <ChaosScene m={m} chatTitles={chatTitles} />
           ) : m.reveal ? (
             inWhip ? (
               <MotionBlur shutterAngle={240} samples={7}>
@@ -160,6 +160,3 @@ export const Ad: React.FC<RenderProps> = (props) => {
     </DraftCtx.Provider>
   );
 };
-
-/** The chat scene reads absolute frames (its block start is subtracted inside), titles are given relative to the block. */
-const ChatLocal: React.FC<{m: Model; titles: {spec: any; inAt: number; outAt?: number}[]}> = ({m, titles}) => <ChatScene m={m} chatTitles={titles} />;

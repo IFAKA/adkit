@@ -60,7 +60,7 @@ export type Model = {
   roll: Key[];
   colorReqs: ColorReq[];
   /** key moments */
-  chat?: {block: Placed; icon: Placed; flyAt: number; counter: {start: number; rise: number; cap: number}; messages: {at: number; side: 'in' | 'out'; text: string}[]};
+  chaos?: {block: Placed; icon?: Placed; into: 'icon' | 'center'; look: 'bubbles' | 'cards' | 'tabs' | 'toasts'; flyAt: number; counter: {start: number; rise: number; cap: number; label?: string} | false; items: {at: number; side: 'in' | 'out'; text: string; icon?: string}[]};
   reveal?: Placed;
   openFromIcon: boolean;
   end?: Placed;
@@ -159,11 +159,10 @@ export function buildModel(props: RenderProps): Model {
     const s = b.spec as BlockSpec;
     const prev = blocks[bi - 1];
     switch (s.block) {
-      case 'chatChaos': {
-        const icon = blocks[bi + 1];
-        m.chat = {
-          block: b, icon, flyAt: b.a.flyAt, counter: s.counter,
-          messages: s.messages.map((x) => ({at: b.start + (x.frame !== undefined ? x.frame : fr(x.beat!)), side: x.side, text: x.text})),
+      case 'chaos': {
+        m.chaos = {
+          block: b, icon: s.into === 'icon' ? blocks[bi + 1] : undefined, into: s.into, look: s.look, flyAt: b.a.flyAt, counter: s.counter,
+          items: s.items.map((x) => ({at: b.start + (x.frame !== undefined ? x.frame : fr(x.beat!)), side: x.side, text: x.text, icon: x.icon})),
         };
         break;
       }
