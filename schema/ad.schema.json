@@ -354,6 +354,41 @@
           },
           "additionalProperties": false
         },
+        "routes": {
+          "default": [],
+          "description": "Answer matching requests with a fixed file, so live data (times, counts) is the same on every capture.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Playwright URL glob, e.g. \"**/api/bikes*\"."
+              },
+              "file": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Response body file, relative to the spec. Put it in a folder listed in `inputs` so the capture cache sees changes."
+              },
+              "contentType": {
+                "default": "application/json",
+                "type": "string"
+              },
+              "status": {
+                "default": 200,
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 599
+              }
+            },
+            "required": [
+              "url",
+              "file"
+            ],
+            "additionalProperties": false
+          }
+        },
         "timezone": {
           "default": "UTC",
           "type": "string"

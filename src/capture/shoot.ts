@@ -66,6 +66,10 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
         });
       })();`});
     }
+    for (const r of cap.routes) {
+      const body = fs.readFileSync(path.resolve(o.specDir, r.file));
+      await context.route(r.url, (route) => route.fulfill({status: r.status, contentType: r.contentType, body, headers: {'access-control-allow-origin': '*'}}));
+    }
     await context.addInitScript({content: `(() => {
       const css = '*::-webkit-scrollbar{display:none!important}html{scrollbar-width:none}nextjs-portal,[data-nextjs-toast]{display:none!important}';
       document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = css; document.head.append(s); });

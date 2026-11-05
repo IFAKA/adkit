@@ -106,6 +106,12 @@ export const Capture = z.object({
   locale: z.string().default('en-US'),
   geolocation: z.object({latitude: z.number(), longitude: z.number()}).optional(),
   safeArea: z.object({top: z.number().default(0), bottom: z.number().default(0)}).strict().optional().describe('Phone safe-area insets in px (env(safe-area-inset-*)), e.g. {top: 47, bottom: 34} for a notch phone, so apps leave room for the home indicator like on a real device.'),
+  routes: z.array(z.object({
+    url: str.describe('Playwright URL glob, e.g. "**/api/bikes*".'),
+    file: str.describe('Response body file, relative to the spec. Put it in a folder listed in `inputs` so the capture cache sees changes.'),
+    contentType: z.string().default('application/json'),
+    status: z.number().int().min(100).max(599).default(200),
+  }).strict()).default([]).describe('Answer matching requests with a fixed file, so live data (times, counts) is the same on every capture.'),
   timezone: z.string().default('UTC'),
   clock: z.string().optional().describe('ISO time to freeze the browser clock at, so dates in screenshots are stable.'),
   inputs: z.array(z.string()).default([]).describe('Files or folders (relative to the spec) that change what the app shows; hashed into the capture cache key.'),

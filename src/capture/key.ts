@@ -94,6 +94,7 @@ export function captureKey(spec: Ad, specDir: string): string {
   else if (!cap.app.url) { const t = createHash('sha256'); hashPath(t, specDir, '', {skipTopYaml: true}); h.update(`specdir:${t.digest('hex')}\0`); }
   h.update(`capture:${canonicalJson(cap)}\0`);
   for (const rel of [...cap.inputs].sort()) { h.update(`input:${rel}\0`); hashPath(h, specDir, rel); }
+  for (const r of cap.routes) { h.update(`route:${r.file}\0`); hashPath(h, specDir, r.file); }
   for (const rel of evaluateFiles(spec)) { h.update(`eval:${rel}\0`); hashPath(h, specDir, rel); }
   h.update(`playwright:${playwrightVersion()}\0engine:${ENGINE_CAPTURE_VERSION}`);
   return h.digest('hex');

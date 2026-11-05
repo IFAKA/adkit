@@ -76,6 +76,23 @@ describe('captureKey with the ad folder inside the app repo', () => {
   });
 });
 
+describe('captureKey with routes', () => {
+  it('changes when a route file or its url changes', () => {
+    const d = tmpDir();
+    fs.writeFileSync(path.join(d, 'api.json'), '{"x":1}');
+    const withRoute = (url = '**/api*') => parse((o) => { (o.capture as any).routes = [{url, file: 'api.json'}]; });
+    const k0 = captureKey(withRoute(), d);
+    expect(k0).not.toBe(captureKey(parse(), d));
+    expect(captureKey(withRoute('**/other*'), d)).not.toBe(k0);
+    fs.writeFileSync(path.join(d, 'api.json'), '{"x":2}');
+    expect(captureKey(withRoute(), d)).not.toBe(k0);
+  });
+  it('defaults: json, status 200', () => {
+    const r = (parse((o) => { (o.capture as any).routes = [{url: '**/a', file: 'a.json'}]; }).capture as any).routes[0];
+    expect([r.contentType, r.status]).toEqual(['application/json', 200]);
+  });
+});
+
 describe('step schema', () => {
   it('needs exactly one action', () => {
     expect(CaptureStep.safeParse({}).success).toBe(false);
