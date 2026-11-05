@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """adkit audio: plan JSON -> 48 kHz stereo 16-bit WAV, deterministic. Needs numpy + ffmpeg.
-Usage: python3 audio/build.py --plan PLAN.json --out OUT.wav [--workdir DIR]"""
+The music (score.py) and every cue's sound (sounddesign.py) come from the plan; there is no built-in song or palette.
+Usage: python3 audio/build.py --plan PLAN.json --out OUT.wav [--workdir DIR] [--cache-dir DIR] [--base-dir DIR] [--png-dir DIR] [--pngs-only]"""
 import argparse, json, os, re, subprocess, sys, wave
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from dsp import SR, db  # noqa: E402
-import music, mix  # noqa: E402
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tools'))
+from synth.core import SR, db, nsamp  # noqa: E402
+import score, sounddesign, mix  # noqa: E402
+import spectrogram  # noqa: E402
 
 
 def write_wav(path, x):
@@ -74,24 +77,74 @@ def measure_raw(mixed, tmp):
     return measure(tmp)[0] - 20 * np.log10(scale)
 
 
+def fit_music(x, N):
+    """Pad or cut the music to the ad length; a cut gets a short fade-out."""
+    if len(x) >= N:
+        y = x[:N].copy()
+        if len(x) > N:
+            k = min(N, int(0.12 * SR)); y[-k:] *= np.linspace(1, 0, k)[:, None]
+        return y
+    return np.pad(x, ((0, N - len(x)), (0, 0)))
+
+
+def write_pngs(plan, used_sounds, music_mix, final, png_dir, cache, base_dir):
+    """Spectrogram PNGs (and wavs) of the final mix, the music and each sound, so an agent can look at them."""
+    os.makedirs(os.path.join(png_dir, 'sounds'), exist_ok=True)
+    paths = {}
+    if final is not None:
+        spectrogram.render_png(final, os.path.join(png_dir, 'mix.png')); paths['mix'] = os.path.join(png_dir, 'mix.png')
+    if music_mix is not None:
+        spectrogram.render_png(music_mix, os.path.join(png_dir, 'music.png')); paths['music'] = os.path.join(png_dir, 'music.png')
+    for name in sorted(plan['sounds']):
+        sd = plan['sounds'][name]
+        seed = (int(sd.get('seed', 0)) + int(plan.get('seed', 21)) * 1009) & 0x7FFFFFFF
+        x = cache.get('snd:' + sounddesign.content_hash(sd, seed, base_dir), lambda: sounddesign.render_sound(sd, seed, base_dir))
+        f = os.path.join(png_dir, 'sounds', f'{name}.png')
+        spectrogram.render_png(x, f); paths[name] = f
+        from synth.wavio import write_wav
+        write_wav(os.path.join(png_dir, 'sounds', f'{name}.wav'), x)
+    return paths
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--plan', required=True); ap.add_argument('--out', required=True); ap.add_argument('--workdir')
+    ap.add_argument('--cache-dir'); ap.add_argument('--base-dir'); ap.add_argument('--png-dir'); ap.add_argument('--pngs-only', action='store_true')
     a = ap.parse_args()
     plan = json.load(open(a.plan))
-    plan.setdefault('sound', {}); s = plan['sound']
-    s.setdefault('motif', {'notes': [[0, 67, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]], 'ding': 84})
-    s.setdefault('loudness', {'lufs': -14, 'truePeak': -1.5})
+    base = a.base_dir or os.path.dirname(os.path.abspath(a.plan))
     work = a.workdir or os.path.dirname(os.path.abspath(a.out)); os.makedirs(work, exist_ok=True)
-    pings = sorted(float(c['seconds']) for c in plan['cues'] if c.get('role') == 'ping')
-    stems, T = music.build_stems(plan, pings)
-    bed = sum(stems.values())
-    bus, duck = mix.render(plan, T)
-    mixed = bed * db(-duck)[:, None] + bus
+    cache = mix.Cache(a.cache_dir or os.path.join(work, 'cache'), mix.code_hash())
+    try:
+        if not plan.get('music'): raise score.ScoreError('the plan has no music: there is no default song')
+        if a.pngs_only:  # the mastered wav exists; only the pictures are missing
+            from synth.sample import read_wav
+            final, _ = read_wav(a.out)
+            written = write_pngs(plan, None, None, final, a.png_dir, cache, base)
+            for k, v in written.items(): print(f'png {k} {v}')
+            return
+        N = nsamp(float(plan['durationSeconds']))
+        mkey = 'music:' + score.content_hash(plan['music'], None, base)
+        slot = cache.slot(mkey)
+        if os.path.exists(slot + '.npy') and os.path.exists(slot + '.json'):
+            mixm = np.load(slot + '.npy'); mcues = json.load(open(slot + '.json'))
+        else:
+            mixm, _st, mcues = score.render_music(plan['music'], base)
+            json.dump(mcues, open(slot + '.json', 'w')); np.save(slot + '.npy', mixm)
+        mus = fit_music(mixm, N) * db(float((plan.get('mix') or {}).get('musicGain', 0)))
+        bus, duck, used = mix.render(plan, mcues, N, cache, base)
+    except (score.ScoreError, sounddesign.SoundError, ValueError, KeyError, OSError) as e:
+        print(f'audio: {e}', file=sys.stderr); sys.exit(1)
+    mixed = mus * db(-duck)[:, None] + bus
+    loud = (plan.get('mix') or {}).get('loudness') or {}
     tmp = os.path.join(work, '_pre.wav')
-    lufs, tp = master(mixed, float(s['loudness']['lufs']), float(s['loudness']['truePeak']), a.out, tmp)
+    lufs, tp = master(mixed, float(loud.get('lufs', -14)), float(loud.get('truePeak', -1.5)), a.out, tmp)
     os.remove(tmp)
-    print(f'audio ok {lufs:.1f} LUFS {tp:.1f} dBTP {T.N / SR:.1f} s')
+    if a.png_dir:
+        from synth.sample import read_wav
+        final, _ = read_wav(a.out)
+        for k, v in write_pngs(plan, used, mus, final, a.png_dir, cache, base).items(): print(f'png {k} {v}')
+    print(f'audio ok {lufs:.1f} LUFS {tp:.1f} dBTP {N / SR:.1f} s, {len(plan["placements"])} cues, {len(plan["sounds"])} sounds')
 
 
 if __name__ == '__main__':

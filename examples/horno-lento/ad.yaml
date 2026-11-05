@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../schema/ad.schema.json
 # Horno Lento: a 30 s ad (15 bars at 120 BPM) for a fictional bakery shop built with the "sasha" shop template.
-meta: {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 15}
+meta: {fps: 30, width: 1080, height: 1920, bars: 15}
 
 brief:
   audience: Owners of cafes and bakeries who take orders by WhatsApp today.
@@ -148,12 +148,6 @@ scenes:
     contactAt: 5
     hitAt: 6
 
-sound:
-  key: C
-  progression: [C, F, Am, G]
-  chords: {13: G, 14: C}
-  motif:
-    notes: [[0, 67, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]]
-    ding: 84
+sound: sound.yaml
 
 output: {file: out/ad.mp4, crf: 18}

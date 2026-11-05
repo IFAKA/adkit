@@ -292,7 +292,7 @@ def render_instrument(name, patch, evs, plan, base_dir, seed, N, idx):
                 m = min(len(y), nsamp(dur_s + .04)); y = y[:m].copy(); f = min(m, nsamp(.04)); y[-f:] *= np.linspace(1, 0, f)
             cache[key] = y
         y = cache[key]
-        i = int(round(t * SR))
+        i = max(0, int(round(t * SR)))  # humanize can push the first hit before 0
         if i >= N: continue
         m = min(len(y), N - i)
         yy = y[:m] if y.ndim == 1 else y[:m].mean(1)

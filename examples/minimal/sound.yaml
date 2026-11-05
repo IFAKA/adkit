@@ -1,0 +1,88 @@
+# Lumen Coffee: every sound is an object from a coffee counter. Cue roles are listed in README.md ("Sound").
+seed: 5
+music: {file: music.json}
+
+sounds:
+  bag_thump:
+    meaning: "A paper bag of coffee beans set down on the counter, a soft low thump, because the ad sells bagged beans"
+    layers:
+      - {model: kick, params: {tune: 0.75, decay: 0.8, click: 0.1}, gain: -4}
+      - {model: paper, params: {dur: 0.12, density: 60, bright: 0.2}, at: 0.0, gain: -22}
+    fx: [{type: lowpass, hz: 900}]
+
+  steam_wand:
+    meaning: "Steam wand hissing on the espresso machine, a short rising breath of air for things that move fast"
+    layers:
+      - {model: whoosh, params: {dur: 0.55, f_start: 1200, f_end: 5200, width: 1.4, shape: swell}, gain: -8}
+    fx: [{type: reverb, rt60: 0.4, wet: 0.08}]
+
+  bag_rustle:
+    meaning: "Rustle of the paper coffee bag when the label or the screen is swapped, because the shop changes its packaging"
+    layers:
+      - {model: paper, params: {dur: 0.22, density: 90, bright: 0.5, rustle: 0.3}, gain: -10}
+
+  bean_scoop:
+    meaning: "A scoop of beans lifted from the sack, a dry rattle, matching the product card lifting off the page"
+    layers:
+      - {model: shaker, params: {dur: 0.28, density: 1.4, pitch: 1.2}, gain: -8}
+      - {model: modal, preset: metal_bar, note: A6, params: {decay: 0.1, hardness: 1}, gain: -24}
+
+  spoon_cup:
+    meaning: "Teaspoon tapped on a ceramic espresso cup, a small warm clink for every button the finger presses"
+    layers:
+      - {model: modal, preset: ceramic_cup, note: D7, params: {decay: 0.28, strike_pos: 0.15}, gain: -4}
+      - {model: modal, preset: metal_bar, note: A7, params: {decay: 0.08, hardness: 1}, gain: -16}
+    fx: [{type: reverb, rt60: 0.35, wet: 0.1}]
+
+  beans_pour:
+    meaning: "Beans poured from the scoop into the paper bag, the product card flying into the cart"
+    layers:
+      - {model: gravel, params: {dur: 0.6, density: 1.6, pitch: 0.9}, gain: -9}
+    fx: [{type: highpass, hz: 300}, {type: reverb, rt60: 0.3, wet: 0.06}]
+
+  tip_jar_coin:
+    meaning: "A coin dropped into the tip jar by the register, a tiny metallic ting for the cart count going up"
+    tune: chord
+    layers:
+      - {model: modal, preset: metal_bar, note: A6, params: {decay: 0.7, hardness: 1}, gain: -8}
+      - {model: modal, preset: metal_bar, note: E7, at: 0.05, params: {decay: 0.5, velocity: 0.7}, gain: -12}
+    fx: [{type: reverb, rt60: 0.6, wet: 0.1}]
+
+  counter_bell:
+    meaning: "The little brass service bell on the cafe counter, rung once when the order is paid and ready for pickup"
+    tune: chord
+    layers:
+      - {model: modal, preset: handbell, note: A6, params: {decay: 2.2, beat_hz: 1.8}, gain: -6}
+      - {model: fm, preset: fm_bell, note: A6, params: {dur: 0.1}, gain: -24}
+    fx: [{type: reverb, rt60: 1.3, wet: 0.16, damp_hz: 7000}]
+
+  pitcher_ting:
+    meaning: "A knife tapped on the steel milk pitcher, a clean ting that lands with the brand lockup"
+    tune: chord
+    layers:
+      - {model: modal, preset: metal_bar, note: E6, params: {decay: 1.4, hardness: 0.9}, gain: -7}
+    fx: [{type: reverb, rt60: 0.9, wet: 0.12}]
+
+cues:
+  drop: bag_thump
+  final-hit: {sound: bag_thump, gain: -2, reason: "the bag is set down at the start and again at the end, like a bookend"}
+  app-open: steam_wand
+  macro: {sound: steam_wand, gain: -4, reason: "camera pushes and the phone entering are both quick steam breaths"}
+  cta-whoosh: {sound: steam_wand, gain: -3, reason: "the end card enters with the same steam breath as the phone"}
+  screen-swap: bag_rustle
+  skin-swap: {sound: bag_rustle, gain: 2, reason: "a new screen and a new look are both a new bag in hand"}
+  lift: bean_scoop
+  tap: spoon_cup
+  fly: beans_pour
+  badge: tip_jar_coin
+  paid: counter_bell
+  lockup: pitcher_ting
+  # no sound on purpose: text is read, not heard
+  cut: silent
+  title-in: silent
+  title-out: silent
+  contact: silent
+
+mix:
+  loudness: {lufs: -14, truePeak: -1.5}
+  duckMusic: 1.5

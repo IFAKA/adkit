@@ -58,6 +58,21 @@ export function loadSpec(file: string, env: NodeJS.ProcessEnv = process.env): {s
       raw[key] = read(f, [key]);
     }
   }
+  // sound.music and sound.sounds.<name> may be {file: x.json}: inline the file so the plan (and the cache key) holds the data
+  const snd = raw.sound as Record<string, unknown> | undefined;
+  if (snd && typeof snd === 'object') {
+    const inline = (holder: Record<string, unknown>, key: string, prefix: (string | number)[]) => {
+      const v = holder[key] as Record<string, unknown> | undefined;
+      if (v && typeof v === 'object' && typeof v.file === 'string' && Object.keys(v).length === 1) {
+        const f = path.resolve(dir, v.file);
+        if (!fs.existsSync(f)) throw new SpecError([`${prefix.join('.')}: file not found: ${f}`]);
+        holder[key] = read(f, prefix);
+      }
+    };
+    inline(snd, 'music', ['sound', 'music']);
+    const defs = snd.sounds as Record<string, unknown> | undefined;
+    if (defs && typeof defs === 'object') for (const k of Object.keys(defs)) inline(defs, k, ['sound', 'sounds', k]);
+  }
   const parsed = AdSpec.safeParse(interpolateEnv(raw, env));
   if (!parsed.success) {
     throw new SpecError(

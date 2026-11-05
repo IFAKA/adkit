@@ -16,7 +16,7 @@ export const Meta = z.object({
   fps: z.number().int().min(24).max(60).default(30),
   width: z.number().int().min(360).default(1080),
   height: z.number().int().min(640).default(1920),
-  bpm: z.number().min(60).max(180).default(120),
+  bpm: z.number().min(30).max(400).optional().describe('Only if sound.music has no bpm; the music bpm wins and must match.'),
   /** Total length in bars; optional, checked against the sum of the blocks. */
   bars: z.number().positive().optional(),
 }).strict();
@@ -113,23 +113,45 @@ export const Capture = z.object({
 }).strict();
 
 /* ------------------------------------------------------------------ sound */
+/** A MUSIC object as audio/score.py reads it (bpm, meter, key, instruments, patterns, sections ...). score.py checks the details when the audio is built. */
+export const Music = z.looseObject({
+  bpm: z.number().min(30).max(400).describe('Beats per minute. x/4: quarter notes; 6/8, 9/8, 12/8: dotted quarters (override with meter.bpm_counts).'),
+  meter: z.looseObject({beats: z.number().int().min(2).max(12).default(4), unit: z.union([z.literal(4), z.literal(8)]).default(4)}).optional().describe('{beats: 3, unit: 4} = 3/4; {beats: 6, unit: 8} = 6/8. Default 4/4.'),
+  key: z.string().optional().describe('e.g. "D minor", "A phrygian dominant".'),
+  instruments: z.record(z.string(), z.looseObject({model: z.string()})).describe('name -> {model, preset, params, octave, gain, pan, fx ...}'),
+  patterns: z.record(z.string(), z.looseObject({})).optional(),
+  sections: z.array(z.looseObject({bars: z.number().int().min(1)})).min(1),
+});
+/** A SOUND object as audio/sounddesign.py reads it. */
+export const SoundDef = z.looseObject({
+  meaning: str.describe('What object in the product\'s world this sound is, and why it is in the ad (at least 4 words).'),
+  layers: z.array(z.looseObject({model: z.string()})).min(1).describe('[{model, preset, params, note, at, gain, pan, fx, reverse, repeat}]'),
+  fx: z.array(z.looseObject({type: z.string()})).optional(),
+  seed: z.number().int().optional(),
+  tune: z.literal('chord').optional().describe('"chord": the written notes are in the key of the music and move to the chord that plays at the cue time.'),
+});
+export const CueMap = z.union([
+  str.describe('The name of a sound in `sounds`, or "silent".'),
+  z.object({
+    sound: str.describe('Name of a sound in `sounds`, or "silent".'),
+    gain: z.number().default(0).describe('dB added to the sound.'),
+    pan: z.number().min(-1).max(1).optional().describe('-1 left .. 1 right. Taps with a pan in the spec use it when this is not set.'),
+    duck: z.number().min(0).max(24).optional().describe('dB the music dips under this cue for 150 ms (default: mix.duckMusic).'),
+    variations: z.number().int().min(1).max(8).default(3).describe('How many seeds the sound rotates through, so repeats do not sound identical.'),
+    align: z.enum(['start', 'end']).default('start').describe('"end": a cue with a duration (riser, count) ends the sound when the cue ends.'),
+    reason: z.string().optional().describe('Why this cue shares a sound with another role (silences the warning).'),
+  }).strict(),
+]);
 export const Sound = z.object({
-  key: z.string().default('C').describe('Tonic note name, e.g. C, F#, Bb.'),
-  progression: z.array(str).min(1).default(['C', 'F', 'Am', 'G']).describe('Chord names looped over the groove bars (C, Am, G7, Fmaj7, ...).'),
-  chords: z.record(z.string(), str).default({}).describe('Per-bar overrides: bar number (1-based) to chord name.'),
-  motif: z.object({
-    notes: z.array(z.tuple([z.number().min(0), z.number().int().min(24).max(100), z.number().positive()])).min(1).describe('[beat, midi note, length in beats]'),
-    ding: z.union([z.number().int().min(60).max(108), z.literal(false)]).default(84).describe('Midi note of the final bell, or false.'),
-  }).strict().default({notes: [[0, 67, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]], ding: 84}),
-  sfx: z.record(z.string(), z.object({
-    mute: z.boolean().optional(),
-    sound: z.string().optional().describe('SFX name from the palette (tap, pop, swap, shimmer, bag_swish, payment_ding, order_bell, receipt_chatter, whoosh, rise).'),
-    gain: z.number().optional().describe('dB'),
-    duck: z.number().optional().describe('dB the music dips for 150 ms'),
-    pan: z.number().min(-1).max(1).optional(),
-  }).strict()).default({}).describe('Overrides keyed by cue name (block:cue) or by cue role.'),
-  seed: z.number().int().default(21),
-  loudness: z.object({lufs: z.number().default(-14), truePeak: z.number().default(-1.5)}).strict().default({lufs: -14, truePeak: -1.5}),
+  music: z.union([Music, z.object({file: str}).strict()]).optional().describe('The music as data (or {file: music.json}). Required: there is no default song.'),
+  sounds: z.record(z.string().regex(/^[A-Za-z][A-Za-z0-9_-]*$/, 'sound names are letters, digits, _ and -'), z.union([SoundDef, z.object({file: str}).strict()])).default({}).describe('name -> SOUND. Every sound has a `meaning`.'),
+  cues: z.record(z.string(), CueMap).default({}).describe('Cue name (block:cue), role (tap, paid, ...) or kind (tap, pop, whoosh, ...) -> sound. Name wins over role, role over kind. "silent" is an explicit silence.'),
+  mix: z.object({
+    loudness: z.object({lufs: z.number().default(-14), truePeak: z.number().default(-1.5)}).strict().default({lufs: -14, truePeak: -1.5}),
+    duckMusic: z.number().min(0).max(24).default(0).describe('Default dB the music dips under every cue (150 ms). A cue can set its own `duck`.'),
+    musicGain: z.number().default(0).describe('dB added to the music before the cues are mixed in.'),
+  }).strict().default({loudness: {lufs: -14, truePeak: -1.5}, duckMusic: 0, musicGain: 0}),
+  seed: z.number().int().default(21).describe('Base seed for the sounds (the music has its own seed).'),
 }).strict();
 
 /* ------------------------------------------------------------------ blocks */
@@ -149,7 +171,7 @@ export const Title = z.object({
 
 const common = {
   id: z.string().regex(/^[A-Za-z][A-Za-z0-9_-]*$/).optional().describe('Name used in cue names and error messages (default: block name + index).'),
-  bars: z.number().min(0).refine((n) => Math.abs(n * 4 - Math.round(n * 4)) < 1e-9, 'length must be a multiple of 0.25 bars (one beat)').describe('Length in bars (4 beats each).'),
+  bars: z.number().min(0).describe('Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter.'),
   titles: z.array(Title).default([]),
 };
 
@@ -305,12 +327,12 @@ export const Output = z.object({
 }).strict().default({file: 'out/ad.mp4', crf: 18});
 
 export const AdSpec = z.object({
-  meta: Meta.default({fps: 30, width: 1080, height: 1920, bpm: 120}),
+  meta: Meta.default({fps: 30, width: 1080, height: 1920}),
   brief: Brief,
   brand: Brand,
   capture: Capture,
   scenes: z.array(Block).min(1),
-  sound: Sound.default({key: 'C', progression: ['C', 'F', 'Am', 'G'], chords: {}, motif: {notes: [[0, 67, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]], ding: 84}, sfx: {}, seed: 21, loudness: {lufs: -14, truePeak: -1.5}}),
+  sound: Sound.default({sounds: {}, cues: {}, mix: {loudness: {lufs: -14, truePeak: -1.5}, duckMusic: 0, musicGain: 0}, seed: 21}),
   output: Output,
 }).strict();
 

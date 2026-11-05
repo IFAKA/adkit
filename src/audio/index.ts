@@ -7,14 +7,21 @@ import {fileURLToPath} from 'node:url';
 
 const AUDIO_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../../audio');
 
-/** Cache key: changes when the plan JSON or any audio/*.py changes. */
+/** Cache key: changes when the plan JSON or any .py file under audio/ (synth models, score, sounddesign) changes. */
 export function audioKey(planJson: string): string {
   const h = createHash('sha256');
   h.update(planJson);
-  for (const f of readdirSync(AUDIO_DIR).filter((n) => n.endsWith('.py')).sort()) {
-    h.update('\0' + f + '\0');
-    h.update(readFileSync(join(AUDIO_DIR, f)));
-  }
+  const walk = (dir: string, rel: string) => {
+    for (const e of readdirSync(dir, {withFileTypes: true}).sort((a, b) => a.name.localeCompare(b.name))) {
+      if (e.isDirectory()) {
+        if (!['tests', 'demos', '__pycache__', 'out'].includes(e.name)) walk(join(dir, e.name), `${rel}${e.name}/`);
+      } else if (e.name.endsWith('.py')) {
+        h.update('\0' + rel + e.name + '\0');
+        h.update(readFileSync(join(dir, e.name)));
+      }
+    }
+  };
+  walk(AUDIO_DIR, '');
   return h.digest('hex');
 }
 
@@ -30,7 +37,7 @@ function run(cmd: string, args: string[], logStream: ReturnType<typeof createWri
 }
 
 /** Synthesise the ad's audio from a plan JSON into a WAV. Creates one shared venv (numpy) on first use: $ADKIT_CACHE or ~/.cache/adkit. */
-export async function buildAudio(o: {planFile: string; outWav: string; projectDir: string; log: string}): Promise<void> {
+export async function buildAudio(o: {planFile: string; outWav: string; projectDir: string; log: string; cacheDir?: string; pngDir?: string; pngsOnly?: boolean}): Promise<void> {
   mkdirSync(dirname(resolve(o.log)), {recursive: true});
   mkdirSync(dirname(resolve(o.outWav)), {recursive: true});
   const logStream = createWriteStream(o.log, {flags: 'w'});
@@ -50,7 +57,11 @@ export async function buildAudio(o: {planFile: string; outWav: string; projectDi
     const hasNumpy = (await run(py, ['-c', 'import numpy'], logStream)) === 0;
     if (!hasNumpy && (await run(py, ['-m', 'pip', 'install', '--disable-pip-version-check', 'numpy'], logStream)) !== 0)
       return await fail('audio: pip install numpy failed');
-    const code = await run(py, [join(AUDIO_DIR, 'build.py'), '--plan', resolve(o.planFile), '--out', resolve(o.outWav), '--workdir', dirname(resolve(o.log))], logStream);
+    const args = [join(AUDIO_DIR, 'build.py'), '--plan', resolve(o.planFile), '--out', resolve(o.outWav), '--workdir', dirname(resolve(o.log)), '--base-dir', resolve(o.projectDir)];
+    if (o.cacheDir) args.push('--cache-dir', resolve(o.cacheDir));
+    if (o.pngDir) args.push('--png-dir', resolve(o.pngDir));
+    if (o.pngsOnly) args.push('--pngs-only');
+    const code = await run(py, args, logStream);
     if (code !== 0) return await fail(`audio: synth failed with exit code ${code}`);
   } catch (e) {
     if (e instanceof Error && e.message.startsWith('audio:')) throw e;

@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../schema/ad.schema.json
 # Minimal example: a 15 s ad (7.5 bars at 120 BPM) for the demo page in site/.
-meta: {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 7.5}
+meta: {fps: 30, width: 1080, height: 1920, bars: 7.5}
 
 brief:
   audience: Coffee lovers who want fresh beans without leaving the house.
@@ -66,12 +66,6 @@ scenes:
     contactAt: 3
     hitAt: 4
 
-sound:
-  key: A
-  progression: [Am, F, C, G]
-  chords: {}
-  motif:
-    notes: [[0, 69, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]]
-    ding: 81
+sound: sound.yaml
 
 output: {file: out/lumen.mp4, crf: 18}

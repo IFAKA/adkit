@@ -1,0 +1,118 @@
+# Mapa Cerca (a city map): sounds from the street: pins on a paper map, a tram station chime, a bus stop button, the wind.
+seed: 8
+music: {file: music.json}
+
+sounds:
+  pin_press:
+    meaning: "A thumbtack pressed into a cork map, one per open tab, because every tab is one more pin you have to place"
+    layers:
+      - {model: modal, preset: wood_block, note: C6, params: {decay: 0.07, hardness: 1, detune_cents: 25}, gain: -8}
+      - {model: modal, preset: metal_bar, note: G7, params: {decay: 0.04, hardness: 1}, gain: -22}
+
+  street_hum:
+    meaning: "The noise of a busy street under open tabs, the city asking too many things at once"
+    layers:
+      - {model: murmur, params: {dur: 3.8, people: 36, syllable_hz: 5, warmth: 0.4}, gain: -7}
+      - {model: rain, params: {dur: 3.8, density: 1.4, pitch: 0.6}, gain: -18}
+    fx: [{type: lowpass, hz: 4200}]
+
+  map_crumple:
+    meaning: "A paper map crumpled in one hand, the pile of tabs collapsing into a ball"
+    layers:
+      - {model: paper, params: {dur: 0.28, density: 160, bright: 0.5, rustle: 0.6}, gain: -7}
+
+  map_fold:
+    meaning: "A city map folded shut along its creases, the tabs becoming one app icon"
+    layers:
+      - {model: paper, params: {dur: 0.2, density: 70, bright: 0.35}, gain: -10}
+      - {model: whoosh, params: {dur: 0.2, f_start: 1800, f_end: 500, width: 1.2, shape: fall}, gain: -13}
+
+  station_chime:
+    meaning: "The soft two-note chime of a tram station before the voice announces the stop, the app opening on the map"
+    tune: chord
+    layers:
+      - {model: modal, preset: glass, note: D6, params: {decay: 1.6}, gain: -7}
+      - {model: modal, preset: glass, note: G6, at: 0.18, params: {decay: 2.0, velocity: 0.85}, gain: -8}
+    fx: [{type: reverb, rt60: 1.4, wet: 0.2, damp_hz: 8000}]
+
+  street_breeze:
+    meaning: "A short gust of the cierzo wind down the street, the map sliding open or the end card arriving"
+    layers:
+      - {model: wind, params: {dur: 0.8, strength: 0.8, gustiness: 0.3, centre: 900, brightness: 0.6, whistle: 0.1}, gain: -9}
+    fx: [{type: widen, amount: 0.3}]
+
+  pencil_tick:
+    meaning: "A pencil tip ticking on the map margin as the address is written letter by letter in the search box"
+    layers:
+      - {model: modal, preset: wood_block, note: A6, params: {decay: 0.04, hardness: 0.9, detune_cents: 30}, gain: -13}
+
+  pin_drop:
+    meaning: "A drop landing on a fountain pin, the places pop onto the map pitched to the music"
+    tune: chord
+    layers:
+      - {model: drop, note: D6, params: {rise: 1.6, damping: 0.6, plink: 0.3}, gain: -6}
+    fx: [{type: reverb, rt60: 0.6, wet: 0.12, damp_hz: 8000}]
+
+  locate_ping:
+    meaning: "A sonar-like glass ping from the locate button, because the phone is finding where you are"
+    layers:
+      - {model: modal, preset: glass, note: E6, params: {decay: 0.9}, gain: -8}
+    fx: [{type: delay, time: 0.18, feedback: 0.3, wet: 0.25}]
+
+  atlas_page:
+    meaning: "A page of a street atlas turned, the app screen changing from one view to the next"
+    layers:
+      - {model: paper, params: {dur: 0.25, density: 70, bright: 0.4, rustle: 0.35}, gain: -10}
+
+  drawer_slide:
+    meaning: "A map-cabinet drawer sliding out under the map, the bottom sheet of results rising"
+    layers:
+      - {model: whoosh, params: {dur: 0.5, f_start: 250, f_end: 1100, width: 0.8, shape: swell}, gain: -8}
+      - {model: modal, preset: wood_block, note: G3, at: 0.45, params: {decay: 0.12, hardness: 0.3}, gain: -14}
+
+  stop_button:
+    meaning: "The stop-request button on a city bus, a firm short click for the button you press to go"
+    layers:
+      - {model: modal, preset: metal_bar, note: C6, params: {decay: 0.12, hardness: 1}, gain: -7}
+      - {model: modal, preset: wood_block, note: C4, params: {decay: 0.06, hardness: 0.8}, gain: -10}
+    fx: [{type: reverb, rt60: 0.3, wet: 0.06}]
+
+  atlas_flip:
+    meaning: "Flipping quickly through the pages of a street atlas, the list of places scrolling"
+    layers:
+      - {model: paper, params: {dur: 0.7, density: 160, bright: 0.5, rustle: 0.4}, gain: -9}
+      - {model: whoosh, params: {dur: 0.6, f_start: 700, f_end: 2500, width: 1.0, shape: swell}, gain: -16}
+
+  tram_bell:
+    meaning: "A struck brass tram bell, the tram stop is the symbol of a city and it announces the app's name"
+    tune: chord
+    layers:
+      - {model: modal, preset: tram_bell, note: G6, params: {decay: 2.0, strike_pos: 0.22}, gain: -5}
+      - {model: modal, preset: tram_bell, note: G6, at: 0.28, params: {decay: 2.2, velocity: 0.85, strike_pos: 0.3}, gain: -7}
+    fx: [{type: reverb, rt60: 1.1, wet: 0.12, damp_hz: 9000}]
+
+cues:
+  ping: pin_press
+  riser-chaos: {sound: street_hum, align: end}
+  bubble-pop: map_crumple
+  icon-morph: map_fold
+  drop: station_chime
+  final-hit: {sound: station_chime, gain: 0, reason: "the ad opens and closes with the same station chime"}
+  app-open: street_breeze
+  cta-whoosh: {sound: street_breeze, gain: -2, reason: "the end card enters with the same wind that opened the map"}
+  type-tick: pencil_tick
+  pop-in: pin_drop
+  pulse: locate_ping
+  screen-swap: atlas_page
+  sheet-up: drawer_slide
+  tap: stop_button
+  swipe: atlas_flip
+  lockup: tram_bell
+  cut: silent
+  title-in: silent
+  title-out: silent
+  contact: silent
+
+mix:
+  loudness: {lufs: -14, truePeak: -1.5}
+  duckMusic: 2

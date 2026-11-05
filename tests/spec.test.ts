@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {AdSpec} from '../src/spec/schema';
+import {compile} from '../src/engine/compile';
 import {loadSpec, SpecError} from '../src/spec/load';
 import {ROOT, load} from './helpers';
 import os from 'node:os';
@@ -21,9 +22,7 @@ describe('schema', () => {
     const { spec } = load('minimal');
     const bad = structuredClone(spec) as any;
     bad.scenes[0].bars = 1.3;
-    const r = AdSpec.safeParse(bad);
-    expect(r.success).toBe(false);
-    expect(JSON.stringify(r.error?.issues)).toContain('multiple of 0.25');
+    expect(() => compile(AdSpec.parse(bad))).toThrow(/not a whole number of beats/); // the meter decides what a beat is, so the compiler checks it
   });
 
   it('rejects unknown keys (typos) instead of ignoring them', () => {
@@ -37,7 +36,7 @@ describe('schema', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'adkit-spec-'));
     const src = fs.readFileSync(path.join(ROOT, 'examples/minimal/ad.yaml'), 'utf8').replace('bars: 1.5\n    screen: home\n    open: rise', 'bars: seven\n    screen: home\n    open: rise');
     fs.writeFileSync(path.join(dir, 'ad.yaml'), src);
-    fs.copyFileSync(path.join(ROOT, 'examples/minimal/capture.yaml'), path.join(dir, 'capture.yaml'));
+    for (const f of ['capture.yaml', 'sound.yaml', 'music.json']) fs.copyFileSync(path.join(ROOT, 'examples/minimal', f), path.join(dir, f));
     try { loadSpec(path.join(dir, 'ad.yaml'), {}); throw new Error('should fail'); } catch (e) {
       expect(e).toBeInstanceOf(SpecError);
       expect((e as Error).message).toMatch(/ad\.yaml:\d+/);

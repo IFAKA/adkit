@@ -1,0 +1,28 @@
+{
+ "bpm": 120, "meter": {"beats": 4, "unit": 4}, "key": "A minor", "seed": 7, "swing": 0.15,
+ "instruments": {
+  "keys": {"model": "fm", "preset": "e_piano", "octave": 4, "gain": -13, "pan": -0.15, "humanize": {"timing_ms": 6, "velocity": 0.08},
+           "fx": [{"type": "reverb", "rt60": 0.9, "wet": 0.1}]},
+  "guitar": {"model": "pluck", "preset": "guitar", "octave": 3, "gain": -10, "pan": 0.2, "humanize": {"timing_ms": 8, "velocity": 0.1},
+             "fx": [{"type": "reverb", "rt60": 0.8, "wet": 0.08}]},
+  "bass": {"model": "pluck", "preset": "bass", "octave": 2, "gain": -9},
+  "beans": {"model": "drums", "gain": -17, "pan": 0.3, "humanize": {"timing_ms": 4, "velocity": 0.15}, "variations": 4},
+  "cajon": {"model": "drums", "gain": -11, "pan": -0.1, "humanize": {"timing_ms": 5, "velocity": 0.1}, "variations": 3}
+ },
+ "patterns": {
+  "comp": {"bars": 1, "notes": [[0, "chord", 0.75, 0.7], [1.5, "chord", 0.5, 0.55], [2.5, "chord", 0.5, 0.6], [3.5, "chord", 0.4, 0.45]]},
+  "arp": {"bars": 1, "notes": [[0, "c1", 0.5, 0.8], [0.5, "c2", 0.5, 0.6], [1, "c3", 0.5, 0.65], [1.5, "c2", 0.5, 0.55], [2, "c1", 0.5, 0.7], [2.5, "c2", 0.5, 0.55], [3, "c3", 0.5, 0.65], [3.5, "c2", 0.5, 0.5]]},
+  "bassline": {"bars": 1, "notes": [[0, "c1", 1.5, 0.9], [2, "c3", 0.75, 0.7], [3, "c1", 0.5, 0.6], [3.5, "c3", 0.5, 0.55]]},
+  "beans_16": {"bars": 1, "hits": [[0, "hat", 0.5], [0.5, "hat", 0.3], [1, "hat", 0.45], [1.5, "hat", 0.3], [2, "hat", 0.5], [2.5, "hat", 0.3], [3, "hat", 0.45], [3.5, "hat", 0.35]]},
+  "cajon_pat": {"bars": 1, "hits": [[0, "cajon_bass", 0.85], [1.5, "cajon_slap", 0.5], [2, "cajon_bass", 0.7], [3, "cajon_slap", 0.6]]}
+ },
+ "sections": [
+  {"name": "open", "bars": 2, "mood": "light, just the keys and a bag of beans shaking", "chords": ["Am", "F"],
+   "tracks": {"keys": "comp", "beans": "beans_16"}, "automation": {"keys": {"gain": [[0, -6], [2, 0]]}}},
+  {"name": "pour", "bars": 4, "mood": "warm groove: guitar, bass, cajon", "chords": ["Am", "F", "C", "G"],
+   "tracks": {"keys": "comp", "guitar": "arp", "bass": "bassline", "beans": "beans_16", "cajon": "cajon_pat"}},
+  {"name": "cup", "bars": 2, "mood": "settles on the tonic", "chords": ["F", "Am"],
+   "tracks": {"keys": "comp", "guitar": "arp", "bass": "bassline", "beans": "beans_16"}}
+ ],
+ "master": {"fx": [{"type": "saturate", "drive": 0.1, "mix": 0.3}], "gain": 0}
+}

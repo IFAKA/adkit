@@ -6,6 +6,8 @@ import {screenRefs, splitRef} from '../cache';
 import {readManifest, type Project} from '../project';
 import {fmt, run} from '../util';
 import {capture} from './capture';
+import {build} from './build';
+import {soundFindings} from '../../engine/sound-check';
 
 export const SAFE_TOP = 250;
 export const SAFE_BOTTOM = 400;
@@ -69,6 +71,19 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
 
   out.push(...checkCaptures(p, manifest, capDir));
 
+  // sound: the genericness check (every cue has a tailor-made sound, every sound has a meaning, there is music)
+  const sf = soundFindings(spec, plan.cues, {adBars: plan.total / plan.bar, beatsPerBar: plan.meter.beats});
+  out.push({check: 'sound-map', ok: !sf.fails.length, msg: sf.fails.length ? sf.fails.join(' | ') : `${sf.mapped} cues have a sound (${sf.silent} silent on purpose); ${Object.keys(spec.sound.sounds).length} sounds, each with a meaning; music ${plan.meter.beats}/${plan.meter.unit} at ${plan.bpm} BPM`});
+  for (const w of sf.warns) out.push({check: 'sound-warn', ok: false, warn: true, msg: w});
+  try {
+    const b = await build(p);
+    const pngs = ['mix.png', 'music.png'].map((f) => path.join(b.pngDir, f)).concat(Object.keys(spec.sound.sounds).map((n) => path.join(b.pngDir, 'sounds', `${n}.png`)));
+    const have = pngs.filter((f) => fs.existsSync(f));
+    out.push({check: 'spectrograms', ok: have.length === pngs.length, msg: `look at them: ${have.map((f) => path.relative(process.cwd(), f)).join(' ')}`});
+  } catch (e) {
+    out.push({check: 'spectrograms', ok: false, msg: `audio build failed: ${(e as Error).message}`});
+  }
+
   // titles: size and Instagram safe zones, from the real layout boxes
   const boxes = layoutBoxes(plan, spec, manifest);
   const H = plan.height;
@@ -86,7 +101,7 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
     const okV = v.width === plan.width && v.height === plan.height && Math.abs(v.fps - plan.fps) < 0.01 && v.frames === plan.total;
     out.push({check: 'video', ok: okV, msg: `${v.width}x${v.height} ${v.fps}fps ${v.frames} frames (want ${plan.width}x${plan.height} ${plan.fps}fps ${plan.total} frames)`});
     const l = await loudness(video);
-    const target = spec.sound.loudness;
+    const target = spec.sound.mix.loudness;
     out.push({check: 'loudness', ok: Math.abs(l.lufs - target.lufs) <= 0.5, msg: `${l.lufs} LUFS (target ${target.lufs} +-0.5)`});
     out.push({check: 'true-peak', ok: l.truePeak <= -1, msg: `${l.truePeak} dBTP (limit -1.0)`});
     if (opts.warm !== false) {

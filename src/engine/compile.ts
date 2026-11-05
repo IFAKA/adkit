@@ -1,5 +1,7 @@
 import type {Ad, BlockSpec} from '../spec/schema';
 import type {Cue, CueKind, Placed, PlacedTitle, Plan, Section} from './plan';
+import {resolveMeter} from './meter';
+import {soundFindings} from './sound-check';
 
 export class CompileError extends Error {
   constructor(public problems: string[]) {
@@ -11,14 +13,14 @@ export class CompileError extends Error {
 const PHONE_BLOCKS = new Set(['reveal', 'tapFlow', 'notification', 'statCountUp', 'skins', 'endCard']);
 
 export function compile(spec: Ad): Plan {
-  const {fps, bpm} = spec.meta;
-  const bf = (fps * 60) / bpm;
+  const {fps} = spec.meta;
   const problems: string[] = [];
-  if (!Number.isInteger(bf) || bf < 4) {
-    throw new CompileError([`meta: fps ${fps} and bpm ${bpm} give ${bf} frames per beat; it must be a whole number of at least 4 (30 fps at 120 BPM = 15)`]);
-  }
+  const rm = resolveMeter(spec);
+  if (!rm.meter || rm.problems.length) throw new CompileError(rm.problems);
+  const {bpm, beats: perBar} = rm.meter;
+  const bf = rm.meter.beatFrames;
   const half = Math.floor(bf / 2);
-  const bar = bf * 4;
+  const bar = bf * perBar;
   /** beats -> frames. A half beat of an odd beat length rounds down (15 f: 7). */
   const fr = (b: number) => Math.floor(b * bf + 1e-9);
 
@@ -29,6 +31,7 @@ export function compile(spec: Ad): Plan {
   spec.scenes.forEach((s, index) => {
     count[s.block] = (count[s.block] ?? 0) + 1;
     const id = s.id ?? (count[s.block] === 1 ? s.block : `${s.block}${count[s.block]}`);
+    if (Math.abs(s.bars * perBar - Math.round(s.bars * perBar)) > 1e-9) problems.push(`scenes[${index}] (${s.block}): length ${s.bars} bars is not a whole number of beats; in ${rm.meter!.beats}/${rm.meter!.unit} one beat is ${+(1 / perBar).toFixed(4)} bars`);
     const len = Math.round(s.bars * bar);
     blocks.push({index, id, kind: s.block, start: t, end: t + len, spec: s, a: {}});
     t += len;
@@ -50,7 +53,7 @@ export function compile(spec: Ad): Plan {
     if (b.kind === 'iconOpen') {
       const prev = blocks[i - 1];
       if (!prev || prev.kind !== 'chaos' || (prev.spec as {into?: string}).into === 'center') problems.push(`scenes[${i}] (iconOpen): must come right after a chaos block with into: icon`);
-      if (b.spec.bars !== 0.25) problems.push(`scenes[${i}] (iconOpen): bars must be 0.25 (one beat), got ${b.spec.bars}`);
+      if (Math.abs(b.spec.bars * perBar - 1) > 1e-9) problems.push(`scenes[${i}] (iconOpen): bars must be one beat (${+(1 / perBar).toFixed(4)} bars in ${rm.meter!.beats}/${rm.meter!.unit}), got ${b.spec.bars}`);
     }
     if (b.kind === 'chaos' && i !== 0) problems.push(`scenes[${i}] (chaos): must be the first block`);
     if (b.kind === 'chaos' && (b.spec as {into?: string}).into !== 'center' && kinds[i + 1] !== 'iconOpen') problems.push(`scenes[${i}] (chaos): with into: icon it must be followed by an iconOpen block`);
@@ -266,5 +269,8 @@ export function compile(spec: Ad): Plan {
   const lifts = blocks.filter((b) => b.kind === 'notification' || b.kind === 'statCountUp');
   if (lifts.length) sec('lift', lifts[0].start, lifts[lifts.length - 1].end);
 
-  return {fps, bpm, beat: bf, bar, total, width: spec.meta.width, height: spec.meta.height, blocks, cues, titles, sections};
+  const sf = soundFindings(spec, cues, {adBars: total / bar, beatsPerBar: perBar});
+  if (sf.fails.length) throw new CompileError(sf.fails.map((m) => `sound: ${m}`));
+
+  return {fps, bpm, meter: {beats: perBar, unit: rm.meter.unit}, beat: bf, bar, total, width: spec.meta.width, height: spec.meta.height, blocks, cues, titles, sections, placements: sf.placements, soundWarnings: sf.warns};
 }

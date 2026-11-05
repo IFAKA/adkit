@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=../../schema/ad.schema.json
 # Example "steps": a fake map app. Shows chaos look "cards", and the tapFlow steps type, pop (with an "under" capture),
 # pulse, a sheet transition, fade and swipe with scroll, plus an end card note.
-meta: {fps: 30, width: 1080, height: 1920, bpm: 120, bars: 10.75}
+meta: {fps: 30, width: 1080, height: 1920, bars: 10.75}
 
 brief:
   audience: People in a city who need a pharmacy, a bus stop or a bakery right now.
@@ -77,12 +77,6 @@ scenes:
     contactAt: 3
     hitAt: 4
 
-sound:
-  key: C
-  progression: [C, Am, F, G]
-  chords: {}
-  motif:
-    notes: [[0, 67, 0.75], [0.75, 72, 0.25], [1, 76, 0.75], [1.75, 74, 0.25]]
-    ding: 84
+sound: sound.yaml
 
 output: {file: out/steps.mp4, crf: 18}

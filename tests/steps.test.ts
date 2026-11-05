@@ -2,11 +2,13 @@ import {describe, expect, it} from 'vitest';
 import {AdSpec} from '../src/spec/schema';
 import {compile} from '../src/engine/compile';
 import {load} from './helpers';
+import {CUE_KINDS} from '../src/engine/cue-roles';
 
 /** The minimal example with the steps of its tapFlow block replaced. */
 const withSteps = (steps: unknown[]) => {
   const raw = structuredClone(load('minimal').spec) as any;
   raw.scenes[1].steps = steps;
+  for (const k of CUE_KINDS) raw.sound.cues[k] ??= 'silent'; // these tests are about timing, not sound
   return raw;
 };
 const cuesOf = (steps: unknown[]) => compile(AdSpec.parse(withSteps(steps))).cues.filter((c) => c.block === 'order');

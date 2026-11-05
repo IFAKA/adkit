@@ -1,0 +1,155 @@
+# Horno Lento (a bakery): every sound is an object of the bakery: spoon on a cup, an oven timer, flour, a shop door bell, a loaf knocked to hear if it is done.
+seed: 21
+music: {file: music.json}
+
+sounds:
+  counter_knock:
+    meaning: "Knuckle knocks on the wooden counter, one per customer message, because the baker hears the queue before seeing it"
+    layers:
+      - {model: modal, preset: wood_block, note: E5, params: {decay: 0.12, hardness: 0.6, detune_cents: 20}, gain: -7}
+    fx: [{type: reverb, rt60: 0.3, wet: 0.06}]
+
+  queue_murmur:
+    meaning: "Customers talking at once across the shop, the chat pile as a crowd at the door that grows louder"
+    layers:
+      - {model: murmur, params: {dur: 3.4, people: 22, syllable_hz: 4.5, warmth: 0.7}, gain: -6}
+    fx: [{type: lowpass, hz: 3500}]
+
+  flour_puff:
+    meaning: "A puff of flour when a bag is slapped, the messages burst into dust as the pile flies away"
+    layers:
+      - {model: paper, params: {dur: 0.18, density: 140, bright: 0.25, rustle: 0.5}, gain: -8}
+      - {model: whoosh, params: {dur: 0.2, f_start: 2500, f_end: 700, width: 1.6, shape: fall}, gain: -10}
+
+  oven_door:
+    meaning: "The iron oven door swinging shut with a dull clank, closing the noisy queue into one clean icon"
+    layers:
+      - {model: kick, params: {tune: 0.9, decay: 0.7}, gain: -6}
+      - {model: modal, preset: metal_bar, note: G3, params: {decay: 0.5, hardness: 0.5}, gain: -14}
+    fx: [{type: reverb, rt60: 0.5, wet: 0.1}]
+
+  dough_drop:
+    meaning: "A ball of dough dropped on the floured table, a soft heavy thud that starts the real scene"
+    layers:
+      - {model: kick, params: {tune: 0.65, decay: 1.1, click: 0.05}, gain: -3}
+      - {model: paper, params: {dur: 0.3, density: 40, bright: 0.15, rustle: 0.3}, gain: -20}
+    fx: [{type: lowpass, hz: 1400}]
+
+  flour_cloud:
+    meaning: "Flour thrown into the air, a soft breath of fine dust for the phone and the camera moving in"
+    layers:
+      - {model: whoosh, params: {dur: 0.5, f_start: 900, f_end: 3800, width: 1.5, shape: swell}, gain: -9}
+    fx: [{type: reverb, rt60: 0.4, wet: 0.08}]
+
+  apron_swish:
+    meaning: "The baker's apron snapping as she turns between the shop and the counter, for the quick spin to the owner"
+    layers:
+      - {model: whoosh, params: {dur: 0.45, f_start: 400, f_end: 2600, width: 1.0, shape: swell}, gain: -7}
+      - {model: paper, params: {dur: 0.3, density: 30, bright: 0.2}, gain: -22}
+
+  bag_swish:
+    meaning: "A paper bag swung off the counter, the lifted tart flying into the cart"
+    layers:
+      - {model: whoosh, params: {dur: 0.6, f_start: 3200, f_end: 800, width: 1.2, shape: fall}, gain: -9}
+      - {model: paper, params: {dur: 0.4, density: 50, bright: 0.4}, at: 0.1, gain: -16}
+
+  spoon_cup:
+    meaning: "Teaspoon tapped on a ceramic cup, a small warm clink for every button the finger presses"
+    layers:
+      - {model: modal, preset: ceramic_cup, note: D7, params: {decay: 0.28, strike_pos: 0.15}, gain: -4}
+      - {model: modal, preset: metal_bar, note: A7, params: {decay: 0.08, hardness: 1}, gain: -16}
+    fx: [{type: reverb, rt60: 0.35, wet: 0.1}]
+
+  tart_lift:
+    meaning: "A tart lifted off the tin with a wooden spatula, a small hollow tock as the product card lifts"
+    layers:
+      - {model: modal, preset: wood_block, note: A4, params: {decay: 0.18, hardness: 0.4}, gain: -8}
+      - {model: paper, params: {dur: 0.08, density: 60}, gain: -26}
+
+  crumb_tick:
+    meaning: "A crumb falling on the glass counter, a tiny tick for the cart badge counting up"
+    layers:
+      - {model: modal, preset: glass, note: C7, params: {decay: 0.2}, gain: -9}
+    fx: [{type: reverb, rt60: 0.4, wet: 0.1}]
+
+  oven_ding:
+    meaning: "The oven timer ringing once: the loaf is done, which is the moment an order is paid or a total arrives"
+    tune: chord
+    layers:
+      - {model: modal, preset: handbell, note: C6, params: {decay: 2.6, beat_hz: 1.8}, gain: -5}
+      - {model: fm, preset: fm_bell, note: C6, params: {dur: 0.1}, gain: -22}
+    fx: [{type: reverb, rt60: 1.6, wet: 0.18, damp_hz: 7000}]
+
+  shop_door_bell:
+    meaning: "The little bell above the shop door when a customer walks in, so the owner hears the new order arrive"
+    tune: chord
+    layers:
+      - {model: modal, preset: bell, note: G5, params: {decay: 1.4, beat_hz: 2.4}, gain: -7}
+      - {model: modal, preset: bell, note: G5, at: 0.22, params: {decay: 1.2, velocity: 0.7}, gain: -10}
+    fx: [{type: reverb, rt60: 0.9, wet: 0.12}]
+
+  coin_tray:
+    meaning: "A coin dropped on the small steel change tray, the new order landing in the owner's list"
+    layers:
+      - {model: modal, preset: plate, note: B5, params: {decay: 0.5, hardness: 0.9}, gain: -8}
+      - {model: modal, preset: metal_bar, note: E7, at: 0.04, params: {decay: 0.2, velocity: 0.6}, gain: -16}
+    fx: [{type: reverb, rt60: 0.5, wet: 0.08}]
+
+  coins_in_jar:
+    meaning: "Coins shaken in the tip jar while the sales number counts up, because every order ends in money"
+    layers:
+      - {model: shaker, params: {dur: 0.9, density: 1.8, pitch: 1.5}, gain: -12}
+    fx: [{type: highpass, hz: 500}]
+
+  steam_rise:
+    meaning: "Steam rising from a tray of fresh bread as the sales bars grow, a hiss that climbs and stops"
+    layers:
+      - {model: whoosh, params: {dur: 0.9, f_start: 600, f_end: 6000, width: 1.3, shape: rise}, gain: -10}
+
+  paper_turn:
+    meaning: "A page of the paper order book turned, for the shop screen and the shop colours changing"
+    layers:
+      - {model: paper, params: {dur: 0.25, density: 80, bright: 0.45, rustle: 0.3}, gain: -10}
+
+  crust_knock:
+    meaning: "The baker knocking on a loaf's crust to hear if it is done, a hollow knock that lands with the shop name"
+    tune: chord
+    layers:
+      - {model: modal, preset: wood_block, note: C4, params: {decay: 0.35, hardness: 0.5, strike_pos: 0.3}, gain: -6}
+      - {model: modal, preset: wood_block, note: G4, at: 0.14, params: {decay: 0.3, velocity: 0.75}, gain: -9}
+    fx: [{type: reverb, rt60: 0.5, wet: 0.1}]
+
+cues:
+  ping: counter_knock
+  riser-chaos: {sound: queue_murmur, align: end}
+  bubble-pop: flour_puff
+  icon-morph: oven_door
+  drop: dough_drop
+  app-open: flour_cloud
+  macro: {sound: flour_cloud, gain: -4, reason: "the camera push and the phone entering are both a throw of flour"}
+  cta-whoosh: {sound: flour_cloud, gain: -2, reason: "the end card enters with the same flour breath as the phone"}
+  whip-out: apron_swish
+  whip-spin: {sound: apron_swish, gain: 1, reason: "the spin is the second half of the same apron turn"}
+  fly: bag_swish
+  tap: spoon_cup
+  lift: tart_lift
+  badge: crumb_tick
+  paid: oven_ding
+  count-done: {sound: oven_ding, gain: -3, reason: "a total arriving is the same done timer as an order paid"}
+  final-hit: {sound: oven_ding, gain: 1, reason: "the ad ends on the done timer, the promise kept"}
+  notification: shop_door_bell
+  order-lands: coin_tray
+  count: coins_in_jar
+  bars-riser: steam_rise
+  screen-swap: paper_turn
+  skin-swap: {sound: paper_turn, gain: 2, reason: "a new shop look is turning to a new page"}
+  lockup: crust_knock
+  # no sound on purpose: text is read, not heard
+  cut: silent
+  title-in: silent
+  title-out: silent
+  contact: silent
+
+mix:
+  loudness: {lufs: -14, truePeak: -1.5}
+  duckMusic: 2

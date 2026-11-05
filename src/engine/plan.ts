@@ -42,7 +42,8 @@ export type Section = {role: 'chaos' | 'breath' | 'drop' | 'groove' | 'lift' | '
 export type Plan = {
   fps: number;
   bpm: number;
-  beat: number; // frames per beat
+  meter: {beats: number; unit: 4 | 8}; // beats per bar and the unit note (3/4: beats 3, unit 4; 6/8: beats 6, unit 8)
+  beat: number; // frames per beat (one unit note: a quarter in x/4, an eighth in x/8)
   bar: number; // frames per bar
   total: number;
   width: number;
@@ -51,9 +52,21 @@ export type Plan = {
   cues: Cue[];
   titles: PlacedTitle[];
   sections: Section[];
+  /** cues with the sound the sound map gave them */
+  placements: Placement[];
+  /** warnings from the genericness check (they do not stop the build) */
+  soundWarnings: string[];
 };
 
+/** One cue with the sound the sound map gave it. */
+export type Placement = {
+  cue: string; role: string; key: string; sound: string; seconds: number; durationSeconds?: number;
+  gain: number; pan?: number; duck?: number; variations: number; align: 'start' | 'end';
+};
+
+/** The JSON the Python audio engine reads. Its hash is the audio cache key. */
 export type PlanForAudio = {
-  fps: number; bpm: number; totalFrames: number; durationSeconds: number; bars: number;
-  cues: Cue[]; sections: Section[]; sound: Ad['sound'];
+  fps: number; bpm: number; meter: {beats: number; unit: number}; totalFrames: number; durationSeconds: number; bars: number;
+  music: unknown; sounds: Record<string, unknown>; placements: Placement[];
+  mix: Ad['sound']['mix']; seed: number;
 };
