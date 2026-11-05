@@ -41,3 +41,15 @@ describe('continuity', () => {
     expect(findJumps([0, 0, 18, 18, 0], 10, [])).toEqual([{frame: 3, diff: 18}]);
   });
 });
+
+describe('smooth block changes', () => {
+  it('defaults every screen change between blocks to a fade, never a hard cut', () => {
+    for (const name of ['horno-lento']) {
+      const {spec} = load(name);
+      for (const b of spec.scenes as Array<{block: string; start?: {transition: string}; transition?: string}>) {
+        if (b.block === 'tapFlow') expect(['fade', 'slide', 'zoom', 'cut']).toContain(b.start!.transition);
+        if (b.block === 'skins') expect(b.transition).toBe('fade');
+      }
+    }
+  });
+});

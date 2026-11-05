@@ -1488,6 +1488,17 @@
                   "scroll": {
                     "default": 0,
                     "type": "number"
+                  },
+                  "transition": {
+                    "default": "fade",
+                    "description": "How this screen replaces the previous block's screen. Default fade: a cross-fade, never a hard cut.",
+                    "type": "string",
+                    "enum": [
+                      "slide",
+                      "cut",
+                      "fade",
+                      "zoom"
+                    ]
                   }
                 },
                 "required": [
@@ -2777,6 +2788,15 @@
                 "default": 2,
                 "description": "Beats between two variants.",
                 "type": "number"
+              },
+              "transition": {
+                "default": "fade",
+                "description": "How one variant replaces the last. fade = a short cross-fade; cut = hard cut.",
+                "type": "string",
+                "enum": [
+                  "cut",
+                  "fade"
+                ]
               },
               "title": {
                 "description": "Colours follow the current variant.",

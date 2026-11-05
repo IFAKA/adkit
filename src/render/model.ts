@@ -1,7 +1,7 @@
 import type {Plan, Placed} from '../engine/plan';
 import type {Ad, BlockSpec} from '../spec/schema';
 import type {CaptureManifest, RenderProps} from './types';
-import {CAM, CAM_SLOW, CAM_SNAP, CAM_SPRINGS, setFps, type Key, type Spring} from './lib/anim';
+import {CAM, CAM_FAST, CAM_SLOW, CAM_SNAP, CAM_SPRINGS, setFps, type Key, type Spring} from './lib/anim';
 
 export const SCREEN_W = 390;
 export const SCREEN_H = 844;
@@ -200,7 +200,7 @@ export function buildModel(props: RenderProps): Model {
         let cur = m.layers[m.layers.length - 1];
         if (cur && cur.ref.key === startRef.key) {
           if (targetScroll(cur, b.start) !== s.start.scroll) cur.scroll = [...cur.scroll, [b.start, s.start.scroll]];
-        } else cur = pushLayer(b, b.start, 'cut', startRef, [[0, s.start.scroll]]);
+        } else cur = pushLayer(b, b.start, m.layers.length ? s.start.transition : 'cut', startRef, [[0, s.start.scroll]]);
         const stepF = (st: {at: number}) => b.start + fr(st.at);
         const screenSteps = s.steps.filter((x) => x.type === 'screen');
         const nextScreenAt = (f: number) => {
@@ -316,13 +316,13 @@ export function buildModel(props: RenderProps): Model {
       case 'skins': {
         const variants = s.variants.map((v) => ({ref: parseRef(v.screen), theme: themeOf(parseRef(v.screen).set)}));
         const swaps = s.variants.map((_, k) => b.a[`v${k}`]);
-        s.variants.forEach((v, k) => pushLayer(b, swaps[k], 'cut', variants[k].ref, [[0, v.scroll]], v.sticky));
+        s.variants.forEach((v, k) => pushLayer(b, swaps[k], k === 0 && !m.layers.length ? 'cut' : s.transition, variants[k].ref, [[0, v.scroll]], v.sticky));
         m.skins.push({block: b, swaps, variants});
         break;
       }
       case 'endCard':
         m.end = b;
-        pushLayer(b, b.start, 'cut', parseRef(s.screen), [[0, s.scroll]]);
+        pushLayer(b, b.start, m.layers.length ? 'fade' : 'cut', parseRef(s.screen), [[0, s.scroll]]);
         break;
       case 'whip':
         m.whips.push({out: b.a.out, spin: b.start});
@@ -352,7 +352,7 @@ export function buildModel(props: RenderProps): Model {
   blocks.forEach((b) => {
     const s = b.spec as BlockSpec;
     if (b.kind === 'endCard') {
-      shots.push({f: b.start, zoom: 1.0, sx: 195, sy: 422, qy: 1270, spring: CAM_SNAP});
+      shots.push({f: b.start, zoom: 1.0, sx: 195, sy: 422, qy: 1230, spring: CAM_FAST});
       return;
     }
     const keys = 'camera' in s ? s.camera : [];

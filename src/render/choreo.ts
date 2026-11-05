@@ -75,6 +75,7 @@ export const phonePose = (m: Model, f: number): Pose => {
   for (const sk of m.skins) {
     if (f >= sk.block.start && f < sk.block.end) {
       sk.swaps.forEach((sf, i) => {
+        if (i === 0 && sk.block.start > 0) return; // the first variant is not a swap: no bounce on the first frame
         const p = spr(f, sf, BOUNCY);
         const dir = i % 2 ? 1 : -1;
         ry += dir * 16 * (1 - p);
@@ -89,7 +90,7 @@ export const phonePose = (m: Model, f: number): Pose => {
     const t = f - m.end.start;
     ry += Math.sin(t / 40) * 5;
     y += Math.sin(t / 33) * 10;
-    x = ep.x + Math.sin(t / 50) * 8;
+    x = ep.x * Math.min(1, spr(f, m.end.start, HEAVY)) + Math.sin(t / 50) * 8 * Math.min(1, t / 20);
   }
   return {x, y, z, rx, ry, rz, s};
 };
@@ -103,8 +104,9 @@ export const camera = (m: Model, f: number): Cam => {
   const rv = m.reveal;
   const medAt = shots[1]?.f ?? 0;
   const zoomBase = rv && shots.length > 1 && f < medAt && !(rv.spec as {camera: unknown[]}).camera.length ? 1 + 0.12 * ramp(f, rv.start, medAt) : val('zoom');
-  const zoom = zoomBase * (1 + 0.012 * Math.sin(f / 40));
+  const calm = m.end && f >= m.end.start ? 1 - ramp(f, m.end.start, m.end.start + 30) : 1; // the end card settles to a still frame
+  const zoom = zoomBase * (1 + 0.012 * Math.sin(f / 40) * calm);
   const rollKeys: Key[] = [[0, 0], ...m.roll];
-  const rot = noise2D('cr', f / 80, 2) * 0.1 + track(f, rollKeys, CAM);
+  const rot = noise2D('cr', f / 80, 2) * 0.1 * calm + track(f, rollKeys, CAM);
   return {zoom, rot, fx: val('sx'), fy: val('sy'), qy: val('qy')};
 };

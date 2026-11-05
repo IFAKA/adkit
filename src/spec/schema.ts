@@ -280,7 +280,7 @@ export const Reveal = z.object({
 
 export const TapFlow = z.object({
   block: z.literal('tapFlow'), ...common,
-  start: z.object({screen: ScreenRef, scroll: z.number().default(0)}).strict(),
+  start: z.object({screen: ScreenRef, scroll: z.number().default(0), transition: z.enum(['slide', 'cut', 'fade', 'zoom']).default('fade').describe('How this screen replaces the previous block\'s screen. Default fade: a cross-fade, never a hard cut.')}).strict(),
   steps: z.array(TapFlowStep).min(1),
   camera: Cam,
 }).strict();
@@ -318,6 +318,7 @@ export const Skins = z.object({
   block: z.literal('skins'), ...common,
   variants: z.array(z.object({screen: ScreenRef, scroll: z.number().default(0), sticky: z.number().default(0)}).strict()).min(2),
   every: beat.default(2).describe('Beats between two variants.'),
+  transition: z.enum(['cut', 'fade']).default('fade').describe('How one variant replaces the last. fade = a short cross-fade; cut = hard cut.'),
   title: Title.optional().describe('Colours follow the current variant.'),
   camera: Cam,
 }).strict();

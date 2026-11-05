@@ -17,10 +17,10 @@ import {EndLockup, EndRing} from './blocks/EndCard';
 
 const blockAt = (m: Model, f: number) => m.plan.blocks.find((b) => f >= b.start && f < b.end) ?? m.plan.blocks[m.plan.blocks.length - 1];
 
-const SceneBackdrop: React.FC<{m: Model}> = ({m}) => {
+const SceneBackdrop: React.FC<{m: Model; block?: Model['plan']['blocks'][number]}> = ({m, block}) => {
   const f = useCurrentFrame();
   const c = m.spec.brand.colors;
-  const b = blockAt(m, f);
+  const b = block ?? blockAt(m, f);
   const cam = camera(m, f);
   const vis = m.layers.filter((l) => layerVisible(l, f));
   const cur = vis[vis.length - 1] ?? m.layers[0];
@@ -68,6 +68,26 @@ const SceneBackdrop: React.FC<{m: Model}> = ({m}) => {
   }
 };
 
+const BLEND = 14;
+/** At a block boundary the old backdrop fades out under the new one, so the background never jumps. */
+const BackdropBlend: React.FC<{m: Model}> = ({m}) => {
+  const f = useCurrentFrame();
+  const bs = m.plan.blocks;
+  const i = bs.findIndex((b) => f >= b.start && f < b.end);
+  const b = bs[i];
+  const prev = i > 0 ? bs[i - 1] : undefined;
+  if (!b || !prev || prev.kind === 'chaos' || f >= b.start + BLEND || prev.end - prev.start <= 0) return <SceneBackdrop m={m} />;
+  const k = (f - b.start + 1) / (BLEND + 1);
+  return (
+    <>
+      <SceneBackdrop m={m} block={prev} />
+      <div style={{position: 'absolute', inset: 0, opacity: k}}>
+        <SceneBackdrop m={m} />
+      </div>
+    </>
+  );
+};
+
 const Titles: React.FC<{m: Model}> = ({m}) => {
   const f = useCurrentFrame();
   const c = m.spec.brand.colors;
@@ -111,10 +131,10 @@ const PhoneScene: React.FC<{m: Model}> = ({m}) => {
   const inEnd = !!m.end && f >= m.end.start;
   const rv = m.reveal!;
   const blurStage = f < rv.start + Math.round(16 * (m.bf / 15));
-  const stage = <Stage m={m} flat={inEnd} />;
+  const stage = <Stage m={m} flat={inEnd && f >= m.end!.start + 60} />;
   return (
     <AbsoluteFill>
-      <SceneBackdrop m={m} />
+      <BackdropBlend m={m} />
       {/* titles sit between the backdrop and the phone: a title that is still on screen while the phone moves under it is hidden by the phone, never seen through the screen */}
       <Titles m={m} />
       {blurStage ? (
