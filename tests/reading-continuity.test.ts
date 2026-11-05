@@ -4,7 +4,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {describe, expect, it} from 'vitest';
 import {clone, load} from './helpers';
-import {readingRows, wordCount} from '../src/engine/reading';
+import {readingRows, wordCount, pushInFindings, isPushIn} from '../src/engine/reading';
 import {findJumps, frameDiffs} from '../src/engine/continuity';
 
 describe('reading-time', () => {
@@ -64,5 +64,27 @@ describe('skins pose', () => {
     const j = phonePose(m, 60).s - before.s;
     expect(Math.abs(j)).toBeLessThan(0.001); // the kick starts from zero
     expect(phonePose(m, 62).s - before.s).toBeGreaterThan(0.001);
+  });
+});
+
+describe('camera push-in reason', () => {
+  it('refuses a push-in without why and warns when it is not held long enough', () => {
+    const {spec, plan} = load('horno-lento');
+    const tf = plan.blocks.find((b) => (b.spec as {camera?: unknown[]}).camera !== undefined && b.spec.block === 'tapFlow');
+    expect(tf).toBeTruthy();
+    const bad = structuredClone(plan);
+    const bb = bad.blocks.find((b) => b.id === tf!.id)!;
+    const mine = (r: {fails: string[]; warns: string[]}, k: 'fails' | 'warns') => r[k].filter((m) => m.startsWith(`${tf!.id}:`));
+    (bb.spec as {camera: unknown[]}).camera = [{at: 0, zoom: {fit: 'x', fraction: 0.8}, focus: {}}];
+    expect(mine(pushInFindings(bad, spec), 'fails').length).toBe(1);
+    // with a why but never released: it holds to the block end, so the long block passes and a short hold warns
+    (bb.spec as {camera: unknown[]}).camera = [{at: 0, zoom: 1.4, focus: {}, why: 'reads: "3 min"'}];
+    expect(mine(pushInFindings(bad, spec), 'fails').length).toBe(0);
+    (bb.spec as {camera: unknown[]}).camera = [{at: 0, zoom: 1.4, focus: {}, why: 'reads: "3 min"'}, {at: 0.5, zoom: 0.85}];
+    expect(mine(pushInFindings(bad, spec), 'warns').length).toBe(1);
+    // a wide pose is not a push-in
+    expect(isPushIn({at: 0, zoom: 0.85})).toBe(false);
+    expect(isPushIn({at: 0, zoom: {fit: 'a', fraction: 0.8}})).toBe(true);
+    expect(isPushIn({at: 0, zoom: 1, focus: {element: 'a'}})).toBe(true);
   });
 });

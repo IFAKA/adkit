@@ -60,3 +60,31 @@ export function movingTextWarnings(plan: Plan, spec: Ad): string[] {
   }
   return warns;
 }
+
+type CamKey = {at: number; offset?: number; zoom: unknown; focus?: {element?: string}; why?: string};
+
+/** A push-in is a fit zoom, a zoom of 1.1 or more, or a focus on an element. It must say what is read there (`why`) and hold still long enough to read it. */
+export function isPushIn(k: CamKey): boolean {
+  return typeof k.zoom === 'object' || (typeof k.zoom === 'number' && k.zoom >= 1.1) || !!k.focus?.element;
+}
+
+export function pushInFindings(plan: Plan, spec: Ad): {fails: string[]; warns: string[]; count: number} {
+  const need = Math.round(spec.checks.appTextSeconds * plan.fps);
+  const SPRING = 18;
+  const fails: string[] = [];
+  const warns: string[] = [];
+  let count = 0;
+  for (const b of plan.blocks) {
+    const cam = (b.spec as {camera?: CamKey[]}).camera;
+    if (!cam?.length) continue;
+    const frames = cam.map((k) => ({k, f: b.start + Math.round(k.at * plan.beat) + (k.offset ?? 0)})).sort((a, c) => a.f - c.f);
+    frames.forEach(({k, f}, i) => {
+      if (!isPushIn(k)) return;
+      count++;
+      if (!k.why?.trim()) { fails.push(`${b.id}: the camera push-in at frame ${f} has no \`why\` (what does the viewer read there? e.g. reads: "3 min")`); return; }
+      const hold = (frames[i + 1]?.f ?? b.end) - (f + SPRING);
+      if (hold < need) warns.push(`${b.id}: push-in "${k.why}" at frame ${f} holds still ${Math.max(0, hold)} frames, needs ${need} to be read`);
+    });
+  }
+  return {fails, warns, count};
+}

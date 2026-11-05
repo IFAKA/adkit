@@ -43,10 +43,10 @@ scenes:
       - {type: check, at: 10.5}
       - {type: screen, at: 11, screen: thanks}
     camera:
-      - {at: 2, zoom: 1.7, focus: {element: productCard}, qy: 1200, spring: fast, whoosh: true}
-      - {at: 5, zoom: 1.4, focus: {y: 230}, qy: 1150}
-      - {at: 7.5, zoom: 1.8, focus: {element: payButton}, qy: 1180, spring: fast, whoosh: true}
-      - {at: 11, zoom: 1.3, focus: {y: 300}, qy: 1150}
+      - {at: 2, zoom: 1.7, focus: {element: productCard}, qy: 1200, spring: fast, whoosh: true, why: 'reads: productCard'}
+      - {at: 5, zoom: 1.4, focus: {y: 230}, qy: 1150, why: 'reads: the part of the screen in view'}
+      - {at: 7.5, zoom: 1.8, focus: {element: payButton}, qy: 1180, spring: fast, whoosh: true, why: 'reads: payButton'}
+      - {at: 11, zoom: 1.3, focus: {y: 300}, qy: 1150, why: 'reads: the part of the screen in view'}
 
   - block: skins
     bars: 1.5

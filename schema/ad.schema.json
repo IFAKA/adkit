@@ -1376,6 +1376,10 @@
                       "default": false,
                       "description": "Emit a short whoosh cue at this move.",
                       "type": "boolean"
+                    },
+                    "why": {
+                      "description": "Required on a push-in (a fit zoom, a zoom of 1.1 or more, or a focus on an element): what the viewer reads there, e.g. `reads: \"3 min\"`. A camera move needs a visible cause and a purpose; the check refuses a push-in without it and warns when it does not hold still long enough to be read.",
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -1994,6 +1998,10 @@
                       "default": false,
                       "description": "Emit a short whoosh cue at this move.",
                       "type": "boolean"
+                    },
+                    "why": {
+                      "description": "Required on a push-in (a fit zoom, a zoom of 1.1 or more, or a focus on an element): what the viewer reads there, e.g. `reads: \"3 min\"`. A camera move needs a visible cause and a purpose; the check refuses a push-in without it and warns when it does not hold still long enough to be read.",
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -2343,6 +2351,10 @@
                       "default": false,
                       "description": "Emit a short whoosh cue at this move.",
                       "type": "boolean"
+                    },
+                    "why": {
+                      "description": "Required on a push-in (a fit zoom, a zoom of 1.1 or more, or a focus on an element): what the viewer reads there, e.g. `reads: \"3 min\"`. A camera move needs a visible cause and a purpose; the check refuses a push-in without it and warns when it does not hold still long enough to be read.",
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -2655,6 +2667,10 @@
                       "default": false,
                       "description": "Emit a short whoosh cue at this move.",
                       "type": "boolean"
+                    },
+                    "why": {
+                      "description": "Required on a push-in (a fit zoom, a zoom of 1.1 or more, or a focus on an element): what the viewer reads there, e.g. `reads: \"3 min\"`. A camera move needs a visible cause and a purpose; the check refuses a push-in without it and warns when it does not hold still long enough to be read.",
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -2968,6 +2984,10 @@
                       "default": false,
                       "description": "Emit a short whoosh cue at this move.",
                       "type": "boolean"
+                    },
+                    "why": {
+                      "description": "Required on a push-in (a fit zoom, a zoom of 1.1 or more, or a focus on an element): what the viewer reads there, e.g. `reads: \"3 min\"`. A camera move needs a visible cause and a purpose; the check refuses a push-in without it and warns when it does not hold still long enough to be read.",
+                      "type": "string"
                     }
                   },
                   "required": [

@@ -7,7 +7,7 @@ import {readManifest, type Project} from '../project';
 import {fmt, run} from '../util';
 import {capture} from './capture';
 import {build} from './build';
-import {readingRows, movingTextWarnings} from '../../engine/reading';
+import {readingRows, movingTextWarnings, pushInFindings} from '../../engine/reading';
 import {frameDiffs, findJumps} from '../../engine/continuity';
 import {soundFindings} from '../../engine/sound-check';
 
@@ -109,6 +109,10 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   const short = rows.filter((r) => !r.ok);
   out.push({check: 'reading-time', ok: !short.length, msg: short.length ? short.map((r) => `"${r.text}" (${r.block}#${r.index + 1}, ${r.words} words) is fully visible ${r.visible} frames, needs ${r.needed}: ${r.needed - r.visible} short`).join('; ') : `all ${rows.length} titles stay visible long enough (${spec.checks.wordsPerSecond} words/s + ${spec.checks.noticeSeconds}s)`});
   for (const w of movingTextWarnings(plan, spec)) out.push({check: 'reading-time', ok: false, warn: true, msg: w});
+  // camera: every push-in has a visible cause and a purpose (`why`) and holds still long enough to read it
+  const pin = pushInFindings(plan, spec);
+  out.push({check: 'camera-why', ok: !pin.fails.length, msg: pin.fails.length ? pin.fails.join(' | ') : `${pin.count} push-ins, each with a reason`});
+  for (const w of pin.warns) out.push({check: 'camera-why', ok: false, warn: true, msg: w});
 
   // the video file
   const video = path.resolve(p.dir, opts.video ?? spec.output.file);

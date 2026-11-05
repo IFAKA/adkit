@@ -196,6 +196,7 @@ export const CameraKey = z.object({
   spring: z.enum(['soft', 'fast', 'tap', 'slow', 'snap']).default('soft'),
   roll: z.number().optional().describe('Camera roll in degrees; omit to keep the current roll.'),
   whoosh: z.boolean().default(false).describe('Emit a short whoosh cue at this move.'),
+  why: z.string().optional().describe('Required on a push-in (a fit zoom, a zoom of 1.1 or more, or a focus on an element): what the viewer reads there, e.g. `reads: "3 min"`. A camera move needs a visible cause and a purpose; the check refuses a push-in without it and warns when it does not hold still long enough to be read.'),
 }).strict();
 
 const Cam = z.array(CameraKey).default([]);

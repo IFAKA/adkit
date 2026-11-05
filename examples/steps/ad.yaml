@@ -63,9 +63,9 @@ scenes:
       - {type: screen, at: 15, screen: list, transition: fade}
       - {type: swipe, at: 17, from: row6, to: row6, beats: 2, scroll: 360}
     camera:
-      - {at: 1, zoom: 1.5, focus: {element: searchText}, qy: 1100, spring: fast}
+      - {at: 1, zoom: 1.5, focus: {element: searchText}, qy: 1100, spring: fast, why: 'reads: searchText'}
       - {at: 5, zoom: 1.0, focus: {y: 422}, qy: 1180}
-      - {at: 12, zoom: 1.25, focus: {y: 600}, qy: 1180}
+      - {at: 12, zoom: 1.25, focus: {y: 600}, qy: 1180, why: 'reads: the part of the screen in view'}
 
   - block: endCard
     bars: 1.5

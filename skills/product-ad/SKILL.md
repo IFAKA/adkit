@@ -20,6 +20,12 @@ adkit does all repeated work (capture, timing, camera, render, audio, checks). Y
 6. **Capture**: the screens and named elements the video points at (`capture.yaml`). For `pop` capture the final state and, if the background has texture, a second capture without the elements (`under`). For `type` capture the input empty. For a `sheet` transition capture the page with the sheet open.
 7. **Brand extras**: `brand.icon` may be an image path; `endCard.note` is one small line of fine print.
 
+## Camera and screens need a reason
+- Every camera move and every screen change has a visible cause (a tap, a typed word, a result appearing) and a purpose (to read something that just appeared). No zoom just because.
+- A push-in (a `fit` zoom, a zoom of 1.1 or more, or a focus on an element) must carry `why: 'reads: "3 min"'`. `adkit check` fails a push-in without `why` (check `camera-why`) and warns when it holds still for less than the reading time (`checks.appTextSeconds`). Hold it about 1.5 s, then pull back to the wide pose.
+- When the story is about a map, keep the map in view: the phone shows the map in at least the top 40 % the whole time. Never open a bottom sheet to full height in the ad; use the half (peek) state. Show one interaction the way a person does it, in one phone: tap the tab, tap the pin, the card opens; do not fade to a different full-screen page. adkit cannot see the sheet state, so check this by looking at the tile.
+- Several services in a row: give each at least 0.8 s (24 frames) with its tab tap visible and its map with pins visible. Make the montage longer rather than faster.
+
 ## You must NOT do by hand
 - No frame numbers, no pixel positions for the phone or camera, no video editing, no manual audio or loudness work. Give lengths in bars and times in beats; the compiler places and checks them.
 - Do not edit generated files in `.adkit/` or `out/`.
