@@ -98,7 +98,7 @@ const LayerView: React.FC<{m: Model; l: Layer; f: number}> = ({m, l, f}) => {
   const t = m.themeOf(l.ref.set);
   const scroll = track(f, l.scroll, SOFT);
   const tr = l.transition;
-  const inP = tr === 'cut' ? 1 : tr === 'fade' ? ramp(f, l.at, l.at + 8) : clamp01(spr(f, l.at, SLIDE));
+  const inP = tr === 'cut' ? 1 : tr === 'fade' ? ramp(f, l.at, l.at + 12) : clamp01(spr(f, l.at, SLIDE));
   const outP = l.nextTransition === 'slide' || l.nextTransition === 'zoom' ? clamp01(spr(f, l.next, SLIDE)) : 0;
   const wrap: React.CSSProperties =
     tr === 'slide' ? {transform: `translateX(${(1 - inP) * 390 - outP * 110}px)`, boxShadow: inP < 1 ? '-20px 0 40px rgba(0,0,0,0.2)' : undefined}

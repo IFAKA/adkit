@@ -131,7 +131,7 @@ const PhoneScene: React.FC<{m: Model}> = ({m}) => {
   const inEnd = !!m.end && f >= m.end.start;
   const rv = m.reveal!;
   const blurStage = f < rv.start + Math.round(16 * (m.bf / 15));
-  const stage = <Stage m={m} flat={inEnd && f >= m.end!.start + 60} />;
+  const stage = <Stage m={m} flat={inEnd && f >= m.end!.start + 90} />;
   return (
     <AbsoluteFill>
       <BackdropBlend m={m} />
