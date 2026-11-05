@@ -7,6 +7,8 @@ import {readManifest, type Project} from '../project';
 import {fmt, run} from '../util';
 import {capture} from './capture';
 import {build} from './build';
+import {readingRows, movingTextWarnings} from '../../engine/reading';
+import {frameDiffs, findJumps} from '../../engine/continuity';
 import {soundFindings} from '../../engine/sound-check';
 
 export const SAFE_TOP = 250;
@@ -102,6 +104,12 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   });
   out.push({check: 'title-overlap', ok: !clash.length, msg: clash.length ? `two titles on screen at once: ${clash.slice(0, 3).join('; ')}. Let the first leave at least 1 beat before the next enters.` : 'no two titles are visible at the same time'});
 
+  // reading time: each title stays fully visible long enough to be read
+  const rows = readingRows(plan, spec);
+  const short = rows.filter((r) => !r.ok);
+  out.push({check: 'reading-time', ok: !short.length, msg: short.length ? short.map((r) => `"${r.text}" (${r.block}#${r.index + 1}, ${r.words} words) is fully visible ${r.visible} frames, needs ${r.needed}: ${r.needed - r.visible} short`).join('; ') : `all ${rows.length} titles stay visible long enough (${spec.checks.wordsPerSecond} words/s + ${spec.checks.noticeSeconds}s)`});
+  for (const w of movingTextWarnings(plan, spec)) out.push({check: 'reading-time', ok: false, warn: true, msg: w});
+
   // the video file
   const video = path.resolve(p.dir, opts.video ?? spec.output.file);
   if (!fs.existsSync(video)) {
@@ -110,6 +118,8 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
     const v = await probe(video);
     const okV = v.width === plan.width && v.height === plan.height && Math.abs(v.fps - plan.fps) < 0.01 && v.frames === plan.total;
     out.push({check: 'video', ok: okV, msg: `${v.width}x${v.height} ${v.fps}fps ${v.frames} frames (want ${plan.width}x${plan.height} ${plan.fps}fps ${plan.total} frames)`});
+    const jumps = findJumps(await frameDiffs(video), spec.checks.maxJump, spec.checks.cuts);
+    out.push({check: 'continuity', ok: !jumps.length, msg: jumps.length ? `${jumps.length} jumps (mean pixel change > ${spec.checks.maxJump}) at frames ${jumps.slice(0, 12).map((j) => `${j.frame} (${j.diff})`).join(', ')}. Make the change flow, or list the frame in checks.cuts if it is meant.` : `no frame-to-frame change above ${spec.checks.maxJump}`});
     const l = await loudness(video);
     const target = spec.sound.mix.loudness;
     out.push({check: 'loudness', ok: Math.abs(l.lufs - target.lufs) <= 0.5, msg: `${l.lufs} LUFS (target ${target.lufs} +-0.5)`});

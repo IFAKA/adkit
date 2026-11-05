@@ -345,6 +345,14 @@ export const Output = z.object({
   crf: z.number().int().min(10).max(30).default(18),
 }).strict().default({file: 'out/ad.mp4', crf: 18});
 
+export const Checks = z.object({
+  wordsPerSecond: z.number().min(1).max(8).default(4).describe('Reading speed for the reading-time check: a median adult reads about 238 words a minute, about 4 a second.'),
+  noticeSeconds: z.number().min(0).max(3).default(0.5).describe('Time to notice a title before reading it. Added to words / wordsPerSecond.'),
+  appTextSeconds: z.number().min(0).max(5).default(1.2).describe('App text the story depends on (a camera push-in target) should stay still on screen this long.'),
+  maxJump: z.number().min(1).max(255).default(10).describe('continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly.'),
+  cuts: z.array(z.number().int().min(1)).default([]).describe('continuity check: frames where a hard cut is intended (the frame that shows the new picture). They are not reported.'),
+}).strict().default({wordsPerSecond: 4, noticeSeconds: 0.5, appTextSeconds: 1.2, maxJump: 10, cuts: []});
+
 export const AdSpec = z.object({
   meta: Meta.default({fps: 30, width: 1080, height: 1920}),
   brief: Brief,
@@ -353,6 +361,7 @@ export const AdSpec = z.object({
   scenes: z.array(Block).min(1),
   sound: Sound.default({sounds: {}, cues: {}, mix: {loudness: {lufs: -14, truePeak: -1.5}, duckMusic: 0, musicGain: 0}, seed: 21}),
   output: Output,
+  checks: Checks,
 }).strict();
 
 export type AdSpecInput = z.input<typeof AdSpec>;

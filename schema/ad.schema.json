@@ -3544,6 +3544,57 @@
         }
       },
       "additionalProperties": false
+    },
+    "checks": {
+      "default": {
+        "wordsPerSecond": 4,
+        "noticeSeconds": 0.5,
+        "appTextSeconds": 1.2,
+        "maxJump": 10,
+        "cuts": []
+      },
+      "type": "object",
+      "properties": {
+        "wordsPerSecond": {
+          "default": 4,
+          "description": "Reading speed for the reading-time check: a median adult reads about 238 words a minute, about 4 a second.",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "noticeSeconds": {
+          "default": 0.5,
+          "description": "Time to notice a title before reading it. Added to words / wordsPerSecond.",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "appTextSeconds": {
+          "default": 1.2,
+          "description": "App text the story depends on (a camera push-in target) should stay still on screen this long.",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "maxJump": {
+          "default": 10,
+          "description": "continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly.",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 255
+        },
+        "cuts": {
+          "default": [],
+          "description": "continuity check: frames where a hard cut is intended (the frame that shows the new picture). They are not reported.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
   "required": [
