@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {execSync} from 'node:child_process';
 import {describe, expect, it} from 'vitest';
 import {captureKey, mergeManifest, resolveSet, type Manifest} from '../src/capture';
 import {AdSpec, CaptureStep} from '../src/spec/schema';
@@ -53,6 +54,25 @@ describe('captureKey', () => {
     const x = parse();
     const y = AdSpec.parse({...base(), capture: {sets: base().capture.sets, inputs: ['data.json'], app: {url: 'http://localhost:1234'}}});
     expect(captureKey(x, d)).toBe(captureKey(y, d));
+  });
+});
+
+describe('captureKey with the ad folder inside the app repo', () => {
+  it('ignores edits in the ad folder but not in the app', () => {
+    const app = fs.mkdtempSync(path.join(os.tmpdir(), 'adkit-app-'));
+    const sh = (c: string) => execSync(c, {cwd: app, stdio: 'ignore'});
+    fs.mkdirSync(path.join(app, 'ad'));
+    fs.writeFileSync(path.join(app, 'index.html'), '<p>1</p>');
+    fs.writeFileSync(path.join(app, 'ad', 'ad.yaml'), 'a: 1');
+    sh('git init -q && git add . && git -c user.email=a@b -c user.name=t commit -qm x');
+    const spec = AdSpec.parse({...base(), capture: {...base().capture, inputs: [], app: {dir: '..', start: 'x'}}});
+    const d = path.join(app, 'ad');
+    const a = captureKey(spec, d);
+    fs.writeFileSync(path.join(d, 'ad.yaml'), 'a: 2');
+    fs.writeFileSync(path.join(d, 'new.txt'), 'n');
+    expect(captureKey(spec, d)).toBe(a);
+    fs.writeFileSync(path.join(app, 'index.html'), '<p>2</p>');
+    expect(captureKey(spec, d)).not.toBe(a);
   });
 });
 

@@ -71,7 +71,7 @@ export async function startServer(cmd: string, o: {cwd: string; env: NodeJS.Proc
 /** Keeps a persistent copy of the app under workDir (rsync; node_modules and .next are kept between runs). */
 export function syncWorkCopy(srcDir: string, workDir: string): void {
   fs.mkdirSync(workDir, {recursive: true});
-  const ex = ['node_modules', '/.next', '/.git', '/video', '/.adkit'].flatMap((e) => ['--exclude', e]);
+  const ex = ['node_modules', '/.next', '/.git', '/video', '.adkit'].flatMap((e) => ['--exclude', e]);
   const r = spawnSync('rsync', ['-a', '--delete', ...ex, srcDir.replace(/\/?$/, '/'), workDir.replace(/\/?$/, '/')], {encoding: 'utf8'});
   if (r.status !== 0) throw new Error(`rsync failed: ${r.stderr}`);
   const srcNm = path.join(srcDir, 'node_modules');

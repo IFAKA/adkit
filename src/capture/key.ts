@@ -44,20 +44,25 @@ function hashPath(h: ReturnType<typeof createHash>, root: string, rel: string, o
 const git = (dir: string, args: string[]): string => execFileSync('git', ['--no-optional-locks', '-C', dir, ...args], {encoding: 'utf8', maxBuffer: 512 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore']});
 
 /** A fingerprint of the app's source: git HEAD + uncommitted changes + untracked files, or a directory hash when it is not a repo. */
-function appFingerprint(dir: string): string {
+function appFingerprint(dir: string, specDir?: string): string {
+  // The ad folder may live inside the app repo (app/ad/): editing the ad's copy or sound must not re-photograph the app.
+  const rel = specDir ? path.relative(dir, specDir) : '';
+  const skipRel = rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? rel.split(path.sep).join('/') : '';
+  const inAd = (f: string) => !!skipRel && (f === skipRel || f.startsWith(skipRel + '/'));
   const h = createHash('sha256');
   let isRepo = false;
   try { isRepo = git(dir, ['rev-parse', '--is-inside-work-tree']).trim() === 'true'; } catch { /* not a repo */ }
   if (isRepo) {
     const excl = [...SKIP_DIRS].map((d) => `:(exclude,glob)**/${d}/**`).concat([...SKIP_DIRS].map((d) => `:(exclude)${d}`));
+    if (skipRel) excl.push(`:(exclude)${skipRel}`);
     // Committed content of the app folder only (blob ids of its files), not the repo HEAD:
     // a commit elsewhere in the same repo (docs, this very ad) must not invalidate the captures.
     const tracked = git(dir, ['ls-tree', '-r', '-z', 'HEAD', '--', '.']).split('\0').filter(Boolean)
-      .filter((l) => !l.slice(l.indexOf('\t') + 1).split('/').some((p) => SKIP_DIRS.has(p)));
+      .filter((l) => { const f = l.slice(l.indexOf('\t') + 1); return !inAd(f) && !f.split('/').some((p) => SKIP_DIRS.has(p)); });
     h.update(`tree:${tracked.join('\n')}\0`);
     h.update(git(dir, ['diff', 'HEAD', '--', '.', ...excl]));
     const untracked = git(dir, ['ls-files', '--others', '--exclude-standard', '-z', '--', '.']).split('\0').filter(Boolean)
-      .filter((f) => !f.split('/').some((p) => SKIP_DIRS.has(p))).sort();
+      .filter((f) => !inAd(f) && !f.split('/').some((p) => SKIP_DIRS.has(p))).sort();
     const top = git(dir, ['rev-parse', '--show-toplevel']).trim();
     const prefix = path.relative(top, dir);
     for (const f of untracked) hashPath(h, dir, f);
@@ -85,7 +90,7 @@ export function captureKey(spec: Ad, specDir: string): string {
   const h = createHash('sha256');
   const cap = spec.capture;
   const dir = resolveAppDir(spec, specDir);
-  if (dir) h.update(`app:${appFingerprint(dir)}\0`);
+  if (dir) h.update(`app:${appFingerprint(dir, specDir)}\0`);
   else if (!cap.app.url) { const t = createHash('sha256'); hashPath(t, specDir, '', {skipTopYaml: true}); h.update(`specdir:${t.digest('hex')}\0`); }
   h.update(`capture:${canonicalJson(cap)}\0`);
   for (const rel of [...cap.inputs].sort()) { h.update(`input:${rel}\0`); hashPath(h, specDir, rel); }
