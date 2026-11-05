@@ -1,6 +1,6 @@
 # audio/
 
-Synthesises the ad's soundtrack (music + SFX) from a plan JSON. Pure numpy math: no samples, no sound packs.
+Synthesises the ad's soundtrack (music + SFX) from a plan JSON. Synthesised with numpy; sampled instruments (real recordings, CC0 or free-use, never in git) are optional: see "Real instruments".
 Same plan JSON -> byte-identical WAV (all randomness comes from `np.random.default_rng(seed)`).
 
     python3 audio/build.py --plan PLAN.json --out OUT.wav [--workdir DIR]
@@ -115,3 +115,29 @@ with start time, chord, and each beat's time and accent (3/4: 1, .55, .55), so c
                    "automation": {"bandurria": {"gain": [[0, -12], [4, 0]]}}}]}
 
 Demos: `audio/demos/*.json` (tram bell, water drop, cierzo, spoon on cup, oven ding, 3/4 jota); outputs go to `audio/demos/out/` (ignored by git).
+
+## Real instruments (sampled)
+Pure synthesis of plucked strings and hand percussion sounds like a toy, so music can use recordings of real instruments.
+Model `sampler` in a MUSIC instrument (`"model": "sampler", "preset": "<set>"`); code in `synth/sampler.py` (sets, mapping) and `synth/samplelib.py` (lock, cache, decode).
+
+    python3 audio/fetch_samples.py            # once: download the packs in audio/samples.lock.json into ~/.cache/adkit/samples/ and check every sha256
+    python3 audio/fetch_samples.py --licenses # source and license of each pack
+    python3 audio/demos/render_all.py         # also renders out/jota/mix_samples.wav and out/jota/ad15.wav
+
+A render that needs a pack that is not downloaded stops and prints the fetch command. A file that does not match its sha256 in the lock is refused.
+`audio/tools/build_lock.py` regenerates the lock (maintainers). Downloads are untrusted: new empty temp dir, audio files only, nothing executed, ffmpeg only decodes.
+
+| set | recordings | license |
+|---|---|---|
+| `nylon_guitar` | Meta nylon guitar, 6 strings x 3 layers (finger, pick, hard pick), E2-B5 | CC0 |
+| `mandolin` | Philharmonia mandolin A3-E6, `normal` and `tremolo` (stands in for the bandurria) | Philharmonia free-use terms (commercial use ok, no attribution, do not redistribute the samples) |
+| `bass` | Karoryfer Meatbass double bass pizzicato C1-Eb3 | CC0 |
+| `castanets` | Philharmonia castanets: strike, roll, phrases (one strike, so each hit gets a tiny pitch/level change) | Philharmonia free-use terms |
+| `hands` | body_percussion hand claps (`palma`) and finger claps (`palma_sorda`), VCSL group claps (`palmas_group`) and tambourine | CC0 |
+
+Rules: nearest recording, resampled at most +-3 semitones; velocity picks the layer; round robin by seed (never the same take twice in a row);
+each recording is cut to its attack and peak-normalised; a note is released at its length (`ring` lets it ring).
+Pattern params: `strum_ms` (notes of a chord at one beat start that many ms apart, +-20%), `strum_dir` or a 5th note element `"d"`/`"u"`
+(down goes low to high, up goes high to low and softer), `artic` (`"tremolo"` for the mandolin), `ring`, `roll_beats` (length of a roll hit).
+New fx `compress` (bus compressor: threshold_db, ratio, attack_ms, release_ms, makeup_db, detect_hz). Demos: `demos/real/jota_samples.json`, `demos/real/ad15.json`
+(15 bars of 3/4 at 180 bpm = 15 s: 3 tense bars on A7 with wind, the bell and the resolution on bar 4, the jota with the motif, cadence and a tonic ending).

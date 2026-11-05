@@ -32,3 +32,10 @@ Status log. Newest decisions last. `BLOCKED:` lines mark steps that failed three
 - Decisions: scipy is not in the venv, so filters are causal biquads built from the closed-form pole response + FFT convolution, and Karplus-Strong runs one numpy step per string period. Models return peak 0.5; levels are set by layer gain in dB. Samples need license CC0/own/public-domain. Meter: pattern positions are in units of the unit note; bpm counts dotted quarters for 6/8, 9/8, 12/8.
 - Not built yet (phase 2b): wiring sounds and music into `ad.yaml`, a "genericness check" (flag sounds that do not match their `meaning`), mixing the new sounds into `audio/build.py` and the loudness master, SFX snapping to `cues.json`.
 - The sounds were looked at (spectrograms), not listened to.
+
+## Real instruments (sampled)
+- [x] `sampler` model, sample lock + fetch (`audio/samples.lock.json`, `audio/fetch_samples.py`), strums, `compress` fx, demos `audio/demos/real/` (`jota_samples`, `ad15`)
+- Sources: Meta nylon guitar (CC0), body_percussion claps (CC0), VCSL group claps and tambourine (CC0), Karoryfer Meatbass pizzicato (CC0), Philharmonia mandolin and castanets (free-use terms, not CC0).
+- SUBSTITUTE: bandurria -> Philharmonia mandolin (no free-licensed bandurria recording found; CC0 mandolin search found only Terkelsen's mandolin, which states no license, so it was not used).
+- SUBSTITUTE: castanets are Philharmonia (one clean strike + rolls); no CC0 multisampled castanets was downloadable (Freesound needs a login; BigSoundBank is one file).
+- Not built yet: wiring `ad15.wav` into `audio/build.py` / `ad.yaml` (hook needed there: call `audio/score.py` with the MUSIC json, then mix the result as the music bed). The sampled demos were looked at (spectrograms), not listened to.
