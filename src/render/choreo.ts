@@ -76,11 +76,13 @@ export const phonePose = (m: Model, f: number): Pose => {
     if (f >= sk.block.start && f < sk.block.end) {
       sk.swaps.forEach((sf, i) => {
         if (i === 0 && sk.block.start > 0) return; // the first variant is not a swap: no bounce on the first frame
+        if (f < sf) return; // a swap that has not happened yet must not move the phone
         const p = spr(f, sf, BOUNCY);
+        const k = ramp(f, sf, sf + 4); // the kick eases in over 4 frames, never a one-frame jump
         const dir = i % 2 ? 1 : -1;
-        ry += dir * 16 * (1 - p);
-        s += 0.05 * (1 - p);
-        rz += dir * -2 * (1 - p);
+        ry += dir * 16 * (1 - p) * k;
+        s += 0.05 * (1 - p) * k;
+        rz += dir * -2 * (1 - p) * k;
       });
       ry += Math.sin((f - sk.block.start) / 18) * 4;
     }

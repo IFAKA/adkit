@@ -53,3 +53,16 @@ describe('smooth block changes', () => {
     }
   });
 });
+
+describe('skins pose', () => {
+  it('does not move the phone before a swap, and eases the kick in', async () => {
+    const {phonePose} = await import('../src/render/choreo');
+    const m = {reveal: undefined, end: undefined, plan: {total: 200}, bf: 10, whips: [], skins: [{block: {start: 50, end: 150}, swaps: [50, 60, 70]}]} as never;
+    const before = phonePose(m, 40);
+    expect(phonePose(m, 55).s).toBeCloseTo(before.s, 3); // no swap yet (the first variant is not a swap)
+    expect(phonePose(m, 59).s).toBeCloseTo(before.s, 3); // the next swap is in the future
+    const j = phonePose(m, 60).s - before.s;
+    expect(Math.abs(j)).toBeLessThan(0.001); // the kick starts from zero
+    expect(phonePose(m, 64).s - before.s).toBeGreaterThan(0.01);
+  });
+});
