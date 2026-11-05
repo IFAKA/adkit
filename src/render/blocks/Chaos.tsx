@@ -10,17 +10,22 @@ import {Title} from '../lib/Title';
 import {ICON_FRAME_CY, ICON_FRAME_PX} from '../choreo';
 import type {Title as TitleSpec} from '../../spec/schema';
 
-const FONT = 38;
+/** Item text is at least 42 px at 1080 wide (spec `size` multiplies it). */
+const FONT = 42;
+const LINE = 1.26;
 type Look = 'bubbles' | 'cards' | 'tabs' | 'toasts';
-const measure = (text: string, look: Look, hasIcon: boolean) => {
-  const extra = look === 'bubbles' ? 100 : 100 + (hasIcon || look !== 'tabs' ? 70 : 0);
-  const textW = text.length * FONT * 0.53;
-  const w = Math.min(700, textW + extra);
-  const lines = Math.ceil(textW / (w - extra + 36));
-  return {w, h: look === 'tabs' ? Math.max(1, lines) * 48 + 36 : lines * 48 + 52};
+const measure = (text: string, look: Look, hasIcon: boolean, fs: number) => {
+  const extra = (look === 'bubbles' ? 100 : 100 + (hasIcon || look !== 'tabs' ? 70 : 0)) * (fs / 38);
+  const textW = text.length * fs * 0.53;
+  const w = Math.min(W - 112, 700 * (fs / 42), textW + extra);
+  const lines = Math.max(1, Math.ceil(textW / (w - extra + 36)));
+  const lh = Math.round(fs * LINE);
+  return {w, h: look === 'tabs' ? lines * lh + 36 : lines * lh + 52};
 };
-const CENTER_CY = 800;
-const BOTTOM = 1500;
+/** The pile lives in the safe area: top 250 px and bottom 400 px of the 1920 frame stay clear. */
+const SAFE_TOP = 250;
+const SAFE_BOTTOM = 1520;
+const ICON_CLEAR = 600; // with into: icon the counter (y 317) and the title (y 440, 120 px) sit at the top, so the pile starts below them
 const FLY_DUR = 9;
 const FLY_GAP = 0.8;
 const ICON_TOP_CY = 317;
@@ -37,7 +42,13 @@ const setup = (m: Model) => {
   const morph = c.icon ? c.icon.a.morph - t0 : E;
   const flyAt = c.flyAt - t0;
   const ref = E - 5;
-  const items: Item[] = c.items.map((x, i) => ({at: x.at - t0, side: x.side, text: x.text, icon: x.icon, ...measure(x.text, c.look, !!x.icon), i}));
+  const fs = FONT * (c.size ?? 1);
+  const items: Item[] = c.items.map((x, i) => ({at: x.at - t0, side: x.side, text: x.text, icon: x.icon, ...measure(x.text, c.look, !!x.icon, fs), i}));
+  // the full pile is centred in the safe area (older items scroll off the top and fade)
+  const top = c.icon ? ICON_CLEAR : SAFE_TOP;
+  const pile = Math.min(SAFE_BOTTOM - top, items.reduce((a, j) => a + j.h * 0.8 + 6, 0) + 0.2 * Math.max(...items.map((j) => j.h)));
+  const BOTTOM = Math.min(SAFE_BOTTOM, (top + SAFE_BOTTOM) / 2 + pile / 2);
+  const centerCy = (top + SAFE_BOTTOM) / 2;
   const place = (b: Item, f: number) => {
     const p = clamp01(spr(f, b.at, SNAP));
     const buzz = Math.sin((f - b.at) * 2.4) * 7 * Math.max(0, 1 - (f - b.at) / 10);
@@ -46,20 +57,22 @@ const setup = (m: Model) => {
     const left = b.side === 'in' ? 56 + (random(`jx${b.i}`) - 0.3) * 40 : W - 56 - b.w - (random(`jx${b.i}`) - 0.3) * 40;
     return {p, buzz, bottom, left, cx: left + b.w / 2, cy: bottom - b.h / 2, rot: (random(`r${b.i}`) - 0.5) * 5};
   };
-  const flyers = items.filter((b) => b.at <= flyAt - 2 && place(b, 200).cy >= 800).sort((a, b) => b.i - a.i).map((b, k) => ({i: b.i, start: flyAt + Math.round(k * FLY_GAP)}));
+  const flyers = items.filter((b) => b.at <= flyAt - 2 && place(b, 200).cy >= top + 60).sort((a, b) => b.i - a.i).map((b, k) => ({i: b.i, start: flyAt + Math.round(k * FLY_GAP)}));
   const flyStart: Record<number, number> = Object.fromEntries(flyers.map((x) => [x.i, x.start]));
   const arrivals = flyers.map((x) => x.start + FLY_DUR);
   const glide: [number, number] = center ? [E, E] : [E + 5, iEnd];
-  const iconCy = (f: number) => center ? CENTER_CY : lerp(ICON_TOP_CY, ICON_FRAME_CY, easeInOut(ramp(f, glide[0], glide[1])));
-  return {center, look: c.look as Look, t0, E, iEnd, morph, flyAt, ref, items, place, flyers, flyStart, arrivals, iconCy, glide};
+  const iconCy = (f: number) => center ? centerCy : lerp(ICON_TOP_CY, ICON_FRAME_CY, easeInOut(ramp(f, glide[0], glide[1])));
+  return {fs, top, center, look: c.look as Look, t0, E, iEnd, morph, flyAt, ref, items, place, flyers, flyStart, arrivals, iconCy, glide};
 };
 type S = ReturnType<typeof setup>;
 
-const ItemBox: React.FC<{b: Item; q: {left: number; bottom: number}; look: Look; out: boolean; alpha: number; tx: number; ty: number; sx: number; sy: number; rot: number; sans: string}> = ({b, q, look, out, alpha, tx, ty, sx, sy, rot, sans}) => {
-  const base: React.CSSProperties = {position: 'absolute', left: q.left, top: q.bottom - b.h, width: b.w, height: b.h, opacity: alpha, transformOrigin: 'center', transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${sx}, ${sy})`, fontFamily: sans, fontWeight: 500, fontSize: FONT, lineHeight: '48px', letterSpacing: '-0.01em', boxSizing: 'border-box'};
+const ItemBox: React.FC<{fs: number; b: Item; q: {left: number; bottom: number}; look: Look; out: boolean; alpha: number; tx: number; ty: number; sx: number; sy: number; rot: number; sans: string}> = ({fs, b, q, look, out, alpha, tx, ty, sx, sy, rot, sans}) => {
+  const lh = Math.round(fs * LINE);
+  const k = fs / 38;
+  const base: React.CSSProperties = {position: 'absolute', left: q.left, top: q.bottom - b.h, width: b.w, height: b.h, opacity: alpha, transformOrigin: 'center', transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${sx}, ${sy})`, fontFamily: sans, fontWeight: 500, fontSize: fs, lineHeight: `${lh}px`, letterSpacing: '-0.01em', boxSizing: 'border-box'};
   if (look === 'bubbles') {
     return (
-      <div style={{...base, background: out ? '#D9FDD3' : '#FFFFFF', color: '#111B21', borderRadius: 30, borderTopLeftRadius: out ? 30 : 8, borderTopRightRadius: out ? 8 : 30, boxShadow: '0 14px 34px rgba(0,0,0,0.45)', padding: '12px 30px 0'}}>
+      <div style={{...base, background: out ? '#D9FDD3' : '#FFFFFF', color: '#111B21', borderRadius: 30, borderTopLeftRadius: out ? 30 : 8, borderTopRightRadius: out ? 8 : 30, boxShadow: '0 14px 34px rgba(0,0,0,0.45)', padding: `12px ${30 * k}px 0`}}>
         {b.text}
         <div style={{position: 'absolute', right: 30, bottom: 8, fontSize: 21, lineHeight: '24px', color: out ? '#4E8F6A' : '#8696A0', fontWeight: 500}}>
           {`${9 + Math.floor(b.i / 5)}:${String(12 + b.i * 3).padStart(2, '0')}${out ? '  \u2713\u2713' : ''}`}
@@ -67,10 +80,10 @@ const ItemBox: React.FC<{b: Item; q: {left: number; bottom: number}; look: Look;
       </div>
     );
   }
-  const icon = b.icon ? <span style={{fontSize: 44, lineHeight: '48px', marginRight: 18, flex: 'none'}}>{b.icon}</span> : null;
+  const icon = b.icon ? <span style={{fontSize: fs * 1.1, lineHeight: `${lh}px`, marginRight: 18, flex: 'none'}}>{b.icon}</span> : null;
   const row: React.CSSProperties = {display: 'flex', alignItems: 'center'};
   if (look === 'cards') {
-    return <div style={{...base, ...row, background: out ? '#EAF4FF' : '#FFFFFF', color: '#14202B', borderRadius: 26, boxShadow: '0 16px 38px rgba(0,0,0,0.5)', padding: '0 30px', borderLeft: `10px solid ${out ? '#3B82F6' : '#F59E0B'}`}}>{icon}<span style={{lineHeight: '48px'}}>{b.text}</span></div>;
+    return <div style={{...base, ...row, background: out ? '#EAF4FF' : '#FFFFFF', color: '#14202B', borderRadius: 26, boxShadow: '0 16px 38px rgba(0,0,0,0.5)', padding: '0 30px', borderLeft: `10px solid ${out ? '#3B82F6' : '#F59E0B'}`}}>{icon}<span style={{lineHeight: `${lh}px`}}>{b.text}</span></div>;
   }
   if (look === 'tabs') {
     return <div style={{...base, ...row, background: '#DFE3EA', color: '#1F2937', borderRadius: '22px 22px 6px 6px', boxShadow: '0 10px 26px rgba(0,0,0,0.45)', padding: '0 26px', borderBottom: '5px solid #9AA3B2'}}>{icon}<span style={{flex: 1}}>{b.text}</span><span style={{marginLeft: 16, opacity: 0.5, fontSize: 34}}>{'\u00d7'}</span></div>;
@@ -82,7 +95,7 @@ const BubbleField: React.FC<{m: Model; s: S; f: number; layer?: 'all' | 'static'
   const {sans} = useFonts();
   const flying = f >= s.flyAt;
   return (
-    <AbsoluteFill style={{maskImage: !flying || layer === 'static' ? 'linear-gradient(to bottom, transparent 720px, #000 980px)' : undefined}}>
+    <AbsoluteFill style={{maskImage: !flying || layer === 'static' ? `linear-gradient(to bottom, transparent ${s.top - 30}px, #000 ${s.top + 140}px)` : undefined}}>
       {s.items.map((b) => {
         if (f < b.at) return null;
         const fs = s.flyStart[b.i];
@@ -123,7 +136,7 @@ const BubbleField: React.FC<{m: Model; s: S; f: number; layer?: 'all' | 'static'
         }
         if (alpha <= 0.002) return null;
         return (
-          <ItemBox key={b.i} b={b} q={q} look={s.look} out={out} alpha={alpha} tx={tx} ty={ty} sx={sx} sy={sy} rot={rot} sans={sans} />
+          <ItemBox key={b.i} fs={s.fs} b={b} q={q} look={s.look} out={out} alpha={alpha} tx={tx} ty={ty} sx={sx} sy={sy} rot={rot} sans={sans} />
         );
       })}
     </AbsoluteFill>

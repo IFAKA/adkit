@@ -7,8 +7,7 @@
       "default": {
         "fps": 30,
         "width": 1080,
-        "height": 1920,
-        "bpm": 120
+        "height": 1920
       },
       "type": "object",
       "properties": {
@@ -31,10 +30,10 @@
           "maximum": 9007199254740991
         },
         "bpm": {
-          "default": 120,
+          "description": "Only if sound.music has no bpm; the music bpm wins and must match.",
           "type": "number",
-          "minimum": 60,
-          "maximum": 180
+          "minimum": 30,
+          "maximum": 400
         },
         "bars": {
           "type": "number",
@@ -705,7 +704,7 @@
               "bars": {
                 "type": "number",
                 "minimum": 0,
-                "description": "Length in bars (4 beats each)."
+                "description": "Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter."
               },
               "titles": {
                 "default": [],
@@ -821,6 +820,13 @@
                   "tabs",
                   "toasts"
                 ]
+              },
+              "size": {
+                "default": 1,
+                "description": "Scales the item text. 1 = 42 px at 1080 wide, the smallest that reads on a phone. Fewer, bigger items read better than a long pile.",
+                "type": "number",
+                "minimum": 0.7,
+                "maximum": 2
               },
               "pings": {
                 "default": [],
@@ -970,7 +976,7 @@
               "bars": {
                 "type": "number",
                 "minimum": 0,
-                "description": "Length in bars (4 beats each)."
+                "description": "Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter."
               },
               "titles": {
                 "default": [],
@@ -1087,7 +1093,7 @@
               "bars": {
                 "type": "number",
                 "minimum": 0,
-                "description": "Length in bars (4 beats each)."
+                "description": "Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter."
               },
               "titles": {
                 "default": [],
@@ -1193,7 +1199,7 @@
               "bars": {
                 "type": "number",
                 "minimum": 0,
-                "description": "Length in bars (4 beats each)."
+                "description": "Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter."
               },
               "titles": {
                 "default": [],
@@ -1886,7 +1892,7 @@
               "bars": {
                 "type": "number",
                 "minimum": 0,
-                "description": "Length in bars (4 beats each)."
+                "description": "Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter."
               },
               "titles": {
                 "default": [],
@@ -2138,7 +2144,7 @@
               "bars": {
                 "type": "number",
                 "minimum": 0,
-                "description": "Length in bars (4 beats each)."
+                "description": "Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter."
               },
               "titles": {
                 "default": [],
@@ -2443,7 +2449,7 @@
               "bars": {
                 "type": "number",
                 "minimum": 0,
-                "description": "Length in bars (4 beats each)."
+                "description": "Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter."
               },
               "titles": {
                 "default": [],
@@ -2735,7 +2741,7 @@
               "bars": {
                 "type": "number",
                 "minimum": 0,
-                "description": "Length in bars (4 beats each)."
+                "description": "Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter."
               },
               "titles": {
                 "default": [],
@@ -2907,212 +2913,334 @@
     },
     "sound": {
       "default": {
-        "key": "C",
-        "progression": [
-          "C",
-          "F",
-          "Am",
-          "G"
-        ],
-        "chords": {},
-        "motif": {
-          "notes": [
-            [
-              0,
-              67,
-              0.75
-            ],
-            [
-              0.75,
-              72,
-              0.25
-            ],
-            [
-              1,
-              76,
-              0.75
-            ],
-            [
-              1.75,
-              74,
-              0.25
-            ]
-          ],
-          "ding": 84
-        },
-        "sfx": {},
-        "seed": 21,
-        "loudness": {
-          "lufs": -14,
-          "truePeak": -1.5
-        }
-      },
-      "type": "object",
-      "properties": {
-        "key": {
-          "default": "C",
-          "description": "Tonic note name, e.g. C, F#, Bb.",
-          "type": "string"
-        },
-        "progression": {
-          "default": [
-            "C",
-            "F",
-            "Am",
-            "G"
-          ],
-          "description": "Chord names looped over the groove bars (C, Am, G7, Fmaj7, ...).",
-          "minItems": 1,
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "chords": {
-          "default": {},
-          "description": "Per-bar overrides: bar number (1-based) to chord name.",
-          "type": "object",
-          "propertyNames": {
-            "type": "string"
-          },
-          "additionalProperties": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "motif": {
-          "default": {
-            "notes": [
-              [
-                0,
-                67,
-                0.75
-              ],
-              [
-                0.75,
-                72,
-                0.25
-              ],
-              [
-                1,
-                76,
-                0.75
-              ],
-              [
-                1.75,
-                74,
-                0.25
-              ]
-            ],
-            "ding": 84
-          },
-          "type": "object",
-          "properties": {
-            "notes": {
-              "minItems": 1,
-              "type": "array",
-              "items": {
-                "type": "array",
-                "prefixItems": [
-                  {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  {
-                    "type": "integer",
-                    "minimum": 24,
-                    "maximum": 100
-                  },
-                  {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  }
-                ],
-                "items": false,
-                "minItems": 3,
-                "maxItems": 3
-              },
-              "description": "[beat, midi note, length in beats]"
-            },
-            "ding": {
-              "default": 84,
-              "description": "Midi note of the final bell, or false.",
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "minimum": 60,
-                  "maximum": 108
-                },
-                {
-                  "type": "boolean",
-                  "const": false
-                }
-              ]
-            }
-          },
-          "required": [
-            "notes"
-          ],
-          "additionalProperties": false
-        },
-        "sfx": {
-          "default": {},
-          "description": "Overrides keyed by cue name (block:cue) or by cue role.",
-          "type": "object",
-          "propertyNames": {
-            "type": "string"
-          },
-          "additionalProperties": {
-            "type": "object",
-            "properties": {
-              "mute": {
-                "type": "boolean"
-              },
-              "sound": {
-                "description": "SFX name from the palette (tap, pop, swap, shimmer, bag_swish, payment_ding, order_bell, receipt_chatter, whoosh, rise).",
-                "type": "string"
-              },
-              "gain": {
-                "description": "dB",
-                "type": "number"
-              },
-              "duck": {
-                "description": "dB the music dips for 150 ms",
-                "type": "number"
-              },
-              "pan": {
-                "type": "number",
-                "minimum": -1,
-                "maximum": 1
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "seed": {
-          "default": 21,
-          "type": "integer",
-          "minimum": -9007199254740991,
-          "maximum": 9007199254740991
-        },
-        "loudness": {
-          "default": {
+        "sounds": {},
+        "cues": {},
+        "mix": {
+          "loudness": {
             "lufs": -14,
             "truePeak": -1.5
           },
+          "duckMusic": 0,
+          "musicGain": 0
+        },
+        "seed": 21
+      },
+      "type": "object",
+      "properties": {
+        "music": {
+          "description": "The music as data (or {file: music.json}). Required: there is no default song.",
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "bpm": {
+                  "type": "number",
+                  "minimum": 30,
+                  "maximum": 400,
+                  "description": "Beats per minute. x/4: quarter notes; 6/8, 9/8, 12/8: dotted quarters (override with meter.bpm_counts)."
+                },
+                "meter": {
+                  "description": "{beats: 3, unit: 4} = 3/4; {beats: 6, unit: 8} = 6/8. Default 4/4.",
+                  "type": "object",
+                  "properties": {
+                    "beats": {
+                      "default": 4,
+                      "type": "integer",
+                      "minimum": 2,
+                      "maximum": 12
+                    },
+                    "unit": {
+                      "default": 4,
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "const": 4
+                        },
+                        {
+                          "type": "number",
+                          "const": 8
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                },
+                "key": {
+                  "description": "e.g. \"D minor\", \"A phrygian dominant\".",
+                  "type": "string"
+                },
+                "instruments": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "model": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "model"
+                    ],
+                    "additionalProperties": {}
+                  },
+                  "description": "name -> {model, preset, params, octave, gain, pan, fx ...}"
+                },
+                "patterns": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {}
+                  }
+                },
+                "sections": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "bars": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "bars"
+                    ],
+                    "additionalProperties": {}
+                  }
+                }
+              },
+              "required": [
+                "bpm",
+                "instruments",
+                "sections"
+              ],
+              "additionalProperties": {}
+            },
+            {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "file"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "sounds": {
+          "default": {},
+          "description": "name -> SOUND. Every sound has a `meaning`.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "meaning": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "What object in the product's world this sound is, and why it is in the ad (at least 4 words)."
+                  },
+                  "layers": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "model": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "model"
+                      ],
+                      "additionalProperties": {}
+                    },
+                    "description": "[{model, preset, params, note, at, gain, pan, fx, reverse, repeat}]"
+                  },
+                  "fx": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ],
+                      "additionalProperties": {}
+                    }
+                  },
+                  "seed": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "tune": {
+                    "description": "\"chord\": the written notes are in the key of the music and move to the chord that plays at the cue time.",
+                    "type": "string",
+                    "const": "chord"
+                  }
+                },
+                "required": [
+                  "meaning",
+                  "layers"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "cues": {
+          "default": {},
+          "description": "Cue name (block:cue), role (tap, paid, ...) or kind (tap, pop, whoosh, ...) -> sound. Name wins over role, role over kind. \"silent\" is an explicit silence.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "description": "The name of a sound in `sounds`, or \"silent\"."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "sound": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name of a sound in `sounds`, or \"silent\"."
+                  },
+                  "gain": {
+                    "default": 0,
+                    "description": "dB added to the sound.",
+                    "type": "number"
+                  },
+                  "pan": {
+                    "description": "-1 left .. 1 right. Taps with a pan in the spec use it when this is not set.",
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "duck": {
+                    "description": "dB the music dips under this cue for 150 ms (default: mix.duckMusic).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 24
+                  },
+                  "variations": {
+                    "default": 3,
+                    "description": "How many seeds the sound rotates through, so repeats do not sound identical.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 8
+                  },
+                  "align": {
+                    "default": "start",
+                    "description": "\"end\": a cue with a duration (riser, count) ends the sound when the cue ends.",
+                    "type": "string",
+                    "enum": [
+                      "start",
+                      "end"
+                    ]
+                  },
+                  "reason": {
+                    "description": "Why this cue shares a sound with another role (silences the warning).",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sound"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "mix": {
+          "default": {
+            "loudness": {
+              "lufs": -14,
+              "truePeak": -1.5
+            },
+            "duckMusic": 0,
+            "musicGain": 0
+          },
           "type": "object",
           "properties": {
-            "lufs": {
-              "default": -14,
-              "type": "number"
+            "loudness": {
+              "default": {
+                "lufs": -14,
+                "truePeak": -1.5
+              },
+              "type": "object",
+              "properties": {
+                "lufs": {
+                  "default": -14,
+                  "type": "number"
+                },
+                "truePeak": {
+                  "default": -1.5,
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
             },
-            "truePeak": {
-              "default": -1.5,
+            "duckMusic": {
+              "default": 0,
+              "description": "Default dB the music dips under every cue (150 ms). A cue can set its own `duck`.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 24
+            },
+            "musicGain": {
+              "default": 0,
+              "description": "dB added to the music before the cues are mixed in.",
               "type": "number"
             }
           },
           "additionalProperties": false
+        },
+        "seed": {
+          "default": 21,
+          "description": "Base seed for the sounds (the music has its own seed).",
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
         }
       },
       "additionalProperties": false

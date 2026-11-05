@@ -241,6 +241,7 @@ export const Chaos = z.object({
   block: z.literal('chaos'), ...common,
   items: z.array(ChaosItem).min(3).describe('What piles up: messages, results, tabs or notifications. They arrive faster and faster.'),
   look: z.enum(['bubbles', 'cards', 'tabs', 'toasts']).default('bubbles').describe('bubbles = chat messages; cards = stacked app / search result cards; tabs = browser or app tabs piling up; toasts = notification banners.'),
+  size: z.number().min(0.7).max(2).default(1).describe('Scales the item text. 1 = 42 px at 1080 wide, the smallest that reads on a phone. Fewer, bigger items read better than a long pile.'),
   pings: z.array(posBeat).default([]).describe('More ping sounds (beats) that have no item.'),
   counter: z.union([
     z.object({start: z.number().int().default(3), rise: z.number().int().default(44), cap: z.number().int().default(99), label: z.string().max(24).optional().describe('Small text under the counter (e.g. "open tabs").')}).strict(),
