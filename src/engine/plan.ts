@@ -1,6 +1,6 @@
 import type {Ad, BlockSpec, Title} from '../spec/schema';
 
-export type CueKind = 'cut' | 'title' | 'tap' | 'pop' | 'whoosh' | 'hit' | 'chime' | 'ping' | 'riser' | 'swap';
+export type CueKind = 'cut' | 'title' | 'tap' | 'pop' | 'whoosh' | 'hit' | 'chime' | 'ping' | 'riser' | 'swap' | 'tick';
 
 /** One sound/picture event on the beat grid. `role` says what it means (the audio mix maps roles to sounds). */
 export type Cue = {

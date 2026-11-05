@@ -24,11 +24,15 @@ ROLES = [
     (r'^bars', 'rise', -9, 0),
     (r'^skin-', 'swap', -10, 0),
     (r'^(screen-swap|swap)', 'swap', -12, 0),
+    (r'^pop-in$', 'pop', -12, 2),
+    (r'^type-tick$', 'tick', -19, 0),
+    (r'^pulse$', 'ping', -13, 0),
+    (r'^(swipe|sheet-up)$', 'whoosh', -13, 0),
 ]
 KINDS = {
     'tap': ('tap', -8, 4), 'pop': ('pop', -8, 4), 'whoosh': ('whoosh', -14, 0), 'hit': ('hit', -10, 0),
     'chime': ('payment_ding', -9, 6), 'ping': ('ping', -14, 0), 'riser': ('rise', -9, 0),
-    'swap': ('swap', -12, 0), 'title': ('tick', -20, 0),
+    'swap': ('swap', -12, 0), 'tick': ('tick', -19, 0), 'title': ('tick', -20, 0),
 }
 
 

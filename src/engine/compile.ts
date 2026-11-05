@@ -128,7 +128,20 @@ export function compile(spec: Ad): Plan {
           switch (st.type) {
             case 'screen':
               screens++;
-              push(b, `screen-${screens}`, f, 'swap', 'screen-swap');
+              if (st.transition === 'sheet') push(b, `screen-${screens}`, f, 'whoosh', 'sheet-up', {dur: bf});
+              else push(b, `screen-${screens}`, f, 'swap', 'screen-swap');
+              break;
+            case 'pop':
+              st.elements.forEach((el, e) => push(b, `pop-${k + 1}-${e + 1}`, within(b, `pop ${e + 1} of step ${k + 1}`, st.at + e * st.stagger), 'pop', 'pop-in'));
+              break;
+            case 'type':
+              for (let t = 0; t < st.beats * 2; t++) push(b, `type-${k + 1}-${String(t + 1).padStart(2, '0')}`, within(b, `type tick ${t + 1}`, st.at + t / 2), 'tick', 'type-tick');
+              break;
+            case 'pulse':
+              for (let t = 0; t < st.count; t++) push(b, `pulse-${k + 1}-${t + 1}`, within(b, `pulse ${t + 1}`, st.at + t), 'ping', 'pulse');
+              break;
+            case 'swipe':
+              push(b, `swipe-${k + 1}`, f, 'whoosh', 'swipe', {dur: Math.max(1, fr(st.beats))});
               break;
             case 'tap':
               push(b, `tap-${k + 1}-${st.element}`, f, 'tap', 'tap', st.pan !== undefined ? {pan: st.pan} : {});

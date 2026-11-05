@@ -3,19 +3,19 @@ import {useCurrentFrame} from 'remotion';
 import {Camera} from '../lib/Camera';
 import {Phone} from '../lib/Phone';
 import {Lift, Screen, colorOf} from '../lib/Screen';
-import {INSET} from '../model';
-import {Check, CartBadge, Highlight, Tap} from '../lib/Ui';
+import {INSET, POP_DUR, SCREEN_H} from '../model';
+import {Check, CartBadge, Highlight, Pulse, Swipe, Tap} from '../lib/Ui';
 import {AppIconFace} from '../lib/AppIcon';
 import {useColors} from '../lib/colors';
 import {useFonts} from '../lib/fonts';
-import {BOUNCY, SNAP, SOFT, clamp01, lerp, ramp, rgba, spr, track} from '../lib/anim';
+import {BOUNCY, SNAP, SOFT, clamp01, easeInOut, lerp, ramp, rgba, spr, track} from '../lib/anim';
 import {ICON_FRAME_CY, ICON_FRAME_PX, camera, openSpring, phonePose} from '../choreo';
-import type {Box, Layer, LiftItem, Model, Notif} from '../model';
+import type {Box, Layer, LiftItem, Model, Notif, Pop} from '../model';
 
 const SLIDE = {damping: 24, stiffness: 190, mass: 0.9};
 
 const onTop = (l: Layer, f: number) => f >= l.at - 1 && f < l.next;
-export const layerVisible = (l: Layer, f: number) => f >= l.at - 1 && f < l.next + (l.nextSlides ? 20 : 0);
+export const layerVisible = (l: Layer, f: number) => f >= l.at - 1 && (f < l.next + (l.nextSlides ? 20 : 0) || f < l.holdUntil + 20);
 const targetScroll = (l: Layer, f: number) => {
   let v = l.scroll[0][1];
   for (const k of l.scroll) if (k[0] <= f) v = k[1];
@@ -98,12 +98,20 @@ const LayerView: React.FC<{m: Model; l: Layer; f: number}> = ({m, l, f}) => {
   const {sans} = useFonts();
   const t = m.themeOf(l.ref.set);
   const scroll = track(f, l.scroll, SOFT);
-  const inP = l.slide ? clamp01(spr(f, l.at, SLIDE)) : 1;
-  const outP = l.nextSlides ? clamp01(spr(f, l.next, SLIDE)) : 0;
+  const tr = l.transition;
+  const inP = tr === 'cut' ? 1 : tr === 'fade' ? ramp(f, l.at, l.at + 8) : clamp01(spr(f, l.at, SLIDE));
+  const outP = l.nextTransition === 'slide' || l.nextTransition === 'zoom' ? clamp01(spr(f, l.next, SLIDE)) : 0;
+  const wrap: React.CSSProperties =
+    tr === 'slide' ? {transform: `translateX(${(1 - inP) * 390 - outP * 110}px)`, boxShadow: inP < 1 ? '-20px 0 40px rgba(0,0,0,0.2)' : undefined}
+    : tr === 'fade' ? {opacity: inP, transform: l.nextTransition === 'slide' ? `translateX(${-outP * 110}px)` : undefined}
+    : tr === 'zoom' ? {opacity: ramp(f, l.at, l.at + 6), transform: `scale(${lerp(0.9, 1, inP) + 0.04 * outP})`}
+    : tr === 'sheet' ? {}
+    : {transform: l.nextTransition === 'slide' ? `translateX(${-outP * 110}px)` : l.nextTransition === 'zoom' ? `scale(${1 + 0.04 * outP})` : undefined};
+  const sheet = tr === 'sheet';
   const c = l.count;
   const cp = c ? clamp01(ramp(f, c.startAt, c.doneAt)) : 0;
-  return (
-    <div style={{position: 'absolute', inset: 0, zIndex: l.index + 1, transform: `translateX(${(1 - inP) * 390 - outP * 110}px)`, boxShadow: inP < 1 ? '-20px 0 40px rgba(0,0,0,0.2)' : undefined}}>
+  const body = (
+    <>
       <Screen m={m} layer={l} f={f} scroll={scroll}>
         {l.highlights.map((h, i) => <Highlight key={`h${i}`} f={f} at={h.at} box={h.box} color={t.accent} radius={h.radius} />)}
         {c && f >= l.at + 4 && f < c.doneAt && (
@@ -111,10 +119,24 @@ const LayerView: React.FC<{m: Model; l: Layer; f: number}> = ({m, l, f}) => {
             {c.prefix}{fmt(c.from + (c.to - c.from) * (1 - Math.pow(1 - cp, 3)), c.decimals, c.thousands)}{c.suffix}
           </div>
         )}
+        {l.types.map((ty, i) => {
+          if (f < ty.at) return null;
+          const p = clamp01((f - ty.at) / Math.max(1, ty.dur));
+          const n = Math.min(ty.text.length, Math.ceil(ty.text.length * p - 1e-9));
+          const caret = f < ty.at + ty.dur + 12 && Math.floor(f / 8) % 2 === 0;
+          return (
+            <div key={`ty${i}`} style={{position: 'absolute', left: ty.box.x + 16, top: ty.box.y, height: ty.box.h, lineHeight: `${ty.box.h}px`, fontSize: ty.fontSize, fontFamily: sans, fontWeight: 500, color: ty.color ?? t.fg, whiteSpace: 'nowrap'}}>
+              {ty.text.slice(0, n)}
+              <span style={{display: 'inline-block', width: 2, height: ty.fontSize * 1.1, marginLeft: 2, verticalAlign: 'middle', background: ty.color ?? t.accent, opacity: caret ? 1 : 0}} />
+            </div>
+          );
+        })}
+        {l.pulses.map((pu, i) => <Pulse key={`pu${i}`} f={f} at={pu.at} box={pu.box} color={pu.color ?? t.accent} count={pu.count} every={pu.every} />)}
         {l.ring && f >= l.ring.at && f < l.ring.at + 22 && (
           <div style={{position: 'absolute', left: l.ring.box.x - 3, top: l.ring.box.y - 3, width: l.ring.box.w + 6, height: l.ring.box.h + 6, borderRadius: 27, border: `3px solid ${t.accent}`, opacity: 1 - ramp(f, l.ring.at, l.ring.at + 22), transform: `scale(${1 + 0.05 * ramp(f, l.ring.at, l.ring.at + 22)})`}} />
         )}
       </Screen>
+      {l.pops.map((p, i) => <PopView key={`pp${i}`} m={m} l={l} p={p} f={f} scroll={scroll} />)}
       {l.bars && <BarStrips m={m} l={l} f={f} scroll={scroll} color={colorOf(colors, l.bars.color, t.bg)} />}
       {l.press.map((p, i) =>
         f >= p.at - 6 && f < p.at + 24 ? (
@@ -123,8 +145,49 @@ const LayerView: React.FC<{m: Model; l: Layer; f: number}> = ({m, l, f}) => {
       )}
       {l.check && f >= l.check.at && <div style={{position: 'absolute', inset: 0, background: `rgba(255,255,255,${0.7 * clamp01(spr(f, l.check.at, SNAP))})`, backdropFilter: 'blur(6px)'}} />}
       {l.check && <Check f={f} at={l.check.at} color={t.accent} size={l.check.size} fadeAt={l.check.fadeAt} />}
-      {outP > 0 && <div style={{position: 'absolute', inset: 0, background: `rgba(0,0,0,${0.25 * outP})`}} />}
-    </div>
+      {outP > 0 && l.nextTransition === 'slide' && <div style={{position: 'absolute', inset: 0, background: `rgba(0,0,0,${0.25 * outP})`}} />}
+    </>
+  );
+  if (sheet) {
+    const top = SCREEN_H - l.sheetHeight;
+    return (
+      <div style={{position: 'absolute', inset: 0, zIndex: l.index + 1}}>
+        <div style={{position: 'absolute', inset: 0, background: `rgba(0,0,0,${0.38 * inP})`}} />
+        <div style={{position: 'absolute', inset: 0, clipPath: `inset(${top}px 0 0 0 round 28px 28px 0 0)`}}>
+          <div style={{position: 'absolute', inset: 0, transform: `translateY(${(1 - inP) * (l.sheetHeight + 30)}px)`, boxShadow: '0 -10px 40px rgba(0,0,0,0.3)'}}>{body}</div>
+        </div>
+      </div>
+    );
+  }
+  return <div style={{position: 'absolute', inset: 0, zIndex: l.index + 1, ...wrap}}>{body}</div>;
+};
+
+/** An element that appears on a screen where the capture already shows it: a cover hides it, then it pops in. */
+const PopView: React.FC<{m: Model; l: Layer; p: Pop; f: number; scroll: number}> = ({m, l, p, f, scroll}) => {
+  if (f >= p.at + POP_DUR) return null;
+  const pad = 8;
+  const box = {x: p.box.x - pad, y: p.box.y - pad, w: p.box.w + 2 * pad, h: p.box.h + 2 * pad};
+  const under: Layer | undefined = p.under ? {...l, ref: p.under} : undefined;
+  const pp = f < p.at ? 0 : spr(f, p.at, {damping: 10, stiffness: 200, mass: 0.7});
+  const u = ramp(f, p.at, p.at + 7);
+  const cx = p.box.x + p.box.w / 2;
+  const cy = p.box.y + p.box.h / 2 - scroll + INSET;
+  const ring = ramp(f, p.at, p.at + 16);
+  return (
+    <>
+      {under && <Lift m={m} layer={under} box={{x: p.box.x - 2, y: p.box.y - 2, w: p.box.w + 4, h: p.box.h + 4}} scroll={scroll} radius={0} extraStyle={{boxShadow: 'none'}} />}
+      {f >= p.at && (
+        <Lift
+          m={m} layer={l} box={box} scroll={scroll} radius={0}
+          scale={p.style === 'pin' ? 0.35 + 0.65 * pp : p.style === 'ring' ? 0.5 + 0.5 * pp : pp}
+          dy={p.style === 'pin' ? (1 - pp) * -34 : 0}
+          extraStyle={{boxShadow: 'none', background: 'transparent', transformOrigin: p.style === 'pin' ? '50% 92%' : '50% 50%', clipPath: p.style === 'pin' ? `circle(${u * 85}% at 50% 55%)` : undefined}}
+        />
+      )}
+      {p.style === 'ring' && f >= p.at && ring < 1 && (
+        <div style={{position: 'absolute', left: cx - (p.box.w / 2 + 6 + 30 * ring), top: cy - (p.box.h / 2 + 6 + 30 * ring), width: p.box.w + 12 + 60 * ring, height: p.box.h + 12 + 60 * ring, borderRadius: '50%', border: `3px solid ${m.themeOf(l.ref.set).accent}`, opacity: 1 - ring}} />
+      )}
+    </>
   );
 };
 
@@ -183,6 +246,18 @@ export const Stage: React.FC<{m: Model; flat?: boolean}> = ({m, flat}) => {
         void sc;
         return <Tap key={`lt${i}`} f={f} at={it.tapAt} x={cx + (tx - cx) * 1.07} y={cy + (ty - cy) * 1.07 - scNow + INSET} />;
       })}
+      {m.layers.flatMap((l) =>
+        l.swipes.map((sw, i) => {
+          if (!onTop(l, f) || f < sw.at - 8 || f > sw.at + sw.dur + 14) return null;
+          const e = easeInOut(ramp(f, sw.at, sw.at + sw.dur));
+          const scNow = sw.fromFixed ? 0 : track(f, l.scroll, SOFT);
+          const fx = sw.from.x + sw.from.w / 2;
+          const fy = sw.from.y + sw.from.h / 2;
+          const tx = sw.to.x + sw.to.w / 2;
+          const ty = sw.to.y + sw.to.h / 2;
+          return <Swipe key={`sw${l.index}-${i}`} f={f} at={sw.at} dur={sw.dur} x={lerp(fx, tx, e)} y={(sw.scrolls ? fy : lerp(fy, ty, e)) - scNow + INSET} />;
+        }),
+      )}
       {m.badges.map((b, i) => (onTop(b.layer, f) ? <CartBadge key={`b${i}`} f={f} at={b.at} cx={b.cx} cy={b.cy} color={m.themeOf(b.layer.ref.set).accent} count={b.count} /> : null))}
     </>
   );

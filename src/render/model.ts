@@ -7,6 +7,8 @@ export const SCREEN_W = 390;
 export const SCREEN_H = 844;
 /** Room for the status bar: captured pages start below it. */
 export const INSET = 46;
+/** frames a popped element is drawn on top of its cover */
+export const POP_DUR = 24;
 export const BASE_S = 1.5; // phone scale at rest
 export const BASE_Y = 270; // phone centre offset at rest
 export const W = 1080;
@@ -18,11 +20,18 @@ export type Theme = {bg: string; fg: string; accent: string};
 /** A colour that the browser reads from the captured image (the page background around a box). */
 export type ColorReq = {id: string; ref: Ref; box: Box; mode: 'inside' | 'outside'};
 
+export type Transition = 'slide' | 'cut' | 'fade' | 'sheet' | 'zoom';
+export type Pop = {at: number; box: Box; style: 'pin' | 'ring' | 'scale'; under?: Ref; cover: ColorReq};
+export type TypeItem = {at: number; dur: number; box: Box; text: string; fontSize: number; color?: string; mask: ColorReq};
+
 export type Hole = {box: Box; radius: number; color: string | ColorReq; opacity: (f: number) => number};
 export type Layer = {
   index: number;
   at: number;
-  slide: boolean;
+  transition: Transition;
+  sheetHeight: number;
+  /** a sheet layer keeps the screen under it visible until this frame */
+  holdUntil: number;
   ref: Ref;
   scroll: Key[];
   sticky: number;
@@ -32,11 +41,16 @@ export type Layer = {
   check?: {at: number; size: number; fadeAt: number};
   count?: {box: Box; startAt: number; doneAt: number; from: number; to: number; prefix: string; suffix: string; thousands: string; decimals: number; fontSize: number; weight: number; color?: string; maskColor: ColorReq};
   ring?: {box: Box; at: number};
+  pops: Pop[];
+  types: TypeItem[];
+  pulses: {at: number; box: Box; color?: string; count: number; every: number}[];
+  swipes: {at: number; dur: number; from: Box; to: Box; fromFixed: boolean; scrolls: boolean}[];
   bars?: {hole: Box; chart: Box; at: number; color: ColorReq};
   bg: ColorReq;
   /** frame when the next layer shows (Infinity for the last) */
   next: number;
   nextSlides: boolean;
+  nextTransition: Transition;
 };
 
 export type TapItem = {kind: 'tap'; at: number; layer: Layer; box: Box; xfrac: number; fixed: boolean};
@@ -137,12 +151,14 @@ export function buildModel(props: RenderProps): Model {
     return r;
   };
 
-  const pushLayer = (b: Placed, at: number, slide: boolean, ref: Ref, scroll: Key[], sticky = 0): Layer => {
-    const l: Layer = {index: m.layers.length, at, slide, ref, scroll, sticky, holes: [], highlights: [], press: [], bg: req(ref, {x: 0, y: 0, w: SCREEN_W, h: 60}, 'inside', 'bg'), next: Infinity, nextSlides: false};
+  const pushLayer = (b: Placed, at: number, transition: Transition, ref: Ref, scroll: Key[], sticky = 0, sheetHeight = 520): Layer => {
+    const l: Layer = {index: m.layers.length, at, transition, sheetHeight, holdUntil: -1, ref, scroll, sticky, pops: [], types: [], pulses: [], swipes: [], holes: [], highlights: [], press: [], bg: req(ref, {x: 0, y: 0, w: SCREEN_W, h: 60}, 'inside', 'bg'), next: Infinity, nextSlides: false, nextTransition: 'cut'};
     const prev = m.layers[m.layers.length - 1];
     if (prev) {
       prev.next = at;
-      prev.nextSlides = slide;
+      prev.nextSlides = transition !== 'cut';
+      prev.nextTransition = transition;
+      if (prev.transition === 'sheet' && m.layers.length >= 2) m.layers[m.layers.length - 2].holdUntil = at;
     }
     m.layers.push(l);
     return l;
@@ -152,6 +168,7 @@ export function buildModel(props: RenderProps): Model {
     for (const k of l.scroll) if (k[0] <= f) v = k[1];
     return v;
   };
+  const SOFT_SWIPE: Spring = {damping: 26, stiffness: 110, mass: 1};
   const SLOW: Spring = {damping: 26, stiffness: 55, mass: 1.5};
   const blocks = plan.blocks;
 
@@ -169,7 +186,7 @@ export function buildModel(props: RenderProps): Model {
       case 'reveal': {
         m.reveal = b;
         m.openFromIcon = s.open === 'icon' || (s.open === 'auto' && prev?.kind === 'iconOpen');
-        pushLayer(b, b.start, false, parseRef(s.screen), [[0, 0], [b.start + Math.round(50 * sc), s.scroll]]);
+        pushLayer(b, b.start, 'cut', parseRef(s.screen), [[0, 0], [b.start + Math.round(50 * sc), s.scroll]]);
         break;
       }
       case 'tapFlow': {
@@ -177,7 +194,7 @@ export function buildModel(props: RenderProps): Model {
         let cur = m.layers[m.layers.length - 1];
         if (cur && cur.ref.key === startRef.key) {
           if (targetScroll(cur, b.start) !== s.start.scroll) cur.scroll = [...cur.scroll, [b.start, s.start.scroll]];
-        } else cur = pushLayer(b, b.start, false, startRef, [[0, s.start.scroll]]);
+        } else cur = pushLayer(b, b.start, 'cut', startRef, [[0, s.start.scroll]]);
         const stepF = (st: {at: number}) => b.start + fr(st.at);
         const screenSteps = s.steps.filter((x) => x.type === 'screen');
         const nextScreenAt = (f: number) => {
@@ -195,7 +212,7 @@ export function buildModel(props: RenderProps): Model {
               else if (st.scroll) target = scrollFor(ref, st.scroll.element, st.scroll.y);
               const nxt = nextScreenAt(f);
               const animate = s.steps.some((x) => x.type === 'lift' && stepF(x) > f && stepF(x) < nxt);
-              cur = pushLayer(b, f, st.slide, ref, !target ? [[0, 0]] : animate ? [[0, 0], [f + 6, target, SLOW]] : [[0, target]], st.sticky ?? 0);
+              cur = pushLayer(b, f, st.transition, ref, !target ? [[0, 0]] : animate ? [[0, 0], [f + 6, target, SLOW]] : [[0, target]], st.sticky ?? 0, st.sheetHeight);
               break;
             }
             case 'tap': {
@@ -229,6 +246,33 @@ export function buildModel(props: RenderProps): Model {
               if (lastLift) lastLift.until = Math.min(lastLift.until, f + 6);
               break;
             }
+            case 'pop': {
+              const under = st.under ? parseRef(st.under) : undefined;
+              st.elements.forEach((el, e) => {
+                const box = boxOf(cur.ref, el);
+                const at = b.start + fr(st.at + e * st.stagger);
+                const cover = req(cur.ref, box, 'outside', 'pop');
+                cur.pops.push({at, box, style: st.style, under, cover});
+                if (!under) cur.holes.push({box, radius: 0, color: cover, opacity: (ff) => (ff < at + POP_DUR ? 1 : 0)});
+              });
+              break;
+            }
+            case 'type': {
+              const box = boxOf(cur.ref, st.element);
+              const mask = req(cur.ref, box, 'inside', 'type');
+              cur.types.push({at: f, dur: fr(st.beats), box, text: st.text, fontSize: st.fontSize ?? Math.round(box.h * 0.45), color: st.color, mask});
+              cur.holes.push({box, radius: 0, color: mask, opacity: (ff) => (ff >= f ? 1 : 0)});
+              break;
+            }
+            case 'pulse':
+              cur.pulses.push({at: f, box: boxOf(cur.ref, st.element), color: st.color, count: st.count, every: bf});
+              break;
+            case 'swipe': {
+              const dur = Math.max(1, fr(st.beats));
+              cur.swipes.push({at: f, dur, from: boxOf(cur.ref, st.from), to: boxOf(cur.ref, st.to), fromFixed: isFixed(cur.ref, st.from), scrolls: st.scroll !== undefined});
+              if (st.scroll !== undefined) cur.scroll = [...cur.scroll, [f, targetScroll(cur, f) + st.scroll, SOFT_SWIPE]];
+              break;
+            }
             case 'check':
               cur.check = {at: f, size: st.size, fadeAt: nextScreenAt(f) + 2};
               break;
@@ -238,7 +282,7 @@ export function buildModel(props: RenderProps): Model {
       }
       case 'notification': {
         const ref = parseRef(s.screen);
-        const slide = !!prev && prev.kind !== 'whip';
+        const slide: Transition = prev && prev.kind !== 'whip' ? 'slide' : 'cut';
         const l = pushLayer(b, b.start, slide, ref, [[0, 0]]);
         const box = boxOf(ref, [s.element, ...s.also].join('+'));
         l.holes.push({box, radius: 20, color: req(ref, box, 'outside', 'hole'), opacity: () => 1});
@@ -247,7 +291,7 @@ export function buildModel(props: RenderProps): Model {
       }
       case 'statCountUp': {
         const ref = parseRef(s.screen);
-        const slide = !!prev && prev.kind !== 'whip';
+        const slide: Transition = prev && prev.kind !== 'whip' ? 'slide' : 'cut';
         const l = pushLayer(b, b.start, slide, ref, [[0, s.scroll.from], [b.a.countDone, s.scroll.to, {damping: 22, stiffness: 90, mass: 1}]]);
         const nb = boxOf(ref, s.number.element);
         const mask = req(ref, nb, 'inside', 'num');
@@ -266,13 +310,13 @@ export function buildModel(props: RenderProps): Model {
       case 'skins': {
         const variants = s.variants.map((v) => ({ref: parseRef(v.screen), theme: themeOf(parseRef(v.screen).set)}));
         const swaps = s.variants.map((_, k) => b.a[`v${k}`]);
-        s.variants.forEach((v, k) => pushLayer(b, swaps[k], false, variants[k].ref, [[0, v.scroll]], v.sticky));
+        s.variants.forEach((v, k) => pushLayer(b, swaps[k], 'cut', variants[k].ref, [[0, v.scroll]], v.sticky));
         m.skins.push({block: b, swaps, variants});
         break;
       }
       case 'endCard':
         m.end = b;
-        pushLayer(b, b.start, false, parseRef(s.screen), [[0, s.scroll]]);
+        pushLayer(b, b.start, 'cut', parseRef(s.screen), [[0, s.scroll]]);
         break;
       case 'whip':
         m.whips.push({out: b.a.out, spin: b.start});

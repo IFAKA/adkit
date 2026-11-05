@@ -80,3 +80,29 @@ export const Check: React.FC<{f: number; at: number; color: string; size?: numbe
     </div>
   );
 };
+
+/** Rings that grow from an element, one per beat. */
+export const Pulse: React.FC<{f: number; at: number; box: Box; color: string; count: number; every: number}> = ({f, at, box, color, count, every}) => (
+  <>
+    {Array.from({length: count}).map((_, k) => {
+      const t0 = at + k * every;
+      const u = ramp(f, t0, t0 + every + 8);
+      if (f < t0 || u >= 1) return null;
+      const g = 6 + 34 * u;
+      return <div key={k} style={{position: 'absolute', left: box.x - g, top: box.y - g, width: box.w + 2 * g, height: box.h + 2 * g, borderRadius: Math.min(box.w, box.h) / 2 + g, border: `3px solid ${color}`, opacity: (1 - u) * 0.9}} />;
+    })}
+  </>
+);
+
+/** A finger that is dragged: press, move (the caller gives the position of every frame), lift. */
+export const Swipe: React.FC<{f: number; at: number; dur: number; x: number; y: number}> = ({f, at, dur, x, y}) => {
+  const fadeIn = ramp(f, at - 8, at - 2);
+  const fadeOut = 1 - ramp(f, at + dur + 2, at + dur + 12);
+  const press = f < at ? 1 : f < at + dur ? 0.8 : 1.0;
+  const arrive = spr(f, at - 8, SNAP);
+  return (
+    <div style={{position: 'absolute', left: x + 30 * (1 - arrive), top: y + 46 * (1 - arrive), width: 0, height: 0, pointerEvents: 'none', opacity: fadeIn * fadeOut}}>
+      <div style={{position: 'absolute', left: -34, top: -34, width: 68, height: 68, borderRadius: '50%', background: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.78), rgba(235,235,235,0.5))', border: '1.5px solid rgba(255,255,255,0.9)', boxShadow: '0 10px 22px rgba(30,20,5,0.35)', transform: `scale(${press})`}} />
+    </div>
+  );
+};

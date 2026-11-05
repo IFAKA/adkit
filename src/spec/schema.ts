@@ -171,7 +171,32 @@ export const CameraKey = z.object({
 const Cam = z.array(CameraKey).default([]);
 
 const TapFlowStep = z.discriminatedUnion('type', [
-  z.object({type: z.literal('screen'), at: posBeat, screen: ScreenRef, slide: z.boolean().default(true).describe('false = hard cut (what a tab switch in a real app does) instead of a slide-in.'), scroll: z.union([z.number(), z.object({element: str, y: z.number()}).strict()]).optional().describe('Scroll in px, or bring an element to screen-y.'), sticky: z.number().optional().describe('Pin the top N px (header) while scrolled.')}).strict(),
+  z.object({
+    type: z.literal('screen'), at: posBeat, screen: ScreenRef,
+    transition: z.enum(['slide', 'cut', 'fade', 'sheet', 'zoom']).default('slide').describe('slide = pushes in from the right; cut = hard cut (a tab switch); fade = cross-fade; zoom = grows in from slightly smaller; sheet = the bottom of the new screen rises over the old one (capture the page with the sheet open, pinned to the bottom).'),
+    sheetHeight: z.number().min(120).max(800).default(520).describe('transition sheet: height of the sheet in screen px.'),
+    scroll: z.union([z.number(), z.object({element: str, y: z.number()}).strict()]).optional().describe('Scroll in px, or bring an element to screen-y.'),
+    sticky: z.number().optional().describe('Pin the top N px (header) while scrolled.'),
+  }).strict(),
+  z.object({
+    type: z.literal('pop'), at: posBeat, elements: z.array(str).min(1).describe('Elements (e.g. map pins) that appear one after another. The screen capture shows them in their final place.'),
+    stagger: beat.refine((n) => n > 0, 'stagger must be more than 0').default(0.5).describe('Beats between one element and the next.'),
+    style: z.enum(['pin', 'ring', 'scale']).default('pin').describe('pin = drops in with a bounce; ring = pops in with an expanding ring; scale = grows from its centre.'),
+    under: ScreenRef.optional().describe('A capture of the same page WITHOUT these elements. Needed on textured backgrounds (a map); on flat backgrounds the page colour is used.'),
+  }).strict(),
+  z.object({
+    type: z.literal('type'), at: posBeat, element: str.describe('The input box (it should look empty in the capture).'), text: str,
+    beats: beat.refine((n) => n > 0, 'beats must be more than 0').default(2).describe('How long the typing takes. A tick sound comes every half beat.'),
+    fontSize: z.number().optional().describe('Default: 45% of the box height.'), color: hex.optional().describe('Default: the screen text colour.'),
+  }).strict(),
+  z.object({
+    type: z.literal('pulse'), at: posBeat, element: str, color: hex.optional().describe('Default: the screen accent.'),
+    count: z.number().int().min(1).max(8).default(2).describe('Rings, one per beat.'),
+  }).strict(),
+  z.object({
+    type: z.literal('swipe'), at: posBeat, from: str, to: str, beats: beat.refine((n) => n > 0, 'beats must be more than 0').default(1),
+    scroll: z.number().optional().describe('Also scroll the page by this many px while the finger moves (the finger stays on the same content point; `to` then only sets where it ends sideways).'),
+  }).strict(),
   z.object({type: z.literal('tap'), at: posBeat, element: str, x: z.number().min(0).max(1).default(0.5).describe('Where along the element width the finger lands.'), radius: z.number().default(16), press: z.boolean().default(false).describe('Pop the element out and press it.'), highlight: z.boolean().default(true), pan: z.number().optional()}).strict(),
   z.object({type: z.literal('lift'), at: posBeat, element: str, tap: str.optional().describe('Element of the lifted card the finger presses.'), tapAt: posBeat.optional()}).strict(),
   z.object({type: z.literal('fly'), at: posBeat, to: str.describe('Element the lifted card flies into (e.g. the cart icon).')}).strict(),

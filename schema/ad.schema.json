@@ -690,7 +690,7 @@
             "properties": {
               "block": {
                 "type": "string",
-                "const": "chatChaos"
+                "const": "chaos"
               },
               "id": {
                 "description": "Name used in cue names and error messages (default: block name + index).",
@@ -765,7 +765,7 @@
                   "additionalProperties": false
                 }
               },
-              "messages": {
+              "items": {
                 "minItems": 3,
                 "type": "array",
                 "items": {
@@ -775,8 +775,13 @@
                       "type": "string",
                       "minLength": 1
                     },
+                    "icon": {
+                      "description": "Emoji or up to 3 characters drawn on the item (cards, tabs, toasts). Bubbles have no icon.",
+                      "type": "string"
+                    },
                     "side": {
                       "default": "in",
+                      "description": "in = from the world to you (left); out = your own reply (right, tinted).",
                       "type": "string",
                       "enum": [
                         "in",
@@ -798,11 +803,23 @@
                     "text"
                   ],
                   "additionalProperties": false
-                }
+                },
+                "description": "What piles up: messages, results, tabs or notifications. They arrive faster and faster."
+              },
+              "look": {
+                "default": "bubbles",
+                "description": "bubbles = chat messages; cards = stacked app / search result cards; tabs = browser or app tabs piling up; toasts = notification banners.",
+                "type": "string",
+                "enum": [
+                  "bubbles",
+                  "cards",
+                  "tabs",
+                  "toasts"
+                ]
               },
               "pings": {
                 "default": [],
-                "description": "More ping sounds (beats) that have no bubble.",
+                "description": "More ping sounds (beats) that have no item.",
                 "type": "array",
                 "items": {
                   "type": "number"
@@ -814,32 +831,55 @@
                   "rise": 44,
                   "cap": 99
                 },
-                "type": "object",
-                "properties": {
-                  "start": {
-                    "default": 3,
-                    "type": "integer",
-                    "minimum": -9007199254740991,
-                    "maximum": 9007199254740991
+                "description": "The red count that climbs while items pile up, or false for none.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "default": 3,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "rise": {
+                        "default": 44,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "cap": {
+                        "default": 99,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "label": {
+                        "description": "Small text under the counter (e.g. \"open tabs\").",
+                        "type": "string",
+                        "maxLength": 24
+                      }
+                    },
+                    "additionalProperties": false
                   },
-                  "rise": {
-                    "default": 44,
-                    "type": "integer",
-                    "minimum": -9007199254740991,
-                    "maximum": 9007199254740991
-                  },
-                  "cap": {
-                    "default": 99,
-                    "type": "integer",
-                    "minimum": -9007199254740991,
-                    "maximum": 9007199254740991
+                  {
+                    "type": "boolean",
+                    "const": false
                   }
-                },
-                "additionalProperties": false
+                ]
+              },
+              "into": {
+                "default": "icon",
+                "description": "icon = items fly into an icon and an iconOpen block must follow; center = items collapse to one point and a flash cuts to the next block.",
+                "type": "string",
+                "enum": [
+                  "icon",
+                  "center"
+                ]
               },
               "flyBeats": {
                 "default": 1,
-                "description": "Beats before the end of the block when the bubbles fly into the icon.",
+                "description": "Beats before the end of the block when the items fly in.",
                 "type": "number"
               },
               "title": {
@@ -906,7 +946,7 @@
             "required": [
               "block",
               "bars",
-              "messages"
+              "items"
             ],
             "additionalProperties": false
           },
@@ -1249,10 +1289,24 @@
                           "type": "string",
                           "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
                         },
-                        "slide": {
-                          "default": true,
-                          "description": "false = hard cut (what a tab switch in a real app does) instead of a slide-in.",
-                          "type": "boolean"
+                        "transition": {
+                          "default": "slide",
+                          "description": "slide = pushes in from the right; cut = hard cut (a tab switch); fade = cross-fade; zoom = grows in from slightly smaller; sheet = the bottom of the new screen rises over the old one (capture the page with the sheet open, pinned to the bottom).",
+                          "type": "string",
+                          "enum": [
+                            "slide",
+                            "cut",
+                            "fade",
+                            "sheet",
+                            "zoom"
+                          ]
+                        },
+                        "sheetHeight": {
+                          "default": 520,
+                          "description": "transition sheet: height of the sheet in screen px.",
+                          "type": "number",
+                          "minimum": 120,
+                          "maximum": 800
                         },
                         "scroll": {
                           "description": "Scroll in px, or bring an element to screen-y.",
@@ -1288,6 +1342,164 @@
                         "type",
                         "at",
                         "screen"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pop"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "elements": {
+                          "minItems": 1,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "description": "Elements (e.g. map pins) that appear one after another. The screen capture shows them in their final place."
+                        },
+                        "stagger": {
+                          "default": 0.5,
+                          "description": "Beats between one element and the next.",
+                          "type": "number"
+                        },
+                        "style": {
+                          "default": "pin",
+                          "description": "pin = drops in with a bounce; ring = pops in with an expanding ring; scale = grows from its centre.",
+                          "type": "string",
+                          "enum": [
+                            "pin",
+                            "ring",
+                            "scale"
+                          ]
+                        },
+                        "under": {
+                          "description": "A capture of the same page WITHOUT these elements. Needed on textured backgrounds (a map); on flat backgrounds the page colour is used.",
+                          "type": "string",
+                          "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "elements"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "type"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "element": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "The input box (it should look empty in the capture)."
+                        },
+                        "text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "beats": {
+                          "default": 2,
+                          "description": "How long the typing takes. A tick sound comes every half beat.",
+                          "type": "number"
+                        },
+                        "fontSize": {
+                          "description": "Default: 45% of the box height.",
+                          "type": "number"
+                        },
+                        "color": {
+                          "description": "Default: the screen text colour.",
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "element",
+                        "text"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pulse"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "element": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "color": {
+                          "description": "Default: the screen accent.",
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        },
+                        "count": {
+                          "default": 2,
+                          "description": "Rings, one per beat.",
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 8
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "element"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "swipe"
+                        },
+                        "at": {
+                          "type": "number"
+                        },
+                        "from": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "to": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "beats": {
+                          "default": 1,
+                          "type": "number"
+                        },
+                        "scroll": {
+                          "description": "Also scroll the page by this many px while the finger moves (the finger stays on the same content point; `to` then only sets where it ends sideways).",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "at",
+                        "from",
+                        "to"
                       ],
                       "additionalProperties": false
                     },
