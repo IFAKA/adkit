@@ -13,6 +13,16 @@ describe('schema', () => {
     expect(load('minimal').spec.scenes.length).toBe(4);
   });
 
+  it('accepts Montserrat and NunitoSans as brand fonts and loads them', async () => {
+    const {spec} = load('minimal');
+    const ok = structuredClone(spec) as any;
+    ok.brand.fonts = {sans: 'NunitoSans', serif: 'Montserrat', mark: 'Montserrat'};
+    expect(AdSpec.safeParse(ok).success).toBe(true);
+    const src = fs.readFileSync(path.join(ROOT, 'src/render/lib/fonts.ts'), 'utf8');
+    expect(src).toContain('Montserrat');
+    expect(src).toContain('NunitoSans');
+  });
+
   it('rejects an unknown block with a clear path', () => {
     const r = AdSpec.safeParse({scenes: [{block: 'nope', bars: 1}], brand: {name: 'x', contact: 'y'}, capture: {app: {}, sets: {main: {}}}});
     expect(r.success).toBe(false);

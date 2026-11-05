@@ -141,7 +141,9 @@
                 "Poppins",
                 "DMSans",
                 "Manrope",
-                "SpaceGrotesk"
+                "SpaceGrotesk",
+                "Montserrat",
+                "NunitoSans"
               ]
             },
             "serif": {
@@ -152,7 +154,8 @@
                 "InstrumentSerif",
                 "Fraunces",
                 "PlayfairDisplay",
-                "Lora"
+                "Lora",
+                "Montserrat"
               ]
             },
             "mark": {
@@ -164,7 +167,8 @@
                 "Inter",
                 "Poppins",
                 "PlayfairDisplay",
-                "DMSans"
+                "DMSans",
+                "Montserrat"
               ]
             }
           },

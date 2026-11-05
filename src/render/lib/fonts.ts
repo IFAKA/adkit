@@ -8,10 +8,12 @@ import * as InstrumentSerif from '@remotion/google-fonts/InstrumentSerif';
 import * as Fraunces from '@remotion/google-fonts/Fraunces';
 import * as PlayfairDisplay from '@remotion/google-fonts/PlayfairDisplay';
 import * as Lora from '@remotion/google-fonts/Lora';
+import * as Montserrat from '@remotion/google-fonts/Montserrat';
+import * as NunitoSans from '@remotion/google-fonts/NunitoSans';
 import type {Ad} from '../../spec/schema';
 
 type Mod = {loadFont: (style: any, o: any) => {fontFamily: string}; getInfo: () => {fonts: Record<string, Record<string, unknown>>}};
-const MODS: Record<string, Mod> = {Inter, Poppins, DMSans, Manrope, SpaceGrotesk, InstrumentSerif, Fraunces, PlayfairDisplay, Lora} as any;
+const MODS: Record<string, Mod> = {Inter, Poppins, DMSans, Manrope, SpaceGrotesk, InstrumentSerif, Fraunces, PlayfairDisplay, Lora, Montserrat, NunitoSans} as any;
 
 const load = (name: string, style: 'normal' | 'italic', want: string[]) => {
   const m = MODS[name];

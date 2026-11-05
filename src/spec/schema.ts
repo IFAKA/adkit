@@ -7,9 +7,9 @@ export const beat = z.number().refine((n) => Math.abs(n * 2 - Math.round(n * 2))
 export const posBeat = beat.refine((n) => n >= 0, 'time cannot be negative');
 const str = z.string().min(1);
 
-export const SANS_FONTS = ['Inter', 'Poppins', 'DMSans', 'Manrope', 'SpaceGrotesk'] as const;
-export const SERIF_FONTS = ['InstrumentSerif', 'Fraunces', 'PlayfairDisplay', 'Lora'] as const;
-export const MARK_FONTS = ['Fraunces', 'Inter', 'Poppins', 'PlayfairDisplay', 'DMSans'] as const;
+export const SANS_FONTS = ['Inter', 'Poppins', 'DMSans', 'Manrope', 'SpaceGrotesk', 'Montserrat', 'NunitoSans'] as const;
+export const SERIF_FONTS = ['InstrumentSerif', 'Fraunces', 'PlayfairDisplay', 'Lora', 'Montserrat'] as const;
+export const MARK_FONTS = ['Fraunces', 'Inter', 'Poppins', 'PlayfairDisplay', 'DMSans', 'Montserrat'] as const;
 
 /* ------------------------------------------------------------------ meta, brief, brand */
 export const Meta = z.object({
