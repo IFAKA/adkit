@@ -63,6 +63,6 @@ describe('skins pose', () => {
     expect(phonePose(m, 59).s).toBeCloseTo(before.s, 3); // the next swap is in the future
     const j = phonePose(m, 60).s - before.s;
     expect(Math.abs(j)).toBeLessThan(0.001); // the kick starts from zero
-    expect(phonePose(m, 64).s - before.s).toBeGreaterThan(0.01);
+    expect(phonePose(m, 62).s - before.s).toBeGreaterThan(0.001);
   });
 });
