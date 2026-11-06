@@ -122,6 +122,23 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = css; document.head.append(s); });
     })();`});
     const page = await context.newPage();
+    // Hot path of a take: one PNG per frame. Playwright's screenshot spends ~0.37 s per 1170x2532 frame squeezing the PNG;
+    // Chrome's fast PNG mode takes ~0.1 s and decodes to the very same pixels (bigger file only). Falls back to Playwright if CDP says no.
+    let shotCdp: Awaited<ReturnType<BrowserContext['newCDPSession']>> | undefined;
+    let fastOk = process.env.ADKIT_SLOW_SHOT !== '1';
+    const frameShot = async (): Promise<Buffer> => {
+      if (fastOk) {
+        try {
+          shotCdp ??= await context.newCDPSession(page);
+          // the same call Playwright makes (clip from the layout metrics, scale 1), plus Chrome's fast PNG mode
+          const m = await shotCdp.send('Page.getLayoutMetrics') as {visualViewport: {pageX: number; pageY: number; clientWidth: number; clientHeight: number; scale: number}};
+          const v = m.visualViewport;
+          const r = await shotCdp.send('Page.captureScreenshot', {format: 'png', optimizeForSpeed: true, clip: {x: v.pageX, y: v.pageY, width: Math.ceil(v.clientWidth / v.scale), height: Math.ceil(v.clientHeight / v.scale), scale: v.scale * SCALE}} as never) as {data: string};
+          return Buffer.from(r.data, 'base64');
+        } catch (e) { fastOk = false; o.detail(`fast screenshot off: ${(e as Error).message}`); }
+      }
+      return page.screenshot();
+    };
     if (cap.safeArea) await applySafeArea(context, page, cap.safeArea);
     page.on('pageerror', (e) => o.detail(`page error: ${e.message}`));
 
@@ -164,7 +181,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       const sq = seq;
       const shot = async () => {
         const f = `${String(sq.n++).padStart(3, '0')}.png`;
-        const buf = await tm('shot', () => page.screenshot());
+        const buf = await tm('shot', frameShot);
         await tm('write', async () => fs.writeFileSync(path.join(sq.dir, f), buf));
         return path.join(path.basename(sq.dir), f);
       };
@@ -204,7 +221,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       const acts = [...(r.actions ?? [])].sort((a, b) => a.at - b.at);
       const shot = async () => {
         const f = `${String(sq.n++).padStart(3, '0')}.png`;
-        const buf = await tm('shot', () => page.screenshot());
+        const buf = await tm('shot', frameShot);
         await tm('write', async () => fs.writeFileSync(path.join(sq.dir, f), buf));
         return path.join(path.basename(sq.dir), f);
       };
