@@ -6,7 +6,7 @@ import path from 'node:path';
 import type {Ad} from '../spec/schema';
 
 /** Bump when the capture code changes what it produces, so old results are not reused. */
-export const ENGINE_CAPTURE_VERSION = 2;
+export const ENGINE_CAPTURE_VERSION = 3;
 
 export const SKIP_DIRS = new Set(['node_modules', '.next', '.git', 'video', '.adkit', 'out']);
 const MAX_FILE = 64 * 1024 * 1024;
