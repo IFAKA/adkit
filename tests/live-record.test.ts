@@ -80,6 +80,8 @@ describe('slow recording and the live-smooth measure', () => {
     // linear 0 -> 120 px in 300 ms: frame k is at 60 + 120 * (k*33.3*slow/300) px (right edge)
     expect(full[3] - full[0]).toBeGreaterThan(2 * (half[3] - half[0]) - 6);
     expect(half[3]).toBeLessThan(full[1] + 2); // 4 slow frames = 2 real frames
+    // the first recorded frame is one step in (about 7 px at slow 0.5, 60 + 120 * 16.7 / 300), not the real time the screenshot and the round trips took
+    expect(half[0]).toBeLessThan(60 + 7 + 8);
     srv.close();
   }, 120000);
 

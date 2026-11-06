@@ -134,7 +134,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       const now = await page.evaluate('Date.now()') as number;
       if (!clockOn) { await page.clock.install({time: now}); clockOn = true; }
       await page.clock.pauseAt(now + 20);
-      await page.evaluate(`(() => { window.__adkitRec = {base: new WeakMap(), pending: []}; })()`);
+      // animations already running are frozen now; the ones the action starts count from their first step (not from the real time the page needed to start them)
+      await page.evaluate(`(() => { const R = window.__adkitRec = {base: new WeakMap(), pending: []}; for (const a of document.getAnimations()) { R.base.set(a, a.currentTime || 0); a.pause(); R.pending.push(a); } })()`);
       const act = r.click !== undefined ? `(() => { const e = document.querySelector(${JSON.stringify(sub(r.click))}); if (!e) throw new Error('record click: not found'); e.click(); })()`
         : r.evaluate !== undefined ? fs.readFileSync(path.resolve(o.specDir, r.evaluate), 'utf8') : '';
       if (!act) throw new Error('a record step needs click or evaluate');
@@ -142,7 +143,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       const ms = (k: number) => Math.round((k * 1000 * r.slow) / r.fps); // page time after k recorded frames
       for (let k = 1; k <= r.frames; k++) {
         await page.clock.runFor(ms(k) - ms(k - 1));
-        await page.evaluate(`((t) => { const R = window.__adkitRec; for (const a of document.getAnimations()) { if (!R.base.has(a)) { R.base.set(a, a.currentTime || 0); a.pause(); R.pending.push(a); } a.currentTime = R.base.get(a) + t; } })(${ms(k)})`);
+        await page.evaluate(`((t, d) => { const R = window.__adkitRec; for (const a of document.getAnimations()) { if (!R.base.has(a)) { R.base.set(a, d - t); a.pause(); R.pending.push(a); } a.currentTime = R.base.get(a) + t; } })(${ms(k)}, ${ms(k) - ms(k - 1)})`);
         sq.files.push(await shot());
       }
       await page.evaluate(`(() => { for (const a of window.__adkitRec.pending) { try { a.finish(); } catch { a.play(); } } })()`);
