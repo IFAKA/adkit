@@ -833,6 +833,11 @@
                       "type": "integer",
                       "minimum": 0,
                       "maximum": 9007199254740991
+                    },
+                    "independent": {
+                      "default": false,
+                      "description": "This screen starts from nothing: its first step is a goto and it needs no page state (storage, login, clock) from the screens before it. Independent screens are shot side by side in their own browser (up to half the cores), so a long take no longer waits for the others. Leave it off when unsure.",
+                      "type": "boolean"
                     }
                   },
                   "additionalProperties": false

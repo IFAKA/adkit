@@ -98,7 +98,8 @@ export const CaptureScreen = z.object({
   scroll: z.union([z.number(), z.object({to: str, offset: z.number().default(0)}).strict()]).optional().describe('Scroll before the shot: a number of px, or bring an element to {offset} px below the top.'),
   drawer: z.boolean().default(false).describe('An overlay (sheet/drawer): shoot the viewport only, no full-page image.'),
   settleMs: z.number().int().min(0).default(700),
-}).strict();
+  independent: z.boolean().default(false).describe('This screen starts from nothing: its first step is a goto and it needs no page state (storage, login, clock) from the screens before it. Independent screens are shot side by side in their own browser (up to half the cores), so a long take no longer waits for the others. Leave it off when unsure.'),
+}).strict().refine((s) => !s.independent || s.steps[0]?.goto !== undefined, 'an independent screen must start with a goto step');
 
 export const CaptureSet = z.object({
   extends: z.string().optional().describe('Inherit app settings from another set.'),

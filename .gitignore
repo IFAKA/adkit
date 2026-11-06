@@ -8,3 +8,4 @@ __pycache__/
 examples/*/out/
 examples/*/.adkit/
 audio/demos/out/
+.speed/

@@ -39,6 +39,8 @@ export type ShootOpts = {
   onlyScreen?: string;
   log: (line: string) => void;
   detail: (line: string) => void;
+  /** If set, wall milliseconds and call counts per step are added here (for scripts/speed.sh). */
+  prof?: Record<string, {ms: number; n: number}>;
 };
 
 export async function shootSet(o: ShootOpts): Promise<SetEntry> {
@@ -58,6 +60,13 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
   /** The recording of the screen being shot: files in capture order (a held still repeats its file) and boxes measured before actions. */
   let seq: {name: string; dir: string; files: string[]; boxes: Record<string, Box>; n: number} | undefined;
   const sub = (s: string) => s.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (m, k: string) => (k in vars ? vars[k] : m));
+
+  const tm = async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
+    const prof = o.prof ?? (globalThis as {__adkitProf?: ShootOpts['prof']}).__adkitProf;
+    if (!prof) return fn();
+    const t = performance.now();
+    try { return await fn(); } finally { const e = (prof[name] ??= {ms: 0, n: 0}); e.ms += performance.now() - t; e.n++; }
+  };
 
   const browser = await chromium.launch();
   try {
@@ -116,7 +125,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
     if (cap.safeArea) await applySafeArea(context, page, cap.safeArea);
     page.on('pageerror', (e) => o.detail(`page error: ${e.message}`));
 
-    const settle = async (extra: number) => {
+    const settle = (extra: number) => tm('settle', () => settle0(extra));
+    const settle0 = async (extra: number) => {
       await page.waitForLoadState('networkidle').catch(() => {});
       await page.evaluate(async () => {
         await document.fonts.ready;
@@ -125,7 +135,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       await page.waitForTimeout(extra);
     };
 
-    const prescroll = async () => {
+    const prescroll = () => tm('prescroll', prescroll0);
+    const prescroll0 = async () => {
       const h = await page.evaluate(() => document.documentElement.scrollHeight);
       for (let y = 0; y < h; y += 400) { await page.evaluate((v) => window.scrollTo(0, v), y); await page.waitForTimeout(120); }
       await page.evaluate(() => window.scrollTo(0, 0));
@@ -153,7 +164,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       const sq = seq;
       const shot = async () => {
         const f = `${String(sq.n++).padStart(3, '0')}.png`;
-        await page.screenshot({path: path.join(sq.dir, f)});
+        const buf = await tm('shot', () => page.screenshot());
+        await tm('write', async () => fs.writeFileSync(path.join(sq.dir, f), buf));
         return path.join(path.basename(sq.dir), f);
       };
       for (const [n, sel] of Object.entries(r.elements)) {
@@ -192,7 +204,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       const acts = [...(r.actions ?? [])].sort((a, b) => a.at - b.at);
       const shot = async () => {
         const f = `${String(sq.n++).padStart(3, '0')}.png`;
-        await page.screenshot({path: path.join(sq.dir, f)});
+        const buf = await tm('shot', () => page.screenshot());
+        await tm('write', async () => fs.writeFileSync(path.join(sq.dir, f), buf));
         return path.join(path.basename(sq.dir), f);
       };
       if (!clockPaused) {
@@ -214,7 +227,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
           if (b) sq.boxes[n] = b; else o.detail(`WARN ${sq.name}.${n}: element not found (${sel}), skipped`);
         }
         const code = a.click !== undefined ? `(() => { const e = document.querySelector(${JSON.stringify(sub(a.click))}); if (!e) throw new Error('take click: not found: ' + ${JSON.stringify(a.click)}); e.click(); })()` : fs.readFileSync(path.resolve(o.specDir, a.evaluate!), 'utf8');
-        await page.evaluate(code);
+        await tm('action', () => page.evaluate(code));
       };
       let ai = 0;
       const measures: {at: number; a: (typeof acts)[number]}[] = acts.map((a) => ({at: a.at + a.motion - 1, a}));
@@ -222,8 +235,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
         while (ai < acts.length && acts[ai].at === i) await doAction(acts[ai++]);
         const dt = windowAt(i) ? step * r.slow : step;
         const next = t + dt;
-        await page.clock.runFor(Math.round(next) - Math.round(t));
-        await page.evaluate(`((t, d) => { const R = window.__adkitRec; for (const a of document.getAnimations()) { if (!R.base.has(a)) { R.base.set(a, d - t); a.pause(); R.pending.push(a); } a.currentTime = R.base.get(a) + t; } })(${Math.round(next)}, ${Math.round(next) - Math.round(t)})`);
+        await tm('clock', () => page.clock.runFor(Math.round(next) - Math.round(t)));
+        await tm('anim', () => page.evaluate(`((t, d) => { const R = window.__adkitRec; for (const a of document.getAnimations()) { if (!R.base.has(a)) { R.base.set(a, d - t); a.pause(); R.pending.push(a); } a.currentTime = R.base.get(a) + t; } })(${Math.round(next)}, ${Math.round(next) - Math.round(t)})`));
         t = next;
         sq.files.push(await shot());
         for (const m of measures) if (m.at === i) for (const [n, sel] of Object.entries(m.a.measure)) {
@@ -239,7 +252,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
         unmocked.length = 0;
         if (clockPaused) { await page.clock.resume(); clockPaused = false; }
         const u = sub(st.goto);
-        await page.goto(/^https?:/.test(u) ? u : o.base + u, {waitUntil: 'load'});
+        await tm('goto', () => page.goto(/^https?:/.test(u) ? u : o.base + u, {waitUntil: 'load'}));
         await settle(300);
       } else if (st.click !== undefined) {
         const c = typeof st.click === 'string' ? {selector: st.click, tap: false} : st.click;
@@ -280,7 +293,8 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       return {x: r1(b.x), y: r1(b.y), w: r1(b.w), h: r1(b.h)};
     };
 
-    const fullShot = async (file: string, fullHeight: number) => {
+    const fullShot = (file: string, fullHeight: number) => tm('fullShot', () => fullShot0(file, fullHeight));
+    const fullShot0 = async (file: string, fullHeight: number) => {
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.waitForTimeout(300);
       if (fullHeight * SCALE <= 15000) {
@@ -342,7 +356,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
         const rel = `captures/${setName}/${screen.name}`;
         const file = path.join(setDir, `${screen.name}.png`);
         const fullFile = path.join(setDir, `${screen.name}-full.png`);
-        await page.screenshot({path: file});
+        await tm('screen-shot', () => page.screenshot({path: file}));
         let fullHeight = H;
         if (screen.drawer) fs.copyFileSync(file, fullFile);
         else {
