@@ -90,6 +90,7 @@ describe('slow recording and the live-smooth measure', () => {
     const ease = smoothness([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
     expect(ease.spike).toBeLessThan(0.3);
     expect(ease.motionFrames).toBe(10);
-    expect(smoothness([10, 7.7, 6, 4.8, 3.4, 2.3, 1.5, 0.5, 0]).motionFrames).toBe(7); // the real 300 ms ease at 30 fps: too short
+    expect(smoothness([10, 7.7, 6, 4.8, 3.4, 2.3, 1.5, 0.2, 0]).motionFrames).toBe(7); // the real 300 ms ease at 30 fps: too short
+    expect(smoothness([11.4, 2.9, 2.6, 2.1, 1.4, 1.1, 0.7, 0.5, 0.3, 0.4, 0.2, 0]).motionFrames).toBe(10); // an old page vanishing in frame 1 does not hide the ease
   });
 });

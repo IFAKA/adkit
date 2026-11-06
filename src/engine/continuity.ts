@@ -49,12 +49,12 @@ export type Smooth = {motionFrames: number; spike: number; peak: number; total: 
 /**
  * How smoothly one recorded sequence moves. `diffs` are the mean pixel changes between consecutive recorded frames (a held still removed).
  * spike = the biggest single-frame change as a share of the whole change (a transition that happens in one frame is near 1);
- * motionFrames = frames whose change is at least 10 % of the biggest one (the frames a viewer sees move).
+ * motionFrames = frames whose mean pixel change is at least 0.3 (0-255, on the small grey copy): a viewer sees them move. It is an absolute level, because an old page that vanishes at once can be a huge single step that would hide the rest of a smooth ease.
  */
 export function smoothness(diffs: number[]): Smooth {
   const total = diffs.reduce((a, b) => a + b, 0);
   const peak = Math.max(0, ...diffs);
-  return {motionFrames: peak > 0 ? diffs.filter((d) => d >= peak * 0.1).length : 0, spike: total > 0 ? peak / total : 0, peak, total};
+  return {motionFrames: diffs.filter((d) => d >= 0.3).length, spike: total > 0 ? peak / total : 0, peak, total};
 }
 
 /** frameDiffs over a list of image files (in order, consecutive duplicates already removed). */
