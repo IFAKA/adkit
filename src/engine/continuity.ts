@@ -3,9 +3,9 @@ import {spawn} from 'node:child_process';
 export type Jump = {frame: number; diff: number};
 
 /** Mean absolute difference (0-255) between each frame and the one before, on a small grey copy of the video. index i = frame i+1. */
-export function frameDiffs(video: string, w = 54, h = 96): Promise<number[]> {
+export function frameDiffs(video: string, w = 54, h = 96, pre: string[] = []): Promise<number[]> {
   return new Promise((resolve, reject) => {
-    const p = spawn('ffmpeg', ['-v', 'error', '-i', video, '-vf', `scale=${w}:${h}:flags=area,format=gray`, '-f', 'rawvideo', '-'], {stdio: ['ignore', 'pipe', 'inherit']});
+    const p = spawn('ffmpeg', ['-v', 'error', ...pre, '-i', video, '-vf', `scale=${w}:${h}:flags=area,format=gray`, '-f', 'rawvideo', '-'], {stdio: ['ignore', 'pipe', 'inherit']});
     const size = w * h;
     let prev: Buffer | null = null;
     let pending = Buffer.alloc(0);
@@ -42,4 +42,24 @@ export function findJumps(diffs: number[], maxJump: number, cuts: number[]): Jum
     if (rise > maxJump && !ok.has(i + 1)) jumps.push({frame: i + 1, diff: Math.round(rise * 10) / 10});
   });
   return jumps;
+}
+
+export type Smooth = {motionFrames: number; spike: number; peak: number; total: number};
+
+/**
+ * How smoothly one recorded sequence moves. `diffs` are the mean pixel changes between consecutive recorded frames (a held still removed).
+ * spike = the biggest single-frame change as a share of the whole change (a transition that happens in one frame is near 1);
+ * motionFrames = frames whose change is at least 10 % of the biggest one (the frames a viewer sees move).
+ */
+export function smoothness(diffs: number[]): Smooth {
+  const total = diffs.reduce((a, b) => a + b, 0);
+  const peak = Math.max(0, ...diffs);
+  return {motionFrames: peak > 0 ? diffs.filter((d) => d >= peak * 0.1).length : 0, spike: total > 0 ? peak / total : 0, peak, total};
+}
+
+/** frameDiffs over a list of image files (in order, consecutive duplicates already removed). */
+export async function sequenceDiffs(files: string[], listFile: string): Promise<number[]> {
+  const fs = await import('node:fs');
+  fs.writeFileSync(listFile, files.map((f) => `file '${f.replace(/'/g, "'\\''")}'\nduration 0.0333`).join('\n') + '\n');
+  return frameDiffs(listFile, 54, 96, ['-f', 'concat', '-safe', '0']);
 }

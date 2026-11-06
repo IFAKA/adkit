@@ -8,7 +8,7 @@ import {fmt, run} from '../util';
 import {capture} from './capture';
 import {build} from './build';
 import {readingRows, movingTextWarnings, pushInFindings} from '../../engine/reading';
-import {frameDiffs, findJumps} from '../../engine/continuity';
+import {frameDiffs, findJumps, smoothness, sequenceDiffs} from '../../engine/continuity';
 import {soundFindings} from '../../engine/sound-check';
 
 export const SAFE_TOP = 250;
@@ -59,6 +59,27 @@ export function checkCaptures(p: Project, manifest: Manifest, capDir: string): F
   return f;
 }
 
+/** Every recorded live sequence the spec plays must move in many small steps, not in one or two frames. */
+export async function liveSmooth(p: Project, manifest: Manifest, capDir: string): Promise<Finding> {
+  const {minMotionFrames, maxSpike} = p.spec.checks;
+  const bad: string[] = [];
+  const rows: string[] = [];
+  const tmp = path.join(p.adkit, 'tmp');
+  fs.mkdirSync(tmp, {recursive: true});
+  for (const ref of [...screenRefs(p.spec.scenes)].sort()) {
+    const {set, screen} = splitRef(ref);
+    const fr = manifest.sets[set]?.screens[screen]?.frames;
+    if (!fr?.length) continue;
+    const files = fr.filter((f, i) => i === 0 || f !== fr[i - 1]).map((f) => path.resolve(capDir, f));
+    if (files.length < 2 || files.some((f) => !fs.existsSync(f))) continue;
+    const sm = smoothness(await sequenceDiffs(files, path.join(tmp, 'live-smooth.txt')));
+    rows.push(`${screen} ${sm.motionFrames}f/${Math.round(sm.spike * 100)}%`);
+    if (sm.motionFrames < minMotionFrames || sm.spike > maxSpike) bad.push(`${screen}: ${sm.motionFrames} moving frames (needs ${minMotionFrames}), biggest single frame ${Math.round(sm.spike * 100)}% of the change (max ${Math.round(maxSpike * 100)}%)`);
+  }
+  if (!rows.length) return {check: 'live-smooth', ok: true, msg: 'no live recordings'};
+  return {check: 'live-smooth', ok: !bad.length, msg: bad.length ? `${bad.join('; ')}. Record with a lower \`slow\` or more frames.` : `${rows.length} live sequences move smoothly (worst: ${rows.sort((a, b) => parseInt(b.split('/')[1]) - parseInt(a.split('/')[1]))[0]})`};
+}
+
 export async function check(p: Project, opts: {video?: string; warm?: boolean} = {}) {
   const t0 = Date.now();
   const cap = await capture(p, {});
@@ -72,6 +93,7 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   out.push({check: 'cues', ok: !off.length, msg: off.length ? `off grid: ${off.map((c) => c.name).join(', ')}` : `${plan.cues.length} cues on the beat grid`});
 
   out.push(...checkCaptures(p, manifest, capDir));
+  out.push(await liveSmooth(p, manifest, capDir));
 
   // sound: the genericness check (every cue has a tailor-made sound, every sound has a meaning, there is music)
   const sf = soundFindings(spec, plan.cues, {adBars: plan.total / plan.bar, beatsPerBar: plan.meter.beats});

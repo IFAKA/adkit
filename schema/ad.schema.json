@@ -669,10 +669,10 @@
                               },
                               "frames": {
                                 "default": 20,
-                                "description": "Frames recorded after the action at `fps`.",
+                                "description": "Frames recorded after the action at `fps` (played at the video frame rate, so see `slow` for the real time they cover).",
                                 "type": "integer",
                                 "minimum": 1,
-                                "maximum": 240
+                                "maximum": 480
                               },
                               "fps": {
                                 "default": 30,
@@ -680,6 +680,13 @@
                                 "type": "integer",
                                 "minimum": 10,
                                 "maximum": 60
+                              },
+                              "slow": {
+                                "default": 0.5,
+                                "description": "Slow motion of the recording: each recorded frame advances the page clock by slow/fps s, so 0.5 shows a 150 ms fade over 9 frames instead of 5 and a 300 ms drawer ease over 18 instead of 9, with real in-between states (no frame blending). 1 = real time. `frames` counts recorded (output) frames, so it covers frames*slow/fps s of real time.",
+                                "type": "number",
+                                "minimum": 0.1,
+                                "maximum": 1
                               }
                             },
                             "additionalProperties": false
@@ -3643,6 +3650,8 @@
         "noticeSeconds": 0.5,
         "appTextSeconds": 1.2,
         "maxJump": 10,
+        "minMotionFrames": 8,
+        "maxSpike": 0.6,
         "cuts": []
       },
       "type": "object",
@@ -3667,6 +3676,20 @@
           "type": "number",
           "minimum": 0,
           "maximum": 5
+        },
+        "minMotionFrames": {
+          "default": 8,
+          "description": "live-smooth check: a recorded live sequence must have at least this many frames that visibly move.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxSpike": {
+          "default": 0.6,
+          "description": "live-smooth check: the biggest single-frame change of a recorded live sequence, as a share of its whole change.",
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 1
         },
         "maxJump": {
           "default": 10,

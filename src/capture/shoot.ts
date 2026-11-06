@@ -139,7 +139,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
         : r.evaluate !== undefined ? fs.readFileSync(path.resolve(o.specDir, r.evaluate), 'utf8') : '';
       if (!act) throw new Error('a record step needs click or evaluate');
       await page.evaluate(act);
-      const ms = (k: number) => Math.round((k * 1000) / r.fps);
+      const ms = (k: number) => Math.round((k * 1000 * r.slow) / r.fps); // page time after k recorded frames
       for (let k = 1; k <= r.frames; k++) {
         await page.clock.runFor(ms(k) - ms(k - 1));
         await page.evaluate(`((t) => { const R = window.__adkitRec; for (const a of document.getAnimations()) { if (!R.base.has(a)) { R.base.set(a, a.currentTime || 0); a.pause(); R.pending.push(a); } a.currentTime = R.base.get(a) + t; } })(${ms(k)})`);

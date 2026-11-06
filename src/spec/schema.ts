@@ -73,8 +73,9 @@ export const CaptureStep = z.object({
     evaluate: str.optional().describe('Or a JavaScript file run in the page to do the action. It must be synchronous (the page clock is stopped while recording).'),
     elements: z.record(z.string(), str).default({}).describe('Named elements (CSS selectors) whose boxes are measured just BEFORE the action, in viewport px: where the finger lands. They are added to the screen\'s elements.'),
     before: z.number().int().min(0).default(0).describe('Still frames of the page before the action (the finger touches during these).'),
-    frames: z.number().int().min(1).max(240).default(20).describe('Frames recorded after the action at `fps`.'),
+    frames: z.number().int().min(1).max(480).default(20).describe('Frames recorded after the action at `fps` (played at the video frame rate, so see `slow` for the real time they cover).'),
     fps: z.number().int().min(10).max(60).default(30).describe('Frame rate of the recording; set it to the video frame rate.'),
+    slow: z.number().min(0.1).max(1).default(0.5).describe('Slow motion of the recording: each recorded frame advances the page clock by slow/fps s, so 0.5 shows a 150 ms fade over 9 frames instead of 5 and a 300 ms drawer ease over 18 instead of 9, with real in-between states (no frame blending). 1 = real time. `frames` counts recorded (output) frames, so it covers frames*slow/fps s of real time.'),
   }).strict().optional().describe('Records the REAL animation of an action as a frame sequence: the page clock and every CSS/Web animation are stepped one frame at a time, so the result is exact and repeatable. The screen is then played in a tapFlow with `transition: live`. A screen may follow another one without a `goto`: it continues from the same page state.'),
 }).strict().superRefine((s, ctx) => {
   const n = StepKeys.filter((k) => s[k] !== undefined).length;
@@ -359,9 +360,11 @@ export const Checks = z.object({
   wordsPerSecond: z.number().min(1).max(8).default(4).describe('Reading speed for the reading-time check: a median adult reads about 238 words a minute, about 4 a second.'),
   noticeSeconds: z.number().min(0).max(3).default(0.5).describe('Time to notice a title before reading it. Added to words / wordsPerSecond.'),
   appTextSeconds: z.number().min(0).max(5).default(1.2).describe('App text the story depends on (a camera push-in target) should stay still on screen this long.'),
+  minMotionFrames: z.number().int().min(1).default(8).describe('live-smooth check: a recorded live sequence must have at least this many frames that visibly move.'),
+  maxSpike: z.number().min(0.1).max(1).default(0.6).describe('live-smooth check: the biggest single-frame change of a recorded live sequence, as a share of its whole change.'),
   maxJump: z.number().min(1).max(255).default(10).describe('continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly.'),
   cuts: z.array(z.number().int().min(1)).default([]).describe('continuity check: frames where a hard cut is intended (the frame that shows the new picture). They are not reported.'),
-}).strict().default({wordsPerSecond: 4, noticeSeconds: 0.5, appTextSeconds: 1.2, maxJump: 10, cuts: []});
+}).strict().default({wordsPerSecond: 4, noticeSeconds: 0.5, appTextSeconds: 1.2, maxJump: 10, minMotionFrames: 8, maxSpike: 0.6, cuts: []});
 
 export const AdSpec = z.object({
   meta: Meta.default({fps: 30, width: 1080, height: 1920}),
