@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type {Ad} from '../spec/schema';
 import {captureKey, resolveAppDir} from './key';
-import {mergeManifest, type Manifest} from './manifest';
+import {mergeManifest, statusTimeOf, type Manifest} from './manifest';
 import {runShell, startServer, syncWorkCopy, type Server} from './proc';
 import {shootSet} from './shoot';
 
@@ -99,7 +99,7 @@ export async function runCapture(opts: CaptureOptions): Promise<CaptureResult> {
 
   const appDir = resolveAppDir(spec, specDir);
   const app = cap.app;
-  const patch: Manifest = {scale: cap.viewport.scale, viewport: {w: cap.viewport.width, h: cap.viewport.height}, ...(cap.safeArea ? {safeArea: cap.safeArea} : {}), sets: {}};
+  const patch: Manifest = {scale: cap.viewport.scale, viewport: {w: cap.viewport.width, h: cap.viewport.height}, ...(cap.safeArea ? {safeArea: cap.safeArea} : {}), ...(cap.clock ? {statusTime: statusTimeOf(cap.clock, cap.timezone)} : {}), sets: {}};
 
   try {
     // Sets are independent (own work copy, own server, own browser), so they run side by side.

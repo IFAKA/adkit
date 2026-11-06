@@ -1,15 +1,22 @@
 export type Box = {x: number; y: number; w: number; h: number};
 export type ScreenEntry = {file: string; fullFile: string; fullHeight: number; scrollY: number; sha: string; elements: Record<string, Box>; /** Recorded frame sequence (files in capture order, one per video frame; a still held for several frames repeats its file). */ frames?: string[]; /** A take: the frame windows of its actions (first moving frame, frames in slow motion), for the live-smooth check. */ actions?: {at: number; motion: number}[]; /** URLs the page asked for during this screen that no capture route answered (fail the `unmocked` check for a take). */ unmocked?: string[]};
 export type SetEntry = {theme: {bg: string; fg: string; accent: string}; screens: Record<string, ScreenEntry>};
-export type Manifest = {scale: number; viewport: {w: number; h: number}; /** Phone safe-area insets the pages were shot with (the capture then includes the status-bar and home-indicator areas). */ safeArea?: {top: number; bottom: number}; sets: Record<string, SetEntry>};
+export type Manifest = {scale: number; viewport: {w: number; h: number}; /** Phone safe-area insets the pages were shot with (the capture then includes the status-bar and home-indicator areas). */ safeArea?: {top: number; bottom: number}; /** Clock the phone's status bar shows (HH:MM of the capture clock in its time zone); absent = 9:41. */ statusTime?: string; sets: Record<string, SetEntry>};
 
 /** Puts the screens of `patch` over `base` (used when only one set or screen is re-shot). Neither input is changed. */
 export function mergeManifest(base: Manifest | undefined, patch: Manifest): Manifest {
   if (!base) return structuredClone(patch);
-  const out: Manifest = {scale: patch.scale, viewport: patch.viewport, safeArea: patch.safeArea, sets: structuredClone(base.sets)};
+  const out: Manifest = {scale: patch.scale, viewport: patch.viewport, safeArea: patch.safeArea, statusTime: patch.statusTime, sets: structuredClone(base.sets)};
   for (const [name, set] of Object.entries(patch.sets)) {
     const cur = out.sets[name];
     out.sets[name] = {theme: set.theme, screens: {...(cur?.screens ?? {}), ...structuredClone(set.screens)}};
   }
   return out;
+}
+
+/** "17:40": the time of day of an ISO clock in the capture's time zone, for the phone's status bar (24 h, no leading zero on the hour like iOS). */
+export function statusTimeOf(clock: string, timeZone = 'UTC'): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {hour: 'numeric', minute: '2-digit', hourCycle: 'h23', timeZone}).formatToParts(new Date(clock));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
+  return `${Number(get('hour'))}:${get('minute')}`;
 }

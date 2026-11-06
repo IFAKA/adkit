@@ -91,6 +91,8 @@ export type Model = {
   mainTheme: Theme;
   /** Safe-area insets of the capture (0 when it was shot without safeArea). */
   safe: {top: number; bottom: number};
+  /** Time shown in the phone's status bar. */
+  statusTime: string;
   imageUrl: (p: string) => string;
   photo?: string;
 };
@@ -152,7 +154,7 @@ export function buildModel(props: RenderProps): Model {
 
   const m: Model = {
     plan, spec, manifest, bf, layers: [], taps: [], lifts: [], badges: [], notifs: [], shots: [], roll: [], colorReqs: [],
-    openFromIcon: false, whips: [], skins: [], sheenGroups: [], themeOf, mainTheme: themeOf('main'), safe, imageUrl,
+    openFromIcon: false, whips: [], skins: [], sheenGroups: [], themeOf, mainTheme: themeOf('main'), safe, statusTime: manifest.statusTime ?? '9:41', imageUrl,
   };
   if (props.photo) m.photo = imageUrl(props.photo);
   const req = (ref: Ref, box: Box, mode: 'inside' | 'outside', tag: string): ColorReq => {

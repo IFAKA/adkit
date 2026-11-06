@@ -4,6 +4,7 @@ import path from 'node:path';
 import {execSync} from 'node:child_process';
 import {describe, expect, it} from 'vitest';
 import {captureKey, mergeManifest, resolveSet, type Manifest} from '../src/capture';
+import {statusTimeOf} from '../src/capture/manifest';
 import {AdSpec, CaptureStep} from '../src/spec/schema';
 
 const base = () => ({
@@ -139,5 +140,13 @@ describe('mergeManifest', () => {
     const p = m({navy: {theme, screens: {home: screen('n')}}});
     expect(mergeManifest(undefined, p)).toEqual(p);
     expect(Object.keys(mergeManifest(m({main: {theme, screens: {}}}), p).sets)).toEqual(['main', 'navy']);
+  });
+});
+
+describe('statusTimeOf', () => {
+  it('shows the capture clock in its time zone for the phone status bar', () => {
+    expect(statusTimeOf('2026-11-06T17:40:00+01:00', 'Europe/Madrid')).toBe('17:40');
+    expect(statusTimeOf('2026-07-15T09:05:00+02:00', 'Europe/Madrid')).toBe('9:05');
+    expect(statusTimeOf('2026-11-06T17:40:00+01:00')).toBe('16:40');
   });
 });
