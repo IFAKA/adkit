@@ -50,6 +50,37 @@ describe('record: the real animation as a frame sequence', () => {
   }, 120000);
 });
 
+describe('independent screens are shot side by side', () => {
+  it('gives the same screens, in spec order, whatever finishes first; frames are identical to a one-by-one run', async () => {
+    const srv = http.createServer((_q, r) => { r.setHeader('content-type', 'text/html'); r.end(PAGE); });
+    await new Promise<void>((ok) => srv.listen(0, ok));
+    const port = (srv.address() as {port: number}).port;
+    const mk = (indep: boolean) => AdSpec.parse({
+      brand: {name: 'T'}, scenes: [{block: 'whip'}],
+      capture: {app: {url: `http://localhost:${port}`}, viewport: {width: 200, height: 300, scale: 1}, sets: {main: {screens: ['a', 'b', 'c'].map((n, i) => (
+        {name: n, settleMs: 50, independent: indep && i > 0, steps: [{goto: '/'}, {record: {click: '#go', elements: {go: '#go'}, before: 1, frames: 4 + i * 3, fps: 30}}]}))}}},
+    });
+    const run = async (indep: boolean) => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'adkit-ind-'));
+      const spec = mk(indep);
+      const e = await shootSet({cap: spec.capture, specDir: dir, setName: 'main', screens: spec.capture.sets.main.screens, accent: '#d00', base: `http://localhost:${port}`, outDir: dir, logsDir: dir, log: () => {}, detail: () => {}});
+      return {dir, e};
+    };
+    const par = await run(true), ser = await run(false);
+    expect(Object.keys(par.e.screens)).toEqual(['a', 'b', 'c']);
+    expect(par.e.theme).toEqual(ser.e.theme);
+    for (const n of ['a', 'b', 'c']) {
+      expect(par.e.screens[n].frames!.length).toBe(ser.e.screens[n].frames!.length);
+      expect(par.e.screens[n].elements).toEqual(ser.e.screens[n].elements);
+    }
+    srv.close();
+  }, 120000);
+  it('refuses an independent screen that does not start with a goto', () => {
+    const bad = AdSpec.safeParse({brand: {name: 'T'}, scenes: [{block: 'whip'}], capture: {app: {url: 'http://x'}, sets: {main: {screens: [{name: 'b', independent: true, steps: [{click: '#x'}]}]}}}});
+    expect(bad.success).toBe(false);
+  });
+});
+
 describe('live transition in the spec', () => {
   it('accepts record steps and transition live, and refuses a record step with other keys', () => {
     const ok = AdSpec.safeParse({brand: {name: 'T'}, scenes: [{block: 'tapFlow', bars: 1, start: {screen: 'a', transition: 'live'}, steps: [{type: 'screen', at: 0, screen: 'b', transition: 'live'}]}],

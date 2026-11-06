@@ -1,6 +1,7 @@
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {chromium, type BrowserContext, type Locator, type Page} from 'playwright';
 import type {z} from 'zod';
@@ -41,9 +42,45 @@ export type ShootOpts = {
   detail: (line: string) => void;
   /** If set, wall milliseconds and call counts per step are added here (for scripts/speed.sh). */
   prof?: Record<string, {ms: number; n: number}>;
+  /** Index of the first screen of `screens` in the set (labels of steps-only screens). */
+  idxBase?: number;
 };
 
+/** At most this many browsers shoot at the same time in this process (all sets and chains together): half the cores. */
+const MAX_BROWSERS = Math.max(1, Math.floor(os.cpus().length / 2));
+let busy = 0;
+const waiting: (() => void)[] = [];
+async function withBrowserSlot<T>(fn: () => Promise<T>): Promise<T> {
+  while (busy >= MAX_BROWSERS) await new Promise<void>((r) => waiting.push(r));
+  busy++;
+  try { return await fn(); } finally { busy--; waiting.shift()?.(); }
+}
+
+/**
+ * Shoot one set. Screens marked `independent` start from nothing (a goto, no page state from the screens before), so the
+ * screens are cut into chains at them and the chains are shot side by side, each in its own browser. Frames inside one
+ * take stay in order (the page clock). The result is the same as shooting them one after the other.
+ */
 export async function shootSet(o: ShootOpts): Promise<SetEntry> {
+  const chains: {from: number; screens: Screen[]}[] = [];
+  o.screens.forEach((sc, i) => { if (!chains.length || sc.independent) chains.push({from: i, screens: [sc]}); else chains[chains.length - 1].screens.push(sc); });
+  const usesVars = o.screens.some((sc) => sc.steps.some((st) => typeof st.evaluate === 'object' && st.evaluate.save));
+  if (chains.length < 2 || usesVars || process.env.ADKIT_SERIAL === '1') return withBrowserSlot(() => shootChain(o));
+  const todo = chains.filter((c) => !o.onlyScreen || c.screens.some((sc) => sc.name === o.onlyScreen));
+  const state = {aborted: false};
+  const results = await Promise.allSettled(todo.map((c) => withBrowserSlot(async () => {
+    if (state.aborted) throw new Error('stopped: another screen failed');
+    try { return await shootChain({...o, screens: c.screens, idxBase: c.from}); } catch (e) { state.aborted = true; throw e; }
+  })));
+  const bad = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected').find((r) => !/^stopped:/.test(String(r.reason?.message))) ?? results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+  if (bad) throw bad.reason;
+  const parts = results.map((r) => (r as PromiseFulfilledResult<SetEntry>).value);
+  const entry: SetEntry = {theme: parts.find((p) => Object.keys(p.screens).length)?.theme ?? parts[0].theme, screens: {}};
+  for (const sc of o.screens) for (const p of parts) if (sc.name && sc.name in p.screens) entry.screens[sc.name] = p.screens[sc.name];
+  return entry;
+}
+
+async function shootChain(o: ShootOpts): Promise<SetEntry> {
   const {cap, setName} = o;
   const {width: W, height: H, scale: SCALE} = cap.viewport;
   const setDir = path.join(o.outDir, setName);
@@ -335,13 +372,13 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
 
     for (const [idx, screen] of o.screens.entries()) {
       const t0 = Date.now();
-      const label = `${setName}/${screen.name ?? `step${idx + 1}`}`;
+      const label = `${setName}/${screen.name ?? `step${idx + 1 + (o.idxBase ?? 0)}`}`;
       seq = screen.name ? {name: screen.name, dir: path.join(setDir, `${screen.name}.seq`), files: [], boxes: {}, n: 0} : undefined;
       if (seq) { fs.rmSync(seq.dir, {recursive: true, force: true}); fs.mkdirSync(seq.dir, {recursive: true}); }
       try {
         for (const [i, st] of screen.steps.entries()) {
           try { await runStep(st); } catch (e) {
-            const shotPath = path.join(o.logsDir, `capture-fail-${setName}-${screen.name ?? idx}.png`);
+            const shotPath = path.join(o.logsDir, `capture-fail-${setName}-${screen.name ?? idx + (o.idxBase ?? 0)}.png`);
             await page.screenshot({path: shotPath}).catch(() => {});
             const text = await page.evaluate(() => document.body.innerText.slice(0, 600)).catch(() => '');
             o.detail(`step failed; screenshot ${shotPath}; page text: ${text.replace(/\s+/g, ' ')}`); throw new Error(`step ${i + 1} (${JSON.stringify(st).slice(0, 120)}) at ${page.url()}: ${(e as Error).message.split("\n")[0]}`); }
