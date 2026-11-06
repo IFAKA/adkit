@@ -38,9 +38,12 @@ export const Tap: React.FC<{f: number; at: number; x: number; y: number; fromDx?
 };
 
 /** Selected-state feedback drawn over a tapped element. */
-export const Highlight: React.FC<{f: number; at: number; box: Box; color: string; scroll?: number; radius?: number}> = ({f, at, box, color, scroll = 0, radius = 16}) => {
+export const Highlight: React.FC<{f: number; at: number; box: Box; color: string; scroll?: number; radius?: number; life?: number}> = ({f, at, box, color, scroll = 0, radius = 16, life}) => {
   if (f < at) return null;
-  const p = spr(f, at, SNAP);
+  // life: the ring fades out over its last 8 frames (on a live screen that goes on, a ring must not stay where a button was)
+  if (life !== undefined && f >= at + life) return null;
+  const fade = life === undefined ? 1 : 1 - ramp(f, at + life - 8, at + life);
+  const p = spr(f, at, SNAP) * fade;
   const pulse = ramp(f, at, at + 12);
   return (
     <>

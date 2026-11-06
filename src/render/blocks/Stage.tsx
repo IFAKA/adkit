@@ -112,7 +112,7 @@ const LayerView: React.FC<{m: Model; l: Layer; f: number}> = ({m, l, f}) => {
   const body = (
     <>
       <Screen m={m} layer={l} f={f} scroll={scroll}>
-        {l.highlights.map((h, i) => <Highlight key={`h${i}`} f={f} at={h.at} box={h.box} color={t.accent} radius={h.radius} />)}
+        {l.highlights.map((h, i) => <Highlight key={`h${i}`} f={f} at={h.at} box={h.box} color={t.accent} radius={h.radius} life={l.seq ? 22 : undefined} />)}
         {c && f >= l.at + 4 && f < c.doneAt && (
           <div style={{position: 'absolute', left: c.box.x, top: c.box.y, width: c.box.w, height: c.box.h, fontFamily: sans, fontWeight: c.weight, fontSize: c.fontSize, lineHeight: `${c.box.h}px`, letterSpacing: '-0.03em', color: c.color ?? m.spec.brand.colors.ink, fontVariantNumeric: 'tabular-nums'}}>
             {c.prefix}{fmt(c.from + (c.to - c.from) * (1 - Math.pow(1 - cp, 3)), c.decimals, c.thousands)}{c.suffix}
