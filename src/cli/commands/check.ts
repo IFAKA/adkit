@@ -78,9 +78,12 @@ export async function liveSmooth(p: Project, manifest: Manifest, capDir: string)
       if (all.some((f) => !fs.existsSync(f))) continue;
       const d = await sequenceDiffs(all, path.join(tmp, 'live-smooth.txt'));
       const peak = Math.max(0, ...d);
-      const spikes = d.map((v, i) => [i + 1, v] as const).filter(([, v]) => v > p.spec.checks.maxJump);
+      // where the take starts in the video: its first block (a listed `checks.cuts` frame is a video frame)
+      const first = p.plan.blocks.find((b) => (b.spec as {start?: {screen: string}}).start?.screen === ref.replace(/^main\//, '') || (b.spec as {start?: {screen: string}}).start?.screen === ref);
+      const off = first?.start ?? 0;
+      const spikes = findJumps(d, p.spec.checks.maxJump, p.spec.checks.cuts.map((c) => c - off));
       rows.push(`${screen} take ${all.length}f peak ${peak.toFixed(1)}`);
-      if (spikes.length) bad.push(`${screen} (take): jump above ${p.spec.checks.maxJump} at frames ${spikes.slice(0, 10).map(([i, v]) => `${i} (${v.toFixed(1)})`).join(', ')}`);
+      if (spikes.length) bad.push(`${screen} (take): a frame jumps by more than ${p.spec.checks.maxJump} at take frames ${spikes.slice(0, 10).map((j) => `${j.frame} = video frame ${j.frame + off} (${j.diff})`).join(', ')}. If the app itself does it (a page that vanishes at once), list the video frame in checks.cuts`);
       for (const a of entry.actions) {
         const w = d.slice(Math.max(0, a.at - 1), a.at - 1 + a.motion);
         const sm = smoothness(w);

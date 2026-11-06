@@ -3,9 +3,9 @@ import {spawn} from 'node:child_process';
 export type Jump = {frame: number; diff: number};
 
 /** Mean absolute difference (0-255) between each frame and the one before, on a small grey copy of the video. index i = frame i+1. */
-export function frameDiffs(video: string, w = 54, h = 96, pre: string[] = []): Promise<number[]> {
+export function frameDiffs(video: string, w = 54, h = 96, pre: string[] = [], post: string[] = []): Promise<number[]> {
   return new Promise((resolve, reject) => {
-    const p = spawn('ffmpeg', ['-v', 'error', ...pre, '-i', video, '-vf', `scale=${w}:${h}:flags=area,format=gray`, '-f', 'rawvideo', '-'], {stdio: ['ignore', 'pipe', 'inherit']});
+    const p = spawn('ffmpeg', ['-v', 'error', ...pre, '-i', video, '-vf', `scale=${w}:${h}:flags=area,format=gray`, ...post, '-f', 'rawvideo', '-'], {stdio: ['ignore', 'pipe', 'inherit']});
     const size = w * h;
     let prev: Buffer | null = null;
     let pending = Buffer.alloc(0);
@@ -61,5 +61,6 @@ export function smoothness(diffs: number[]): Smooth {
 export async function sequenceDiffs(files: string[], listFile: string): Promise<number[]> {
   const fs = await import('node:fs');
   fs.writeFileSync(listFile, files.map((f) => `file '${f.replace(/'/g, "'\\''")}'\nduration 0.0333`).join('\n') + '\n');
-  return frameDiffs(listFile, 54, 96, ['-f', 'concat', '-safe', '0']);
+  // passthrough: one output frame per listed image (otherwise ffmpeg drops or repeats frames to keep a constant rate and the frame numbers drift)
+  return frameDiffs(listFile, 54, 96, ['-f', 'concat', '-safe', '0'], ['-fps_mode', 'passthrough']);
 }
