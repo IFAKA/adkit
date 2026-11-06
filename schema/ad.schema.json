@@ -356,7 +356,7 @@
         },
         "routes": {
           "default": [],
-          "description": "Answer matching requests with a fixed file, so live data (times, counts) is the same on every capture.",
+          "description": "Answer matching requests with a fixed file or a local cache folder, so live data (times, counts) is the same on every capture. Every other request to a host that is not the app is an UNMOCKED request: a take that makes one fails the `unmocked` check (service workers are blocked, so nothing else can answer).",
           "type": "array",
           "items": {
             "type": "object",
@@ -367,9 +367,14 @@
                 "description": "Playwright URL glob, e.g. \"**/api/bikes*\"."
               },
               "file": {
+                "description": "Response body file, relative to the spec. Put it in a folder listed in `inputs` so the capture cache sees changes.",
                 "type": "string",
-                "minLength": 1,
-                "description": "Response body file, relative to the spec. Put it in a folder listed in `inputs` so the capture cache sees changes."
+                "minLength": 1
+              },
+              "cache": {
+                "description": "Instead of `file`: a folder (relative to the spec) that is a local copy of the real responses (map tiles, fonts). A request is answered from it; the first time a URL is not in it, it is fetched once and saved there. Commit the folder: after that the capture needs no network.",
+                "type": "string",
+                "minLength": 1
               },
               "contentType": {
                 "default": "application/json",
@@ -383,8 +388,7 @@
               }
             },
             "required": [
-              "url",
-              "file"
+              "url"
             ],
             "additionalProperties": false
           }
@@ -672,7 +676,7 @@
                                 "description": "Frames recorded after the action at `fps` (played at the video frame rate, so see `slow` for the real time they cover).",
                                 "type": "integer",
                                 "minimum": 1,
-                                "maximum": 480
+                                "maximum": 4000
                               },
                               "fps": {
                                 "default": 30,
@@ -687,6 +691,71 @@
                                 "type": "number",
                                 "minimum": 0.1,
                                 "maximum": 1
+                              },
+                              "actions": {
+                                "description": "A TAKE: one continuous recording of a person using the page. `frames` output frames in total, the page clock stepped 1/fps s per frame (slow motion only in each action's `motion` window), the actions happen at their frames and nothing is reset between them. The clock stays paused at the end, so a following screen without a goto continues from exactly the last frame. Use instead of click/evaluate/before.",
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "at": {
+                                      "type": "integer",
+                                      "minimum": 1,
+                                      "maximum": 9007199254740991,
+                                      "description": "Output frame (1 = the first frame after the start still) in which the action happens: the frame before it is the last one that shows the page as it was."
+                                    },
+                                    "click": {
+                                      "description": "CSS selector of the element to press.",
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "evaluate": {
+                                      "description": "Or a synchronous JavaScript file that does the action.",
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "waitFor": {
+                                      "description": "Before the action: wait (real time, the take is paused) until this selector exists.",
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "elements": {
+                                      "default": {},
+                                      "description": "Boxes measured just BEFORE the action (where the finger lands).",
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "measure": {
+                                      "default": {},
+                                      "description": "Boxes measured when the action's motion window has ended (what the action produced, e.g. a card to read).",
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "motion": {
+                                      "default": 24,
+                                      "description": "Output frames after the action that run in slow motion (`slow`); every other frame of the take runs at real time (1/fps s).",
+                                      "type": "integer",
+                                      "minimum": 1,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "at"
+                                  ],
+                                  "additionalProperties": false
+                                }
                               }
                             },
                             "additionalProperties": false
@@ -1550,6 +1619,16 @@
                     "default": 0,
                     "type": "number"
                   },
+                  "enter": {
+                    "default": "cut",
+                    "description": "transition live only: how the live screen appears over the previous one.",
+                    "type": "string",
+                    "enum": [
+                      "cut",
+                      "fade",
+                      "zoom"
+                    ]
+                  },
                   "transition": {
                     "default": "fade",
                     "description": "How this screen replaces the previous block's screen. Default fade: a cross-fade, never a hard cut.",
@@ -1586,6 +1665,16 @@
                         "screen": {
                           "type": "string",
                           "pattern": "^([A-Za-z][A-Za-z0-9_-]*\\/)?[A-Za-z][A-Za-z0-9_-]*$"
+                        },
+                        "enter": {
+                          "default": "cut",
+                          "description": "transition live only: how the live screen appears over the previous one.",
+                          "type": "string",
+                          "enum": [
+                            "cut",
+                            "fade",
+                            "zoom"
+                          ]
                         },
                         "transition": {
                           "default": "slide",

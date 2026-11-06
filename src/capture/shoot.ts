@@ -50,6 +50,11 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
   let themeDone = !!o.theme;
   const vars: Record<string, string> = {};
   let clockOn = false;
+  /** a take leaves the page clock stopped, so the next screen continues from exactly its last frame */
+  let clockPaused = false;
+  /** requests no capture route answered, since the screen began */
+  const unmocked: string[] = [];
+  let takeActions: {at: number; motion: number}[] | undefined;
   /** The recording of the screen being shot: files in capture order (a held still repeats its file) and boxes measured before actions. */
   let seq: {name: string; dir: string; files: string[]; boxes: Record<string, Box>; n: number} | undefined;
   const sub = (s: string) => s.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (m, k: string) => (k in vars ? vars[k] : m));
@@ -58,6 +63,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
   try {
     const context = await browser.newContext({
       viewport: {width: W, height: H}, deviceScaleFactor: SCALE, isMobile: true, hasTouch: true,
+      serviceWorkers: 'block',
       locale: cap.locale, timezoneId: cap.timezone, reducedMotion: 'no-preference',
       ...(cap.geolocation ? {geolocation: cap.geolocation, permissions: ['geolocation']} : {}),
     });
@@ -75,8 +81,31 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
         });
       })();`});
     }
+    // First registered = asked last: every request no route answers lands here and is logged (the page still gets the real answer).
+    await context.route('**/*', (route) => {
+      const u = new URL(route.request().url());
+      if (!['localhost', '127.0.0.1', '[::1]'].includes(u.hostname)) unmocked.push(route.request().url());
+      return route.fallback();
+    });
     for (const r of cap.routes) {
-      const body = fs.readFileSync(path.resolve(o.specDir, r.file));
+      if (r.cache) {
+        const dir = path.resolve(o.specDir, r.cache);
+        fs.mkdirSync(dir, {recursive: true});
+        await context.route(r.url, async (route) => {
+          const url = route.request().url();
+          const f = path.join(dir, createHash('sha1').update(url).digest('hex').slice(0, 20));
+          if (!fs.existsSync(f + '.bin')) {
+            const res = await route.fetch();
+            if (!res.ok()) return route.fulfill({response: res});
+            fs.writeFileSync(f + '.bin', await res.body());
+            fs.writeFileSync(f + '.json', JSON.stringify({status: res.status(), headers: {'content-type': res.headers()['content-type'] ?? 'application/octet-stream'}, url}));
+          }
+          const meta = JSON.parse(fs.readFileSync(f + '.json', 'utf8'));
+          return route.fulfill({status: meta.status, headers: {...meta.headers, 'access-control-allow-origin': '*'}, body: fs.readFileSync(f + '.bin')});
+        });
+        continue;
+      }
+      const body = fs.readFileSync(path.resolve(o.specDir, r.file!));
       await context.route(r.url, (route) => route.fulfill({status: r.status, contentType: r.contentType, body, headers: {'access-control-allow-origin': '*'}}));
     }
     await context.addInitScript({content: `(() => {
@@ -120,6 +149,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
      */
     const record = async (r: NonNullable<Step['record']>) => {
       if (!seq) throw new Error('a record step needs a screen with a name');
+      if (r.actions) return take(r);
       const sq = seq;
       const shot = async () => {
         const f = `${String(sq.n++).padStart(3, '0')}.png`;
@@ -150,8 +180,64 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
       await page.clock.resume();
     };
 
+
+    /**
+     * A take: one continuous recording of a person using the page. The page clock is stopped and advanced one output frame at a time
+     * (1/fps s, or slow/fps s inside an action's motion window), every CSS/Web animation is set to the same page time, and one screenshot
+     * is kept per frame. The actions happen at their frames; between them the page just lives on (timers, tiles, pulses). The clock stays
+     * stopped at the end, so the next screen continues from exactly this last frame.
+     */
+    const take = async (r: NonNullable<Step['record']>) => {
+      const sq = seq!;
+      const acts = [...(r.actions ?? [])].sort((a, b) => a.at - b.at);
+      const shot = async () => {
+        const f = `${String(sq.n++).padStart(3, '0')}.png`;
+        await page.screenshot({path: path.join(sq.dir, f)});
+        return path.join(path.basename(sq.dir), f);
+      };
+      if (!clockPaused) {
+        const now = await page.evaluate('Date.now()') as number;
+        if (!clockOn) { await page.clock.install({time: now}); clockOn = true; }
+        await page.clock.pauseAt(now + 20);
+        clockPaused = true;
+      }
+      // everything that already runs is frozen at its current time; the action's new animations count from their first step
+      await page.evaluate(`(() => { const R = window.__adkitRec = {base: new WeakMap(), pending: []}; for (const a of document.getAnimations()) { R.base.set(a, a.currentTime || 0); a.pause(); R.pending.push(a); } })()`);
+      sq.files.push(await shot());
+      const step = 1000 / r.fps;
+      let t = 0;
+      const windowAt = (i: number) => acts.some((a) => i >= a.at && i < a.at + a.motion);
+      const doAction = async (a: (typeof acts)[number]) => {
+        if (a.waitFor) await page.locator(sub(a.waitFor)).first().waitFor({state: 'attached', timeout: 20000});
+        for (const [n, sel] of Object.entries(a.elements)) {
+          const b = await boxOf(page.locator(sub(sel)), true, false);
+          if (b) sq.boxes[n] = b; else o.detail(`WARN ${sq.name}.${n}: element not found (${sel}), skipped`);
+        }
+        const code = a.click !== undefined ? `(() => { const e = document.querySelector(${JSON.stringify(sub(a.click))}); if (!e) throw new Error('take click: not found: ' + ${JSON.stringify(a.click)}); e.click(); })()` : fs.readFileSync(path.resolve(o.specDir, a.evaluate!), 'utf8');
+        await page.evaluate(code);
+      };
+      let ai = 0;
+      const measures: {at: number; a: (typeof acts)[number]}[] = acts.map((a) => ({at: a.at + a.motion - 1, a}));
+      for (let i = 1; i <= r.frames; i++) {
+        while (ai < acts.length && acts[ai].at === i) await doAction(acts[ai++]);
+        const dt = windowAt(i) ? step * r.slow : step;
+        const next = t + dt;
+        await page.clock.runFor(Math.round(next) - Math.round(t));
+        await page.evaluate(`((t, d) => { const R = window.__adkitRec; for (const a of document.getAnimations()) { if (!R.base.has(a)) { R.base.set(a, d - t); a.pause(); R.pending.push(a); } a.currentTime = R.base.get(a) + t; } })(${Math.round(next)}, ${Math.round(next) - Math.round(t)})`);
+        t = next;
+        sq.files.push(await shot());
+        for (const m of measures) if (m.at === i) for (const [n, sel] of Object.entries(m.a.measure)) {
+          const b = await boxOf(page.locator(sub(sel)), true, false);
+          if (b) sq.boxes[n] = b; else o.detail(`WARN ${sq.name}.${n}: element not found (${sel}), skipped`);
+        }
+      }
+      takeActions = acts.map((a) => ({at: a.at, motion: a.motion}));
+    };
+
     const runStep = async (st: Step) => {
       if (st.goto !== undefined) {
+        unmocked.length = 0;
+        if (clockPaused) { await page.clock.resume(); clockPaused = false; }
         const u = sub(st.goto);
         await page.goto(/^https?:/.test(u) ? u : o.base + u, {waitUntil: 'load'});
         await settle(300);
@@ -271,6 +357,7 @@ export async function shootSet(o: ShootOpts): Promise<SetEntry> {
         const sc: ScreenEntry = {file: `${rel}.png`, fullFile: `${rel}-full.png`, fullHeight, scrollY, sha, elements};
         if (seq && seq.files.length) sc.frames = seq.files.map((f) => `captures/${setName}/${f}`);
         else if (seq) fs.rmSync(seq.dir, {recursive: true, force: true});
+        if (seq && takeActions) { sc.actions = takeActions; takeActions = undefined; sc.unmocked = [...new Set(unmocked)]; }
         entry.screens[screen.name] = sc;
         const n = Object.keys(elements).length;
         o.log(`capture ${label} ok ${((Date.now() - t0) / 1000).toFixed(1)}s elements=${n}`);

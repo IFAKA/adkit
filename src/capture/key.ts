@@ -6,7 +6,7 @@ import path from 'node:path';
 import type {Ad} from '../spec/schema';
 
 /** Bump when the capture code changes what it produces, so old results are not reused. */
-export const ENGINE_CAPTURE_VERSION = 3;
+export const ENGINE_CAPTURE_VERSION = 5;
 
 export const SKIP_DIRS = new Set(['node_modules', '.next', '.git', 'video', '.adkit', 'out']);
 const MAX_FILE = 64 * 1024 * 1024;
@@ -78,6 +78,7 @@ function evaluateFiles(spec: Ad): string[] {
   for (const set of Object.values(spec.capture.sets)) for (const s of set.screens) for (const st of s.steps) {
     if (st.evaluate && typeof st.evaluate === 'object' && st.evaluate.file) out.add(st.evaluate.file);
     if (st.record?.evaluate) out.add(st.record.evaluate);
+    for (const a of st.record?.actions ?? []) if (a.evaluate) out.add(a.evaluate);
   }
   return [...out].sort();
 }
@@ -95,7 +96,7 @@ export function captureKey(spec: Ad, specDir: string): string {
   else if (!cap.app.url) { const t = createHash('sha256'); hashPath(t, specDir, '', {skipTopYaml: true}); h.update(`specdir:${t.digest('hex')}\0`); }
   h.update(`capture:${canonicalJson(cap)}\0`);
   for (const rel of [...cap.inputs].sort()) { h.update(`input:${rel}\0`); hashPath(h, specDir, rel); }
-  for (const r of cap.routes) { h.update(`route:${r.file}\0`); hashPath(h, specDir, r.file); }
+  for (const r of cap.routes) { if (r.file) { h.update(`route:${r.file}\0`); hashPath(h, specDir, r.file); } }
   for (const rel of evaluateFiles(spec)) { h.update(`eval:${rel}\0`); hashPath(h, specDir, rel); }
   h.update(`playwright:${playwrightVersion()}\0engine:${ENGINE_CAPTURE_VERSION}`);
   return h.digest('hex');

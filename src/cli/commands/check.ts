@@ -9,6 +9,7 @@ import {capture} from './capture';
 import {build} from './build';
 import {readingRows, movingTextWarnings, pushInFindings} from '../../engine/reading';
 import {frameDiffs, findJumps, smoothness, sequenceDiffs} from '../../engine/continuity';
+import {sameTakeFindings, takeSyncFindings} from '../../engine/take';
 import {soundFindings} from '../../engine/sound-check';
 
 export const SAFE_TOP = 250;
@@ -68,8 +69,25 @@ export async function liveSmooth(p: Project, manifest: Manifest, capDir: string)
   fs.mkdirSync(tmp, {recursive: true});
   for (const ref of [...screenRefs(p.spec.scenes)].sort()) {
     const {set, screen} = splitRef(ref);
-    const fr = manifest.sets[set]?.screens[screen]?.frames;
+    const entry = manifest.sets[set]?.screens[screen];
+    const fr = entry?.frames;
     if (!fr?.length) continue;
+    if (entry?.actions?.length) {
+      // a take: every frame counts (pauses are real frames); no pair may jump, and each action's motion window must flow
+      const all = fr.map((f) => path.resolve(capDir, f));
+      if (all.some((f) => !fs.existsSync(f))) continue;
+      const d = await sequenceDiffs(all, path.join(tmp, 'live-smooth.txt'));
+      const peak = Math.max(0, ...d);
+      const spikes = d.map((v, i) => [i + 1, v] as const).filter(([, v]) => v > p.spec.checks.maxJump);
+      rows.push(`${screen} take ${all.length}f peak ${peak.toFixed(1)}`);
+      if (spikes.length) bad.push(`${screen} (take): jump above ${p.spec.checks.maxJump} at frames ${spikes.slice(0, 10).map(([i, v]) => `${i} (${v.toFixed(1)})`).join(', ')}`);
+      for (const a of entry.actions) {
+        const w = d.slice(Math.max(0, a.at - 1), a.at - 1 + a.motion);
+        const sm = smoothness(w);
+        if (sm.total >= 0.5 && sm.spike > maxSpike) bad.push(`${screen} action at frame ${a.at}: biggest single frame ${Math.round(sm.spike * 100)}% of the change (max ${Math.round(maxSpike * 100)}%)`);
+      }
+      continue;
+    }
     const files = fr.filter((f, i) => i === 0 || f !== fr[i - 1]).map((f) => path.resolve(capDir, f));
     if (files.length < 2 || files.some((f) => !fs.existsSync(f))) continue;
     const sm = smoothness(await sequenceDiffs(files, path.join(tmp, 'live-smooth.txt')));
@@ -94,6 +112,17 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
 
   out.push(...checkCaptures(p, manifest, capDir));
   out.push(await liveSmooth(p, manifest, capDir));
+  {
+    const isTake = (ref: string) => { const {set, screen} = splitRef(ref); return !!manifest.sets[set]?.screens[screen]?.actions?.length; };
+    const acts = (ref: string) => { const {set, screen} = splitRef(ref); return manifest.sets[set]?.screens[screen]?.actions?.map((a) => a.at); };
+    const st = sameTakeFindings(spec.scenes, isTake);
+    const sy = takeSyncFindings(plan.blocks as never, plan.beat, acts);
+    const n = [...screenRefs(spec.scenes)].filter(isTake).length;
+    if (n) out.push({check: 'same-take', ok: !st.length, msg: st.length ? st.join('; ') : `${n} take(s): blocks on a take join without a cut, fade or still`});
+    const um = Object.entries(manifest.sets).flatMap(([sn, set]) => Object.entries(set.screens).filter(([, sc]) => sc.actions?.length && sc.unmocked?.length).map(([k, sc]) => `${sn === 'main' ? '' : sn + '/'}${k}: ${sc.unmocked!.slice(0, 6).join(', ')}${sc.unmocked!.length > 6 ? ` (+${sc.unmocked!.length - 6})` : ''}`));
+    if (n) out.push({check: 'unmocked', ok: !um.length, msg: um.length ? `a take asked the network for data no \`routes\` entry answers: ${um.join('; ')}. Add a route (a file, or a \`cache\` folder for tiles and fonts).` : 'no take made an unmocked network request'});
+    if (n) out.push({check: 'take-sync', ok: !sy.length, msg: sy.length ? sy.join('; ') : 'every tap sits on an action of its take'});
+  }
 
   // sound: the genericness check (every cue has a tailor-made sound, every sound has a meaning, there is music)
   const sf = soundFindings(spec, plan.cues, {adBars: plan.total / plan.bar, beatsPerBar: plan.meter.beats});

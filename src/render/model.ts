@@ -37,6 +37,8 @@ export type Layer = {
   ref: Ref;
   /** transition live: the recorded frames of the screen, one per video frame from `at`; after the last one the final capture is shown */
   seq?: string[];
+  /** transition live: how the layer appears over the previous one */
+  enter?: Transition;
   scroll: Key[];
   sticky: number;
   holes: Hole[];
@@ -159,18 +161,20 @@ export function buildModel(props: RenderProps): Model {
     return r;
   };
 
-  const pushLayer = (b: Placed, at: number, transition: Transition, ref: Ref, scroll: Key[], sticky = 0, sheetHeight = 520): Layer => {
+  const pushLayer = (b: Placed, at: number, transition: Transition, ref: Ref, scroll: Key[], sticky = 0, sheetHeight = 520, enter: Transition = 'cut'): Layer => {
     const l: Layer = {index: m.layers.length, at, transition, sheetHeight, holdUntil: -1, ref, scroll, sticky, pops: [], types: [], pulses: [], swipes: [], holes: [], highlights: [], press: [], bg: req(ref, {x: 0, y: 0, w: SCREEN_W, h: 60}, 'inside', 'bg'), next: Infinity, nextSlides: false, nextTransition: 'cut'};
     if (transition === 'live') {
       const fr = manifest.sets[ref.set]?.screens[ref.name]?.frames;
       if (!fr?.length) throw new Error(`screen ${ref.key}: transition live needs a capture screen with a record step (no recorded frames)`);
       l.seq = fr.map((p) => imageUrl(p));
+      l.enter = enter;
     }
+    const entry: Transition = transition === 'live' ? enter : transition;
     const prev = m.layers[m.layers.length - 1];
     if (prev) {
       prev.next = at;
-      prev.nextSlides = transition !== 'cut' && transition !== 'live';
-      prev.nextTransition = transition;
+      prev.nextSlides = entry !== 'cut';
+      prev.nextTransition = entry;
       if (prev.transition === 'sheet' && m.layers.length >= 2) m.layers[m.layers.length - 2].holdUntil = at;
     }
     m.layers.push(l);
@@ -207,7 +211,7 @@ export function buildModel(props: RenderProps): Model {
         let cur = m.layers[m.layers.length - 1];
         if (cur && cur.ref.key === startRef.key) {
           if (targetScroll(cur, b.start) !== s.start.scroll) cur.scroll = [...cur.scroll, [b.start, s.start.scroll]];
-        } else cur = pushLayer(b, b.start, m.layers.length ? s.start.transition : 'cut', startRef, [[0, s.start.scroll]]);
+        } else cur = pushLayer(b, b.start, m.layers.length ? s.start.transition : 'cut', startRef, [[0, s.start.scroll]], 0, 520, s.start.enter);
         const stepF = (st: {at: number}) => b.start + fr(st.at);
         const screenSteps = s.steps.filter((x) => x.type === 'screen');
         const nextScreenAt = (f: number) => {
@@ -225,7 +229,7 @@ export function buildModel(props: RenderProps): Model {
               else if (st.scroll) target = scrollFor(ref, st.scroll.element, st.scroll.y);
               const nxt = nextScreenAt(f);
               const animate = s.steps.some((x) => x.type === 'lift' && stepF(x) > f && stepF(x) < nxt);
-              cur = pushLayer(b, f, st.transition, ref, !target ? [[0, 0]] : animate ? [[0, 0], [f + 6, target, SLOW]] : [[0, target]], st.sticky ?? 0, st.sheetHeight);
+              cur = pushLayer(b, f, st.transition, ref, !target ? [[0, 0]] : animate ? [[0, 0], [f + 6, target, SLOW]] : [[0, target]], st.sticky ?? 0, st.sheetHeight, st.enter);
               break;
             }
             case 'tap': {

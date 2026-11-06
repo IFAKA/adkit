@@ -73,9 +73,18 @@ export const CaptureStep = z.object({
     evaluate: str.optional().describe('Or a JavaScript file run in the page to do the action. It must be synchronous (the page clock is stopped while recording).'),
     elements: z.record(z.string(), str).default({}).describe('Named elements (CSS selectors) whose boxes are measured just BEFORE the action, in viewport px: where the finger lands. They are added to the screen\'s elements.'),
     before: z.number().int().min(0).default(0).describe('Still frames of the page before the action (the finger touches during these).'),
-    frames: z.number().int().min(1).max(480).default(20).describe('Frames recorded after the action at `fps` (played at the video frame rate, so see `slow` for the real time they cover).'),
+    frames: z.number().int().min(1).max(4000).default(20).describe('Frames recorded after the action at `fps` (played at the video frame rate, so see `slow` for the real time they cover).'),
     fps: z.number().int().min(10).max(60).default(30).describe('Frame rate of the recording; set it to the video frame rate.'),
     slow: z.number().min(0.1).max(1).default(0.5).describe('Slow motion of the recording: each recorded frame advances the page clock by slow/fps s, so 0.5 shows a 150 ms fade over 9 frames instead of 5 and a 300 ms drawer ease over 18 instead of 9, with real in-between states (no frame blending). 1 = real time. `frames` counts recorded (output) frames, so it covers frames*slow/fps s of real time.'),
+    actions: z.array(z.object({
+      at: z.number().int().min(1).describe('Output frame (1 = the first frame after the start still) in which the action happens: the frame before it is the last one that shows the page as it was.'),
+      click: str.optional().describe('CSS selector of the element to press.'),
+      evaluate: str.optional().describe('Or a synchronous JavaScript file that does the action.'),
+      waitFor: str.optional().describe('Before the action: wait (real time, the take is paused) until this selector exists.'),
+      elements: z.record(z.string(), str).default({}).describe('Boxes measured just BEFORE the action (where the finger lands).'),
+      measure: z.record(z.string(), str).default({}).describe('Boxes measured when the action\'s motion window has ended (what the action produced, e.g. a card to read).'),
+      motion: z.number().int().min(1).default(24).describe('Output frames after the action that run in slow motion (`slow`); every other frame of the take runs at real time (1/fps s).'),
+    }).strict().refine((a) => (a.click !== undefined) !== (a.evaluate !== undefined), 'an action needs exactly one of click, evaluate')).optional().describe('A TAKE: one continuous recording of a person using the page. `frames` output frames in total, the page clock stepped 1/fps s per frame (slow motion only in each action\'s `motion` window), the actions happen at their frames and nothing is reset between them. The clock stays paused at the end, so a following screen without a goto continues from exactly the last frame. Use instead of click/evaluate/before.'),
   }).strict().optional().describe('Records the REAL animation of an action as a frame sequence: the page clock and every CSS/Web animation are stepped one frame at a time, so the result is exact and repeatable. The screen is then played in a tapFlow with `transition: live`. A screen may follow another one without a `goto`: it continues from the same page state.'),
 }).strict().superRefine((s, ctx) => {
   const n = StepKeys.filter((k) => s[k] !== undefined).length;
@@ -117,10 +126,11 @@ export const Capture = z.object({
   safeArea: z.object({top: z.number().default(0), bottom: z.number().default(0)}).strict().optional().describe('Phone safe-area insets in px (env(safe-area-inset-*)), e.g. {top: 47, bottom: 34} for a notch phone, so apps leave room for the home indicator like on a real device.'),
   routes: z.array(z.object({
     url: str.describe('Playwright URL glob, e.g. "**/api/bikes*".'),
-    file: str.describe('Response body file, relative to the spec. Put it in a folder listed in `inputs` so the capture cache sees changes.'),
+    file: str.optional().describe('Response body file, relative to the spec. Put it in a folder listed in `inputs` so the capture cache sees changes.'),
+    cache: str.optional().describe('Instead of `file`: a folder (relative to the spec) that is a local copy of the real responses (map tiles, fonts). A request is answered from it; the first time a URL is not in it, it is fetched once and saved there. Commit the folder: after that the capture needs no network.'),
     contentType: z.string().default('application/json'),
     status: z.number().int().min(100).max(599).default(200),
-  }).strict()).default([]).describe('Answer matching requests with a fixed file, so live data (times, counts) is the same on every capture.'),
+  }).strict().refine((r) => !!r.file !== !!r.cache, 'a route needs exactly one of `file` or `cache`')).default([]).describe('Answer matching requests with a fixed file or a local cache folder, so live data (times, counts) is the same on every capture. Every other request to a host that is not the app is an UNMOCKED request: a take that makes one fails the `unmocked` check (service workers are blocked, so nothing else can answer).'),
   timezone: z.string().default('UTC'),
   clock: z.string().optional().describe('ISO time to freeze the browser clock at, so dates in screenshots are stable.'),
   inputs: z.array(z.string()).default([]).describe('Files or folders (relative to the spec) that change what the app shows; hashed into the capture cache key.'),
@@ -213,6 +223,7 @@ const Cam = z.array(CameraKey).default([]);
 const TapFlowStep = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('screen'), at: posBeat, screen: ScreenRef,
+    enter: z.enum(['cut', 'fade', 'zoom']).default('cut').describe('transition live only: how the live screen appears over the previous one.'),
     transition: z.enum(['slide', 'cut', 'fade', 'sheet', 'zoom', 'live']).default('slide').describe('live = play the recorded frame sequence of this screen (a capture screen with a `record` step) from `at`, then hold its final frame: the real app transition, no cross-fade. slide = pushes in from the right; cut = hard cut (a tab switch); fade = cross-fade; zoom = grows in from slightly smaller; sheet = the bottom of the new screen rises over the old one (capture the page with the sheet open, pinned to the bottom).'),
     sheetHeight: z.number().min(120).max(800).default(520).describe('transition sheet: height of the sheet in screen px.'),
     scroll: z.union([z.number(), z.object({element: str, y: z.number()}).strict()]).optional().describe('Scroll in px, or bring an element to screen-y.'),
@@ -290,7 +301,7 @@ export const Reveal = z.object({
 
 export const TapFlow = z.object({
   block: z.literal('tapFlow'), ...common,
-  start: z.object({screen: ScreenRef, scroll: z.number().default(0), transition: z.enum(['slide', 'cut', 'fade', 'zoom', 'live']).default('fade').describe('How this screen replaces the previous block\'s screen. Default fade: a cross-fade, never a hard cut.')}).strict(),
+  start: z.object({screen: ScreenRef, scroll: z.number().default(0), enter: z.enum(['cut', 'fade', 'zoom']).default('cut').describe('transition live only: how the live screen appears over the previous one.'), transition: z.enum(['slide', 'cut', 'fade', 'zoom', 'live']).default('fade').describe('How this screen replaces the previous block\'s screen. Default fade: a cross-fade, never a hard cut.')}).strict(),
   steps: z.array(TapFlowStep).min(1),
   camera: Cam,
 }).strict();
