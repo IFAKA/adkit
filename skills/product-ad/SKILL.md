@@ -51,3 +51,10 @@ adkit tile ad.yaml        # then LOOK at .adkit/tiles/sheet.png (Read the PNG)
 adkit tile ad.yaml --from 120 --to 240   # zoom on one part
 ```
 Review the tile like a viewer: is the first second a hook, is each title readable and off the top 250 px / bottom 400 px, does every scene show one thing, does the end card hold long enough. Fix the spec, re-render (cached, fast), look again. Stop when the check passes and the tile looks professional.
+
+## Speed
+- Before and after any change in capture or render, run `scripts/speed.sh --vs-base` (exits 1 if a step is >20% slower than `scripts/speed.base.json`). After a real gain, `scripts/speed.sh --save` and commit the base.
+- "Why is it slow?" is answered from `.adkit/logs/capture.log`, the timing files and `.speed/speed.log`, never from memory. If there is no number, measure first (`docs/speed.md` has the per-step numbers).
+- Paste these rules into every delegated agent prompt that runs capture or render.
+- Mark a capture screen `independent: true` (first step a goto, needs no state from earlier screens) so it is shot beside the others in its own browser. Frames inside one take stay in order.
+- Check that a speed change keeps the frames: `scripts/speed-same.sh DIR_A DIR_B` (pixel compare). `ADKIT_SLOW_SHOT=1` and `ADKIT_SERIAL=1` switch the fast paths off.
