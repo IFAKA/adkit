@@ -7,6 +7,6 @@ body{margin:0;font:14px sans-serif;overflow-x:hidden;height:1300px}.c{position:a
 #sheet{position:fixed;left:0;right:0;bottom:0;height:420px;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.3);transform:translateY(100%);transition:transform 400ms cubic-bezier(.2,.8,.2,1)}
 #sheet.open{transform:none}#go,#back{position:fixed;right:10px;top:10px;padding:10px}</style>
 ${cards}<div id=dot></div><button id=go onclick="sheet.classList.add('open')">go</button><button id=back style="top:60px" onclick="sheet.classList.remove('open')">back</button><div id=sheet>sheet</div>
-<script>let n=0;(function f(){n++;dot.style.transform='translateX('+(Math.sin(n/15)*80+80)+'px)';requestAnimationFrame(f)})()</script>`;
+<script>(function f(){dot.style.transform='translateX('+(Math.sin(performance.now()/250)*80+80)+'px)';requestAnimationFrame(f)})()</script>`;
 const port = Number(process.argv[2] || process.env.PORT || 4173);
 createServer((_q, r) => { r.setHeader('content-type', 'text/html'); r.end(PAGE); }).listen(port);
