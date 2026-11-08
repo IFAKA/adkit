@@ -80,4 +80,7 @@ scenes:
 
 sound: sound.yaml
 
+# Meant jumps: 54 a new card arrives and the pile shifts, 135 the icon becomes the phone, 389 the sheet slides up.
+checks: {cuts: [54, 135, 389]}
+
 output: {file: out/steps.mp4, crf: 18}
