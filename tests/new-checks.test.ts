@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {clone, load} from './helpers';
 import {compile} from '../src/engine/compile';
-import {cameraDeadStops} from '../src/engine/rules';
+import {cameraDeadStops, sameFrameStarts} from '../src/engine/rules';
 import type {Ad} from '../src/spec/schema';
 
 /** The minimal example with a change to its spec, compiled again. */
@@ -48,5 +48,28 @@ describe('camera-dead-stop', () => {
   it('can be turned off', () => {
     const {spec, plan} = edit((s) => { keys(s, 'fast', 6); s.checks.cameraDeadStop = false; });
     expect(cameraDeadStops(plan, spec)).toEqual([]);
+  });
+});
+
+describe('same-frame-start', () => {
+  const crowd = (s: Ad) => {
+    const f = flow(s);
+    f.titles = [{...f.titles[0], at: 1, markers: true}, f.titles[1]];
+    f.steps.push({type: 'tap', at: 1, element: 'payButton', reaction: 'burst'} as never);
+  };
+  it('flags 3 or more titles, markers or reactions on one frame', () => {
+    const {spec, plan} = edit(crowd);
+    const w = sameFrameStarts(plan, spec);
+    expect(w).toHaveLength(1);
+    expect(w[0]).toContain('3 items start on frame 105');
+  });
+  it('ignores instant titles, and the shipped example', () => {
+    expect(sameFrameStarts(edit(() => {}).plan, edit(() => {}).spec)).toEqual([]);
+    const {spec, plan} = edit((s) => { crowd(s); flow(s).titles[0].instant = true; flow(s).titles[0].markers = false; });
+    expect(sameFrameStarts(plan, spec)).toEqual([]);
+  });
+  it('can be turned off', () => {
+    const {spec, plan} = edit((s) => { crowd(s); s.checks.sameFrameStart = false; });
+    expect(sameFrameStarts(plan, spec)).toEqual([]);
   });
 });

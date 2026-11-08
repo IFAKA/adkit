@@ -38,3 +38,20 @@ export function cameraDeadStops(plan: Plan, spec: Ad): string[] {
   });
   return warns;
 }
+
+type Step = {type: string; at: number; reaction?: string; press?: boolean; stagger?: number; elements?: string[]; screen?: string};
+const stepsOf = (b: {spec: unknown}) => ((b.spec as {steps?: Step[]}).steps ?? []);
+
+/** Accent items that begin on one frame look like one blob, not a sequence: titles (not `instant`), their markers and tap reactions. */
+export function sameFrameStarts(plan: Plan, spec: Ad): string[] {
+  const cfg = spec.checks.sameFrameStart;
+  if (!cfg) return [];
+  const at = new Map<number, string[]>();
+  const add = (f: number, what: string) => at.set(f, [...(at.get(f) ?? []), what]);
+  for (const t of plan.titles) {
+    if (!t.spec.instant) add(t.inAt, `title "${t.spec.lines.join(' ').replace(/[*_]/g, '')}"`);
+    if (t.spec.markers) add(t.inAt, 'title markers');
+  }
+  for (const b of plan.blocks) for (const s of stepsOf(b)) if (s.type === 'tap' && s.reaction && s.reaction !== 'none') add(b.start + Math.round(s.at * plan.beat), `${b.id} tap ${s.reaction}`);
+  return [...at].filter(([, v]) => v.length >= cfg.count).sort((a, c) => a[0] - c[0]).map(([f, v]) => `${v.length} items start on frame ${f} (${v.join(', ')}). Move them 3-4 frames apart, or make a title \`instant\`.`);
+}
