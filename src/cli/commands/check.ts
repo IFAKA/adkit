@@ -181,7 +181,7 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   };
   rule('same-frame-start', spec.checks.sameFrameStart, sameFrameStarts(plan, spec), 'no 3 title or accent items start on one frame');
   rule('even-stagger', spec.checks.evenStagger, evenStaggers(plan, spec), 'no 4 staggered items share one gap');
-  rule('action-reaction', spec.checks.actionReaction, actionReactions(plan, spec), 'every tap has a visible reaction');
+  rule('action-reaction', spec.checks.actionReaction, actionReactions(plan, spec, (ref) => { const {set, screen} = splitRef(ref); return !!manifest.sets[set]?.screens[screen]?.actions?.length; }), 'every tap has a visible reaction');
   rule('flat-background', spec.checks.flatBackground, flatBackgrounds(plan, spec), 'no long scene sits on a still background');
   rule('motion-density', spec.checks.motionDensity, motionDensity(plan, spec), 'no crowd of elements starts to move together');
 

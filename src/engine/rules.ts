@@ -77,13 +77,15 @@ export function evenStaggers(plan: Plan, spec: Ad): string[] {
   return warns;
 }
 
-/** A tap needs an answer the viewer sees: a press dip, a `reaction`, or a screen change or check within `frames` after it. (The default tap highlight is a ring, not an answer.) */
-export function actionReactions(plan: Plan, spec: Ad): string[] {
+/** A tap needs an answer the viewer sees: a press dip, a `reaction`, or a screen change or check within `frames` after it. (The default tap highlight is a ring, not an answer. Blocks that show a recorded take are skipped: the page answers.) */
+export function actionReactions(plan: Plan, spec: Ad, isTake: (ref: string) => boolean = () => false): string[] {
   const cfg = spec.checks.actionReaction;
   if (!cfg) return [];
   const warns: string[] = [];
   for (const b of plan.blocks) {
     const steps = stepsOf(b);
+    // on a recorded take the page itself reacts to the tap
+    if ([(b.spec as {start?: {screen: string}}).start?.screen, ...steps.map((x) => x.screen)].some((r) => r && isTake(r))) continue;
     const frame = (s: Step) => b.start + Math.round(s.at * plan.beat);
     for (const s of steps) {
       if (s.type !== 'tap' || s.press || (s.reaction && s.reaction !== 'none')) continue;

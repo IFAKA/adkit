@@ -113,6 +113,10 @@ describe('action-reaction', () => {
       expect(actionReactions(r.plan, r.spec)).toEqual([]);
     }
   });
+  it('skips blocks that show a recorded take', () => {
+    const {spec, plan} = edit(() => {});
+    expect(actionReactions(plan, spec, (ref) => ref === 'shop')).toEqual([]);
+  });
   it('can be turned off', () => {
     const {spec, plan} = edit((s) => { s.checks.actionReaction = false; });
     expect(actionReactions(plan, spec)).toEqual([]);
