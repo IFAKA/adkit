@@ -105,6 +105,10 @@ adkit never changes your app folder when `isolate: copy` (it works in `.adkit/wo
 
 Story order: `chaos` (optional) first, `endCard` last, `iconOpen` only right after a `chaos` with `into: icon`, one `reveal` before any other phone block. Everything else is free. A 15 s ad needs only `reveal`, `tapFlow`, `endCard`.
 
+**Camera feel.** A camera key has `spring:` `soft` (default), `fast`, `tap`, `slow`, `snap`, `snappy` or `drift`. `snappy` starts very fast and has a long soft tail. `drift` slows down but is still moving when it ends: use it for a move that is followed by another move or a held frame, so the camera never stops dead between them. The other names are springs.
+
+**Title stagger.** A title may have `stagger: [2, 4, 4]`: the frames between one word and the next. The last value repeats. Uneven gaps look less mechanical than the default 3 frames. The reading-time check counts the longer entrance.
+
 #### tapFlow steps
 
 | step | fields | what it does (cue) |

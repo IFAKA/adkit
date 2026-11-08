@@ -6,7 +6,8 @@ export const setFps = (f: number) => {
   FPS = f;
 };
 
-export type Spring = Partial<SpringConfig>;
+/** A spring, or a fixed-length curve (`curve` maps 0..1 to 0..1 over `frames`) for moves a spring cannot make. */
+export type Spring = Partial<SpringConfig> & {curve?: (u: number) => number; frames?: number};
 export const SOFT: Spring = {damping: 22, stiffness: 120, mass: 1};
 export const SNAP: Spring = {damping: 20, stiffness: 220, mass: 0.8};
 export const BOUNCY: Spring = {damping: 9, stiffness: 180, mass: 0.8};
@@ -17,9 +18,17 @@ export const CAM_FAST: Spring = {damping: 20, stiffness: 130, mass: 0.9};
 export const CAM_TAP: Spring = {damping: 22, stiffness: 160, mass: 0.8};
 export const CAM_SLOW: Spring = {damping: 30, stiffness: 20, mass: 1.5};
 export const CAM_SNAP: Spring = {damping: 40, stiffness: 400, mass: 0.5};
-export const CAM_SPRINGS = {soft: CAM, fast: CAM_FAST, tap: CAM_TAP, slow: CAM_SLOW, snap: CAM_SNAP} as const;
+/** snappy: very fast start, long soft tail. drift: slows down but keeps moving when it ends (use before another move or a held frame). */
+export const CAM_SNAPPY: Spring = {curve: (u) => 1 - Math.pow(1 - u, 5), frames: 30};
+export const CAM_DRIFT: Spring = {curve: (u) => 0.6 * (1 - Math.pow(1 - u, 3)) + 0.4 * u, frames: 24};
+export const CAM_SPRINGS = {soft: CAM, fast: CAM_FAST, tap: CAM_TAP, slow: CAM_SLOW, snap: CAM_SNAP, snappy: CAM_SNAPPY, drift: CAM_DRIFT} as const;
 
-export const spr = (frame: number, at: number, config: Spring = SOFT) => spring({frame: frame - at, fps: FPS, config});
+const progress = (t: number, config: Spring): number => {
+  if (config.curve) return config.curve(clamp01(t / (config.frames ?? 24)));
+  return spring({frame: t, fps: FPS, config});
+};
+
+export const spr = (frame: number, at: number, config: Spring = SOFT) => progress(frame - at, config);
 
 export type Key = [frame: number, value: number, config?: Spring];
 
@@ -29,7 +38,7 @@ export const track = (f: number, keys: Key[], cfg: Spring = SOFT): number => {
     if (i === 0) return keys[0][1];
     const [kf, target, c] = keys[i];
     const from = valueAt(i - 1, kf);
-    return from + (target - from) * spring({frame: t - kf, fps: FPS, config: c ?? cfg});
+    return from + (target - from) * progress(t - kf, c ?? cfg);
   };
   let idx = 0;
   for (let i = 1; i < keys.length; i++) if (f >= keys[i][0]) idx = i;

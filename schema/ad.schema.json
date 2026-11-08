@@ -936,6 +936,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -1126,6 +1136,16 @@
                     "default": false,
                     "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                     "type": "boolean"
+                  },
+                  "stagger": {
+                    "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 30
+                    }
                   }
                 },
                 "required": [
@@ -1253,6 +1273,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -1375,6 +1405,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -1491,13 +1531,16 @@
                     },
                     "spring": {
                       "default": "soft",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
                       "type": "string",
                       "enum": [
                         "soft",
                         "fast",
                         "tap",
                         "slow",
-                        "snap"
+                        "snap",
+                        "snappy",
+                        "drift"
                       ]
                     },
                     "roll": {
@@ -1606,6 +1649,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -2136,13 +2189,16 @@
                     },
                     "spring": {
                       "default": "soft",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
                       "type": "string",
                       "enum": [
                         "soft",
                         "fast",
                         "tap",
                         "slow",
-                        "snap"
+                        "snap",
+                        "snappy",
+                        "drift"
                       ]
                     },
                     "roll": {
@@ -2252,6 +2308,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -2347,6 +2413,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -2490,13 +2566,16 @@
                     },
                     "spring": {
                       "default": "soft",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
                       "type": "string",
                       "enum": [
                         "soft",
                         "fast",
                         "tap",
                         "slow",
-                        "snap"
+                        "snap",
+                        "snappy",
+                        "drift"
                       ]
                     },
                     "roll": {
@@ -2609,6 +2688,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -2807,13 +2896,16 @@
                     },
                     "spring": {
                       "default": "soft",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
                       "type": "string",
                       "enum": [
                         "soft",
                         "fast",
                         "tap",
                         "slow",
-                        "snap"
+                        "snap",
+                        "snappy",
+                        "drift"
                       ]
                     },
                     "roll": {
@@ -2924,6 +3016,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -3029,6 +3131,16 @@
                     "default": false,
                     "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                     "type": "boolean"
+                  },
+                  "stagger": {
+                    "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 30
+                    }
                   }
                 },
                 "required": [
@@ -3125,13 +3237,16 @@
                     },
                     "spring": {
                       "default": "soft",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
                       "type": "string",
                       "enum": [
                         "soft",
                         "fast",
                         "tap",
                         "slow",
-                        "snap"
+                        "snap",
+                        "snappy",
+                        "drift"
                       ]
                     },
                     "roll": {
@@ -3240,6 +3355,16 @@
                       "default": false,
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
+                    },
+                    "stagger": {
+                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
                     }
                   },
                   "required": [
@@ -3314,6 +3439,16 @@
                     "default": false,
                     "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                     "type": "boolean"
+                  },
+                  "stagger": {
+                    "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 30
+                    }
                   }
                 },
                 "required": [

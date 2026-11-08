@@ -3,16 +3,18 @@ import {interpolate, useCurrentFrame} from 'remotion';
 import {useFonts} from './fonts';
 import {spr, ramp, clamp01, rgba, SNAP} from './anim';
 import {W} from '../model';
+import {wordCount, wordStarts} from '../../engine/reading';
 import {layoutTitle, parseLine, TITLE_LEFT, TITLE_LINE} from '../geometry';
 import type {Title as TitleSpec} from '../../spec/schema';
 
 /** Kinetic title. Words enter one after another; the block leaves at `outAt`. *word* is the serif italic accent. */
-export const Title: React.FC<{spec: TitleSpec; inAt: number; outAt?: number; color: string; accent: string; scrim?: string; stagger?: number}> = ({spec, inAt, outAt = 99999, color, accent, scrim, stagger = 3}) => {
+export const Title: React.FC<{spec: TitleSpec; inAt: number; outAt?: number; color: string; accent: string; scrim?: string}> = ({spec, inAt, outAt = 99999, color, accent, scrim}) => {
   const f = useCurrentFrame();
   const {sans, serif} = useFonts();
   if (f < inAt - 1 || f > outAt + 12) return null;
   const lay = layoutTitle(spec, W);
   const out = ramp(f, outAt, outAt + 8);
+  const starts = wordStarts(wordCount(spec.lines), spec.stagger);
   let wi = 0;
   const inK = spec.instant ? 1 : clamp01(spr(f, inAt, SNAP));
   return (
@@ -22,7 +24,7 @@ export const Title: React.FC<{spec: TitleSpec; inAt: number; outAt?: number; col
         {spec.lines.map((line, li) => (
           <div key={li} style={{whiteSpace: 'nowrap'}}>
             {parseLine(line).map((parts, i) => {
-              const p = spec.instant ? 1 : spr(f, inAt + wi * stagger, SNAP);
+              const p = spec.instant ? 1 : spr(f, inAt + (starts[wi] ?? 0), SNAP);
               wi++;
               return (
                 <span key={i} style={{display: 'inline-block', marginRight: '0.24em', opacity: clamp01(p * 1.4), transform: `translateY(${interpolate(p, [0, 1], [70, 0])}px) scale(${interpolate(p, [0, 1], [0.92, 1])})`, filter: p < 1 ? `blur(${(1 - clamp01(p)) * 10}px)` : undefined}}>

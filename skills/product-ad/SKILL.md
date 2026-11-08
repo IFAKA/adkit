@@ -25,6 +25,8 @@ If the `motion-design` skill is available, read it first and use it for the choi
 ## Camera and screens need a reason
 - Every camera move and every screen change has a visible cause (a tap, a typed word, a result appearing) and a purpose (to read something that just appeared). No zoom just because.
 - A push-in (a `fit` zoom, a zoom of 1.1 or more, or a focus on an element) must carry `why: 'reads: "3 min"'`. `adkit check` fails a push-in without `why` (check `camera-why`) and warns when it holds still for less than the reading time (`checks.appTextSeconds`). Hold it about 1.5 s, then pull back to the wide pose. A camera key's `at` can be any beat (4.75 is fine); with `whoosh: true` it must be a whole or half beat.
+- Camera `spring: snappy` (fast start, soft tail) for a push-in; `spring: drift` when another move or a held frame follows, so the camera does not stop dead.
+- Title `stagger: [2, 4, 4]` (frames between words, last repeats) when even gaps look mechanical; the first word should catch the eye.
 - When the story is about a map, keep the map in view: the phone shows the map in at least the top 40 % the whole time. Never open a bottom sheet to full height in the ad; use the half (peek) state. Show one interaction the way a person does it, in one phone: tap the tab, tap the pin, the card opens; do not fade to a different full-screen page. adkit cannot see the sheet state, so check this by looking at the tile.
 - Several services in a row: give each at least 0.8 s (24 frames) with its tab tap visible and its map with pins visible. Make the montage longer rather than faster.
 

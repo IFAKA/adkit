@@ -6,6 +6,13 @@ export const STAGGER = 3;
 export const SETTLE = 8;
 export const FADE_OUT = 8;
 
+/** Start frame of each word, counted from the title's first frame. `gaps` are the frames between words; the last value repeats. */
+export function wordStarts(words: number, gaps: number[] = [STAGGER]): number[] {
+  const out = [0];
+  for (let i = 1; i < words; i++) out.push(out[i - 1] + gaps[Math.min(i - 1, gaps.length - 1)]);
+  return out.slice(0, words);
+}
+
 export function wordCount(lines: string[]): number {
   return lines.join(' ').split(/[\s_]+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 }
@@ -24,7 +31,7 @@ export function readingRows(plan: Plan, spec: Ad): ReadingRow[] {
   }
   return ts.map((t) => {
     const words = wordCount(t.spec.lines);
-    const enter = t.spec.instant ? 0 : (words - 1) * STAGGER + SETTLE;
+    const enter = t.spec.instant ? 0 : (wordStarts(words, t.spec.stagger).pop() ?? 0) + SETTLE;
     const end = t.outAt ?? t.until;
     const visible = Math.max(0, end - (t.inAt + enter));
     const needed = Math.ceil((words / wordsPerSecond + noticeSeconds) * plan.fps);

@@ -194,6 +194,7 @@ export const Title = z.object({
   accent: hex.optional(),
   scrim: z.union([z.boolean(), hex]).default(false).describe('Soft gradient behind the text; true uses the paper colour.'),
   instant: z.boolean().default(false).describe('Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.'),
+  stagger: z.array(z.number().int().min(1).max(30)).min(1).optional().describe('Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.'),
 }).strict();
 
 const common = {
@@ -213,7 +214,7 @@ export const CameraKey = z.object({
     dy: z.number().default(0),
   }).strict().default({x: 195, dy: 0}),
   qy: z.number().default(1180).describe('Where on the frame (px from top) the focus point sits.'),
-  spring: z.enum(['soft', 'fast', 'tap', 'slow', 'snap']).default('soft'),
+  spring: z.enum(['soft', 'fast', 'tap', 'slow', 'snap', 'snappy', 'drift']).default('soft').describe('Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.'),
   roll: z.number().optional().describe('Camera roll in degrees; omit to keep the current roll.'),
   whoosh: z.boolean().default(false).describe('Emit a short whoosh cue at this move.'),
   why: z.string().optional().describe('Required on a push-in (a fit zoom, a zoom of 1.1 or more, or a focus on an element): what the viewer reads there, e.g. `reads: "3 min"`. A camera move needs a visible cause and a purpose; the check refuses a push-in without it and warns when it does not hold still long enough to be read.'),
