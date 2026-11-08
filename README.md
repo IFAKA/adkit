@@ -221,6 +221,17 @@ One line per step on screen; full output in `.adkit/logs/<step>.log`; non-zero e
 
 Duration, frame count, size, fps; every cue on the grid; loudness within 0.5 LU of the target (default -14 LUFS) and true peak at or below -1 dBTP; no title text in the Instagram unsafe zones (top 250 px, bottom 400 px), computed from the real layout boxes; minimum title size (64 px); no grey frames in warm sections (warning); every capture file present and every element box inside its page.
 
+Motion rules over the compiled plan (no pixels; each is a key under `checks:`, `false` turns it off). All warn, except that `cameraDeadStop.level: fail` makes the first one stop the check:
+
+| Check | Catches | Config (default) |
+| --- | --- | --- |
+| `camera-dead-stop` | a camera move that ends at zero speed and the next move starts more than N frames after it settles, or none follows while later blocks go on. The pull-out to a wide pose (zoom below 1.1), the last move and the moves the renderer adds itself are not reported. Use spring `drift` before a next move. | `cameraDeadStop: {frames: 6, level: warn}` |
+| `same-frame-start` | 3 or more titles (not `instant`), title `markers` or tap `reaction`s starting on one frame | `sameFrameStart: {count: 3}` |
+| `even-stagger` | 4 or more items with one identical gap: a `pop` step, or a title whose `stagger` list the author wrote (the default 3 frame gap is not reported) | `evenStagger: {count: 4}` |
+| `action-reaction` | a `tap` with no `press`, no `reaction` and no `screen` or `check` step within 3 frames (the default highlight ring does not count) | `actionReaction: {frames: 3}` |
+| `flat-background` | a scene over 60 frames whose `background` has `drift: 0` and `grain: 0`. The default studio backdrop already moves, so it is never reported. | `flatBackground: {frames: 60}` |
+| `motion-density` | more than 6 elements (titles, markers, camera moves, tapFlow steps; not chaos) starting to move within 10 frames | `motionDensity: {max: 6, window: 10}` |
+
 ## Determinism and caching
 
 - Same spec + same captures gives byte-identical video. No clocks, no `Math.random`; grain uses seeded random per frame; audio is synthesised with a fixed seed (numpy, no samples).

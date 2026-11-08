@@ -4571,7 +4571,27 @@
         "maxJump": 10,
         "minMotionFrames": 8,
         "maxSpike": 0.6,
-        "cuts": []
+        "cuts": [],
+        "cameraDeadStop": {
+          "frames": 6,
+          "level": "warn"
+        },
+        "sameFrameStart": {
+          "count": 3
+        },
+        "evenStagger": {
+          "count": 4
+        },
+        "actionReaction": {
+          "frames": 3
+        },
+        "flatBackground": {
+          "frames": 60
+        },
+        "motionDensity": {
+          "max": 6,
+          "window": 10
+        }
       },
       "type": "object",
       "properties": {
@@ -4626,6 +4646,168 @@
             "minimum": 1,
             "maximum": 9007199254740991
           }
+        },
+        "motionDensity": {
+          "default": {
+            "max": 6,
+            "window": 10
+          },
+          "description": "motion-density: warn when more than `max` elements (titles, markers, tap parts, camera moves, step effects) start to move within `window` frames. false = off.",
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "max": {
+                  "default": 6,
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                "window": {
+                  "default": 10,
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "flatBackground": {
+          "default": {
+            "frames": 60
+          },
+          "description": "flat-background: warn when a scene longer than `frames` has a `background` with drift 0 and grain 0 (nothing moves). The default studio backdrop is not flat (key light and drifting blobs), so it is never reported. false = off.",
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "frames": {
+                  "default": 60,
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "actionReaction": {
+          "default": {
+            "frames": 3
+          },
+          "description": "action-reaction: warn when a `tap` has no `press`, no `reaction` and no screen change or check within `frames` after it. false = off.",
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "frames": {
+                  "default": 3,
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "evenStagger": {
+          "default": {
+            "count": 4
+          },
+          "description": "even-stagger: warn when this many items arrive with one identical gap: a `pop` step, or a title whose `stagger` list the author wrote. The default 3 frame title stagger is not reported. false = off.",
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "default": 4,
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 9007199254740991
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "sameFrameStart": {
+          "default": {
+            "count": 3
+          },
+          "description": "same-frame-start: warn when this many titles, title markers or tap reactions start on the same frame (an `instant` title does not count). false = off.",
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "default": 3,
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 9007199254740991
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "cameraDeadStop": {
+          "default": {
+            "frames": 6,
+            "level": "warn"
+          },
+          "description": "camera-dead-stop: a camera move ends at zero speed and the next one starts more than `frames` later (or never, while the ad goes on). false = off. Not reported: the pull-out to a wide pose (zoom below 1.1) and the last move of the ad. Use the `drift` spring before a next move.",
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "frames": {
+                  "default": 6,
+                  "description": "Largest gap between a camera move settling and the next move starting.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "level": {
+                  "default": "warn",
+                  "description": "fail stops `adkit check`.",
+                  "type": "string",
+                  "enum": [
+                    "fail",
+                    "warn"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "additionalProperties": false
