@@ -8,6 +8,8 @@ description: Make a professional motion-design product ad video for any app with
 adkit does all repeated work (capture, timing, camera, render, audio, checks). You decide the creative parts and write `ad.yaml`. Read `README.md` (spec reference, blocks) and use `schema/ad.schema.json` for exact fields.
 
 ## You decide
+If the `motion-design` skill is available, read it first and use it for the choices below: rhythm and stagger, what a tap triggers, backgrounds and palette, and how one block hands off to the next. It does not replace the rules in this file.
+
 1. **Brief**: who watches, the one sentence they must remember, language, tone.
 2. **Story**: pick the blocks that fit this app. Rules: `chaos` (a problem pile-up, optional) first; `endCard` last; one `reveal` before the first phone block; `iconOpen` only after a `chaos` with `into: icon`. Everything else is free. A 15 s ad needs only `reveal`, `tapFlow`, `endCard`. Do not copy an example's story: chaos `look` (bubbles, cards, tabs, toasts), the `tapFlow` steps (tap, pop, type, pulse, swipe, lift, fly, badge, check, screen with a `transition`) and the proof blocks should come from what this app really does.
 3. **Brand and demo data**: invent a fictional brand and fake data. Never use a real client name, real customers, or real photos you do not have the right to use.
