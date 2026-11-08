@@ -10,6 +10,7 @@ import {build} from './build';
 import {readingRows, movingTextWarnings, pushInFindings, aboveTitleWarnings} from '../../engine/reading';
 import {frameDiffs, findJumps, smoothness, sequenceDiffs} from '../../engine/continuity';
 import {sameTakeFindings, takeSyncFindings} from '../../engine/take';
+import {cameraDeadStops} from '../../engine/rules';
 import {soundFindings} from '../../engine/sound-check';
 
 export const SAFE_TOP = 250;
@@ -168,6 +169,11 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   out.push({check: 'camera-why', ok: !pin.fails.length, msg: pin.fails.length ? pin.fails.join(' | ') : `${pin.count} push-ins, each with a reason`});
   for (const w of pin.warns) out.push({check: 'camera-why', ok: false, warn: true, msg: w});
   for (const w of aboveTitleWarnings(plan)) out.push({check: 'title-above', ok: false, warn: true, msg: w});
+  if (spec.checks.cameraDeadStop) {
+    const dead = cameraDeadStops(plan, spec);
+    if (!dead.length) out.push({check: 'camera-dead-stop', ok: true, msg: 'no camera move stops dead before the next one'});
+    for (const w of dead) out.push({check: 'camera-dead-stop', ok: false, warn: spec.checks.cameraDeadStop.level === 'warn', msg: w});
+  }
 
   // the video file
   const video = path.resolve(p.dir, opts.video ?? spec.output.file);
@@ -194,7 +200,7 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   let failed = 0;
   for (const c of out) {
     if (!c.ok && !c.warn) failed++;
-    p.rep.line('check', `${c.ok ? 'ok  ' : c.warn ? 'warn' : 'FAIL'} ${c.check.padEnd(11)} ${c.msg}`);
+    p.rep.line('check', `${c.ok ? 'ok  ' : c.warn ? 'warn' : 'FAIL'} ${c.check.padEnd(16)} ${c.msg}`);
     p.rep.detail('check', `${c.ok ? 'ok' : 'fail'} ${c.check}: ${c.msg}`);
   }
   p.rep.line('check', `${failed ? `${failed} failed` : 'all passed'} (${fmt((Date.now() - t0) / 1000)})`);

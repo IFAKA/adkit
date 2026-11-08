@@ -23,9 +23,16 @@ export const CAM_SNAPPY: Spring = {curve: (u) => 1 - Math.pow(1 - u, 5), frames:
 export const CAM_DRIFT: Spring = {curve: (u) => 0.6 * (1 - Math.pow(1 - u, 3)) + 0.4 * u, frames: 24};
 export const CAM_SPRINGS = {soft: CAM, fast: CAM_FAST, tap: CAM_TAP, slow: CAM_SLOW, snap: CAM_SNAP, snappy: CAM_SNAPPY, drift: CAM_DRIFT} as const;
 
-const progress = (t: number, config: Spring): number => {
+const progress = (t: number, config: Spring, fps = FPS): number => {
   if (config.curve) return config.curve(clamp01(t / (config.frames ?? 24)));
-  return spring({frame: t, fps: FPS, config});
+  return spring({frame: t, fps, config});
+};
+
+/** Frames until a move is within 1 % of its target, and its speed there (share of the move per frame; 0 = a dead stop). */
+export const settle = (config: Spring, fps = FPS): {frames: number; endSpeed: number} => {
+  let frames = 0;
+  for (let t = 0; t < 300; t++) if (Math.abs(1 - progress(t, config, fps)) > 0.01) frames = t + 1;
+  return {frames, endSpeed: progress(frames, config, fps) - progress(frames - 1, config, fps)};
 };
 
 export const spr = (frame: number, at: number, config: Spring = SOFT) => progress(frame - at, config);

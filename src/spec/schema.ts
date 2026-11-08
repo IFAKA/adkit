@@ -386,7 +386,11 @@ export const Checks = z.object({
   maxSpike: z.number().min(0.1).max(1).default(0.6).describe('live-smooth check: the biggest single-frame change of a recorded live sequence, as a share of its whole change.'),
   maxJump: z.number().min(1).max(255).default(10).describe('continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly. A rise that the next frame tops (a fast camera spring still speeding up) is not counted.'),
   cuts: z.array(z.number().int().min(1)).default([]).describe('continuity check: frames where a hard cut is intended (the frame that shows the new picture). They are not reported.'),
-}).strict().default({wordsPerSecond: 4, noticeSeconds: 0.5, appTextSeconds: 1.2, maxJump: 10, minMotionFrames: 8, maxSpike: 0.6, cuts: []});
+  cameraDeadStop: z.union([z.literal(false), z.object({
+    frames: z.number().int().min(0).default(6).describe('Largest gap between a camera move settling and the next move starting.'),
+    level: z.enum(['fail', 'warn']).default('warn').describe('fail stops `adkit check`.'),
+  }).strict()]).default({frames: 6, level: 'warn'}).describe('camera-dead-stop: a camera move ends at zero speed and the next one starts more than `frames` later (or never, while the ad goes on). false = off. Not reported: the pull-out to a wide pose (zoom below 1.1) and the last move of the ad. Use the `drift` spring before a next move.'),
+}).strict().default({wordsPerSecond: 4, noticeSeconds: 0.5, appTextSeconds: 1.2, maxJump: 10, minMotionFrames: 8, maxSpike: 0.6, cuts: [], cameraDeadStop: {frames: 6, level: 'warn'}});
 
 export const AdSpec = z.object({
   meta: Meta.default({fps: 30, width: 1080, height: 1920}),
