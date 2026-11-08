@@ -105,9 +105,9 @@ adkit never changes your app folder when `isolate: copy` (it works in `.adkit/wo
 
 Story order: `chaos` (optional) first, `endCard` last, `iconOpen` only right after a `chaos` with `into: icon`, one `reveal` before any other phone block. Everything else is free. A 15 s ad needs only `reveal`, `tapFlow`, `endCard`.
 
-**Camera feel.** A camera key has `spring:` `soft` (default), `fast`, `tap`, `slow`, `snap`, `snappy` or `drift`. `snappy` starts very fast and has a long soft tail. `drift` slows down but is still moving when it ends: use it for a move that is followed by another move or a held frame, so the camera never stops dead between them. The other names are springs.
+**Camera feel.** A camera key has `spring:` `snappy` (default) or `drift`. `snappy` starts very fast and has a long soft tail, then rests. `drift` slows down but is still moving when it ends: use it for a move that is followed by another move or a held frame, so the camera never stops dead between them.
 
-**Title stagger.** A title may have `stagger: [2, 4, 4]`: the frames between one word and the next. The last value repeats. Uneven gaps look less mechanical than the default 3 frames. The reading-time check counts the longer entrance.
+**Title words.** The words of a title always enter with uneven gaps: 2 frames after the first word, then 4, 4 and so on. The reading-time check counts that entrance.
 
 **Title layer.** A title is drawn under the phone, so a title that is still fading out while the phone moves is hidden by it. A camera push-in covers the title too. Set `above: true` on a title to draw it over the phone instead (keep it clear of the spot the camera looks at: `adkit check` warns as `title-above` when the title overlaps the camera's focus band, `qy` plus or minus 220 px).
 
@@ -116,7 +116,7 @@ Story order: `chaos` (optional) first, `endCard` last, `iconOpen` only right aft
 | step | fields | what it does (cue) |
 | --- | --- | --- |
 | `screen` | `at`, `screen`, `transition` (`slide` default, `cut`, `fade`, `zoom`, `sheet`), `sheetHeight`, `scroll`, `sticky` | Shows another captured screen. `sheet`: the bottom `sheetHeight` px of the new capture rises over the old screen (capture the page with the sheet open and pinned to the bottom). (swap, or whoosh for sheet) |
-| `tap` | `at`, `element`, `x`, `radius`, `press`, `highlight`, `reaction` | Finger tap with highlight (tap). `reaction: ripple` grows a ring out of the element; `reaction: burst` flashes it in the accent colour and settles (~10 frames). Both start on the tap frame and reuse the tap cue, so no new sound. Default `none`. |
+| `tap` | `at`, `element`, `x`, `radius`, `press`, `highlight`, `reaction` | Finger tap with highlight (tap). The tapped element always answers on the tap frame: `reaction: burst` (default) flashes it in the accent colour and settles (~10 frames); `reaction: ripple` grows a ring out of it; `reaction: none` gives no answer (the `action-reaction` check then wants a `press` or a screen change). No new sound: it reuses the tap cue. |
 | `lift` / `fly` | `element`, `tap`, `tapAt` / `to` | A card pops out, then flies to a target (pop, whoosh) |
 | `badge` | `element`, `count` | A count badge lands on an element (pop) |
 | `check` | `size` | Success check (chime) |
@@ -129,10 +129,8 @@ Examples: `examples/minimal/ad.yaml` (15 s), `examples/horno-lento/ad.yaml` (30 
 
 ### Background and title accents
 
-Both are off by default.
-
-- `background: {gradient: [4 hex colours], drift: 0.2, grain: 0.7}` (spec level; a scene can set its own `background`) replaces the studio backdrop with a soft gradient of blurred blobs that wander slowly, plus film grain. Without `gradient` it uses the brand colours. `drift` 0 holds still; `grain` 0 is clean, 0.5 is subtle, 0.7 is the usual look, 1 is harsh. It is deterministic, and a change re-renders the scenes.
-- A title's `markers: true` (or `{size: 26, color: "#hex"}`) adds four small squares on the corners of the title. They flicker on with an uneven frame pattern, each square a few frames apart, then hold. They are decoration: the safe-zone and title-size checks use the text box only, so keep the title away from the edges.
+- Every scene sits on a soft gradient of blurred blobs that wander slowly, plus film grain (`drift` 0.2, `grain` 0.7). `background: {gradient: [4 hex colours], drift, grain}` (spec level; a scene can set its own) only tunes it. Without `gradient` it is built from the brand colours. `drift` 0 holds still; `grain` 0 is clean, 0.5 is subtle, 0.7 is the usual look, 1 is harsh. It is deterministic, and a change re-renders the scenes.
+- A title may have `markers: true` (or `{size: 26, color: "#hex"}`) adds four small squares on the corners of the title. They flicker on with an uneven frame pattern, each square a few frames apart, then hold. They are decoration: the safe-zone and title-size checks use the text box only, so keep the title away from the edges.
 
 ## Sound
 
@@ -221,15 +219,15 @@ One line per step on screen; full output in `.adkit/logs/<step>.log`; non-zero e
 
 Duration, frame count, size, fps; every cue on the grid; loudness within 0.5 LU of the target (default -14 LUFS) and true peak at or below -1 dBTP; no title text in the Instagram unsafe zones (top 250 px, bottom 400 px), computed from the real layout boxes; minimum title size (64 px); no grey frames in warm sections (warning); every capture file present and every element box inside its page.
 
-Motion rules over the compiled plan (no pixels; each is a key under `checks:`, `false` turns it off). All warn, except that `cameraDeadStop.level: fail` makes the first one stop the check:
+Motion rules over the compiled plan (no pixels; each is a key under `checks:`, `false` turns it off). All warn, except `camera-dead-stop`, which fails the check (`cameraDeadStop.level: warn` turns it into a warning):
 
 | Check | Catches | Config (default) |
 | --- | --- | --- |
-| `camera-dead-stop` | a camera move that ends at zero speed and the next move starts more than N frames after it settles, or none follows while later blocks go on. The pull-out to a wide pose (zoom below 1.1), the last move and the moves the renderer adds itself are not reported. Use spring `drift` before a next move. | `cameraDeadStop: {frames: 6, level: warn}` |
+| `camera-dead-stop` | a camera move that ends at zero speed and the next move starts more than N frames after it settles, or none follows while later blocks go on. The pull-out to a wide pose (zoom below 1.1), the last move and the moves the renderer adds itself are not reported. Use spring `drift` before a next move. | `cameraDeadStop: {frames: 6, level: fail}` |
 | `same-frame-start` | 3 or more titles (not `instant`), title `markers` or tap `reaction`s starting on one frame | `sameFrameStart: {count: 3}` |
-| `even-stagger` | 4 or more items with one identical gap: a `pop` step, or a title whose `stagger` list the author wrote (the default 3 frame gap is not reported) | `evenStagger: {count: 4}` |
-| `action-reaction` | a `tap` with no `press`, no `reaction` and no `screen` or `check` step within 3 frames (the default highlight ring does not count) | `actionReaction: {frames: 3}` |
-| `flat-background` | a scene over 60 frames whose `background` has `drift: 0` and `grain: 0`. The default studio backdrop already moves, so it is never reported. | `flatBackground: {frames: 60}` |
+| `even-stagger` | 4 or more items with one identical gap in a `pop` step (title words already use uneven gaps) | `evenStagger: {count: 4}` |
+| `action-reaction` | a `tap` with `reaction: none`, no `press` and no `screen` or `check` step within 3 frames | `actionReaction: {frames: 3}` |
+| `flat-background` | a scene over 60 frames whose background has `drift: 0` and `grain: 0` | `flatBackground: {frames: 60}` |
 | `motion-density` | more than 6 elements (titles, markers, camera moves, tapFlow steps; not chaos) starting to move within 10 frames | `motionDensity: {max: 6, window: 10}` |
 
 ## Determinism and caching

@@ -1,7 +1,7 @@
 import type {Plan, Placed} from '../engine/plan';
 import type {Ad, BlockSpec} from '../spec/schema';
 import type {CaptureManifest, RenderProps} from './types';
-import {CAM, CAM_FAST, CAM_SLOW, CAM_SNAP, CAM_SPRINGS, setFps, type Key, type Spring} from './lib/anim';
+import {CAM, CAM_SLOW, CAM_SPRINGS, setFps, type Key, type Spring} from './lib/anim';
 
 export const SCREEN_W = 390;
 export const SCREEN_H = 844;
@@ -399,7 +399,7 @@ export function buildModel(props: RenderProps): Model {
       }
       if (typeof k.focus.x === 'number') sx = k.focus.x;
       shots.push({f, zoom, sx, sy, qy: k.qy, spring: CAM_SPRINGS[k.spring]});
-      if (k.roll !== undefined) m.roll.push([f, k.roll, CAM_SPRINGS[k.spring] === CAM_SPRINGS.soft ? CAM : CAM]);
+      if (k.roll !== undefined) m.roll.push([f, k.roll, CAM]);
     }
   });
   m.shots = shots.sort((a, b) => a.f - b.f);

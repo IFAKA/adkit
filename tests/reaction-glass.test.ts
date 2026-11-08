@@ -28,8 +28,15 @@ describe('tap reaction', () => {
     expect(l.reactions[0].style).toBe('ripple');
   });
 
-  it('adds nothing when reaction is unset', () => {
+  it('is a burst when the author sets nothing', () => {
     const m = modelWith([{type: 'screen', at: 0.5, screen: 'shop'}, {type: 'tap', at: 2, element: 'addButton'}]);
+    const rs = m.layers.flatMap((l) => l.reactions);
+    expect(rs).toHaveLength(1);
+    expect(rs[0].style).toBe('burst');
+  });
+
+  it('adds nothing for reaction none', () => {
+    const m = modelWith([{type: 'screen', at: 0.5, screen: 'shop'}, {type: 'tap', at: 2, element: 'addButton', reaction: 'none'}]);
     expect(m.layers.every((l) => l.reactions.length === 0)).toBe(true);
   });
 

@@ -855,11 +855,15 @@
       "additionalProperties": false
     },
     "background": {
-      "description": "A soft multi-colour gradient with slow drift and film grain behind every scene. Off by default (the studio backdrop).",
+      "default": {
+        "drift": 0.2,
+        "grain": 0.7
+      },
+      "description": "The backdrop of every scene is a soft multi-colour gradient with slow drift and film grain. This only tunes it: `gradient` colours, `drift` and `grain` (0 is allowed for both).",
       "type": "object",
       "properties": {
         "gradient": {
-          "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+          "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
           "minItems": 2,
           "maxItems": 6,
           "type": "array",
@@ -968,16 +972,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -1016,11 +1010,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -1229,16 +1223,6 @@
                     "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                     "type": "boolean"
                   },
-                  "stagger": {
-                    "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 30
-                    }
-                  },
                   "above": {
                     "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                     "type": "boolean"
@@ -1396,16 +1380,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -1444,11 +1418,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -1589,16 +1563,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -1637,11 +1601,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -1774,15 +1738,10 @@
                       "type": "number"
                     },
                     "spring": {
-                      "default": "soft",
-                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
+                      "default": "snappy",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail; it comes to rest. drift: slows down but keeps moving at the end (use it when another move or a held frame follows, so the camera does not stop dead).",
                       "type": "string",
                       "enum": [
-                        "soft",
-                        "fast",
-                        "tap",
-                        "slow",
-                        "snap",
                         "snappy",
                         "drift"
                       ]
@@ -1894,16 +1853,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -1942,11 +1891,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -2290,8 +2239,8 @@
                           "type": "boolean"
                         },
                         "reaction": {
-                          "default": "none",
-                          "description": "What the tapped element does back, starting on the tap frame. ripple = a ring grows out of the element; burst = a soft flash in the accent colour (up and back in ~10 frames).",
+                          "default": "burst",
+                          "description": "What the tapped element does back, starting on the tap frame. burst = a soft flash in the accent colour (up and back in ~10 frames); ripple = a ring grows out of the element; none = no answer (the check warns unless a press, screen change or check follows).",
                           "type": "string",
                           "enum": [
                             "none",
@@ -2503,15 +2452,10 @@
                       "type": "number"
                     },
                     "spring": {
-                      "default": "soft",
-                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
+                      "default": "snappy",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail; it comes to rest. drift: slows down but keeps moving at the end (use it when another move or a held frame follows, so the camera does not stop dead).",
                       "type": "string",
                       "enum": [
-                        "soft",
-                        "fast",
-                        "tap",
-                        "slow",
-                        "snap",
                         "snappy",
                         "drift"
                       ]
@@ -2624,16 +2568,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -2672,11 +2606,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -2790,16 +2724,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -2838,11 +2762,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -3007,15 +2931,10 @@
                       "type": "number"
                     },
                     "spring": {
-                      "default": "soft",
-                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
+                      "default": "snappy",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail; it comes to rest. drift: slows down but keeps moving at the end (use it when another move or a held frame follows, so the camera does not stop dead).",
                       "type": "string",
                       "enum": [
-                        "soft",
-                        "fast",
-                        "tap",
-                        "slow",
-                        "snap",
                         "snappy",
                         "drift"
                       ]
@@ -3131,16 +3050,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -3179,11 +3088,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -3398,15 +3307,10 @@
                       "type": "number"
                     },
                     "spring": {
-                      "default": "soft",
-                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
+                      "default": "snappy",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail; it comes to rest. drift: slows down but keeps moving at the end (use it when another move or a held frame follows, so the camera does not stop dead).",
                       "type": "string",
                       "enum": [
-                        "soft",
-                        "fast",
-                        "tap",
-                        "slow",
-                        "snap",
                         "snappy",
                         "drift"
                       ]
@@ -3520,16 +3424,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -3568,11 +3462,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -3695,16 +3589,6 @@
                     "default": false,
                     "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                     "type": "boolean"
-                  },
-                  "stagger": {
-                    "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 30
-                    }
                   },
                   "above": {
                     "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
@@ -3830,15 +3714,10 @@
                       "type": "number"
                     },
                     "spring": {
-                      "default": "soft",
-                      "description": "Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.",
+                      "default": "snappy",
+                      "description": "Feel of the move. snappy: very fast start, long soft tail; it comes to rest. drift: slows down but keeps moving at the end (use it when another move or a held frame follows, so the camera does not stop dead).",
                       "type": "string",
                       "enum": [
-                        "soft",
-                        "fast",
-                        "tap",
-                        "slow",
-                        "snap",
                         "snappy",
                         "drift"
                       ]
@@ -3950,16 +3829,6 @@
                       "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                       "type": "boolean"
                     },
-                    "stagger": {
-                      "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 30
-                      }
-                    },
                     "above": {
                       "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
                       "type": "boolean"
@@ -3998,11 +3867,11 @@
                 }
               },
               "background": {
-                "description": "Replaces the spec-level background for this scene.",
+                "description": "Tuning of the gradient background for this scene; replaces the spec-level one.",
                 "type": "object",
                 "properties": {
                   "gradient": {
-                    "description": "Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).",
+                    "description": "Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).",
                     "minItems": 2,
                     "maxItems": 6,
                     "type": "array",
@@ -4094,16 +3963,6 @@
                     "default": false,
                     "description": "Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.",
                     "type": "boolean"
-                  },
-                  "stagger": {
-                    "description": "Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.",
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 30
-                    }
                   },
                   "above": {
                     "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
@@ -4574,7 +4433,7 @@
         "cuts": [],
         "cameraDeadStop": {
           "frames": 6,
-          "level": "warn"
+          "level": "fail"
         },
         "sameFrameStart": {
           "count": 3
@@ -4632,7 +4491,7 @@
         },
         "maxJump": {
           "default": 10,
-          "description": "continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly. A rise that the next frame tops (a fast camera spring still speeding up) is not counted.",
+          "description": "continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly. A rise that the next frame tops (a camera move still speeding up) is not counted.",
           "type": "number",
           "minimum": 1,
           "maximum": 255
@@ -4682,7 +4541,7 @@
           "default": {
             "frames": 60
           },
-          "description": "flat-background: warn when a scene longer than `frames` has a `background` with drift 0 and grain 0 (nothing moves). The default studio backdrop is not flat (key light and drifting blobs), so it is never reported. false = off.",
+          "description": "flat-background: warn when a scene longer than `frames` has a background with drift 0 and grain 0 (nothing moves). false = off.",
           "anyOf": [
             {
               "type": "boolean",
@@ -4706,7 +4565,7 @@
           "default": {
             "frames": 3
           },
-          "description": "action-reaction: warn when a `tap` has no `press`, no `reaction` and no screen change or check within `frames` after it. false = off.",
+          "description": "action-reaction: warn when a `tap` has `reaction: none`, no `press` and no screen change or check within `frames` after it. false = off.",
           "anyOf": [
             {
               "type": "boolean",
@@ -4730,7 +4589,7 @@
           "default": {
             "count": 4
           },
-          "description": "even-stagger: warn when this many items arrive with one identical gap: a `pop` step, or a title whose `stagger` list the author wrote. The default 3 frame title stagger is not reported. false = off.",
+          "description": "even-stagger: warn when this many items arrive with one identical gap: a `pop` step. false = off.",
           "anyOf": [
             {
               "type": "boolean",
@@ -4777,7 +4636,7 @@
         "cameraDeadStop": {
           "default": {
             "frames": 6,
-            "level": "warn"
+            "level": "fail"
           },
           "description": "camera-dead-stop: a camera move ends at zero speed and the next one starts more than `frames` later (or never, while the ad goes on). false = off. Not reported: the pull-out to a wide pose (zoom below 1.1) and the last move of the ad. Use the `drift` spring before a next move.",
           "anyOf": [
@@ -4796,7 +4655,7 @@
                   "maximum": 9007199254740991
                 },
                 "level": {
-                  "default": "warn",
+                  "default": "fail",
                   "description": "fail stops `adkit check`.",
                   "type": "string",
                   "enum": [

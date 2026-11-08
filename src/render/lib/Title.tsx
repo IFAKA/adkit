@@ -14,7 +14,7 @@ export const Title: React.FC<{spec: TitleSpec; inAt: number; outAt?: number; col
   if (f < inAt - 1 || f > outAt + 12) return null;
   const lay = layoutTitle(spec, W);
   const out = ramp(f, outAt, outAt + 8);
-  const starts = wordStarts(wordCount(spec.lines), spec.stagger);
+  const starts = wordStarts(wordCount(spec.lines));
   let wi = 0;
   const inK = spec.instant ? 1 : clamp01(spr(f, inAt, SNAP));
   const mk = spec.markers ? (spec.markers === true ? {size: 26, color: undefined} : spec.markers) : undefined;

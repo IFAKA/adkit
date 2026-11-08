@@ -21,7 +21,7 @@ describe('camera-dead-stop', () => {
     ];
   };
   it('flags a move that stops dead and waits before the next one', () => {
-    const {spec, plan} = edit((s) => keys(s, 'fast', 6));
+    const {spec, plan} = edit((s) => keys(s, 'snappy', 6));
     const w = cameraDeadStops(plan, spec);
     expect(w).toHaveLength(1);
     expect(w[0]).toContain('zero speed');
@@ -29,11 +29,11 @@ describe('camera-dead-stop', () => {
   it('accepts drift, or a next move that starts right after it settles', () => {
     let r = edit((s) => keys(s, 'drift', 6));
     expect(cameraDeadStops(r.plan, r.spec)).toEqual([]);
-    r = edit((s) => keys(s, 'fast', 3));
+    r = edit((s) => keys(s, 'snappy', 3));
     expect(cameraDeadStops(r.plan, r.spec)).toEqual([]);
   });
   it('flags a last move that stops while a later block goes on, but not a pull-out to the wide pose', () => {
-    const r = edit((s) => { flow(s).camera = [{...flow(s).camera[0], at: 2}]; });
+    const r = edit((s) => { flow(s).camera = [{...flow(s).camera[0], at: 2, spring: 'snappy'}]; });
     const blocks = r.plan.blocks.slice(0, 2);
     const later = {...r.plan.blocks[1], id: 'later', kind: 'notification' as const, start: 300, end: 360};
     const plan = {...r.plan, blocks: [...blocks, later]};
@@ -46,7 +46,7 @@ describe('camera-dead-stop', () => {
     expect(cameraDeadStops(plan, spec)).toEqual([]);
   });
   it('can be turned off', () => {
-    const {spec, plan} = edit((s) => { keys(s, 'fast', 6); s.checks.cameraDeadStop = false; });
+    const {spec, plan} = edit((s) => { keys(s, 'snappy', 6); s.checks.cameraDeadStop = false; });
     expect(cameraDeadStops(plan, spec)).toEqual([]);
   });
 });
@@ -75,19 +75,8 @@ describe('same-frame-start', () => {
 });
 
 describe('even-stagger', () => {
-  const words = (s: Ad, stagger?: number[]) => { flow(s).titles[0] = {...flow(s).titles[0], lines: ['one two three four five'], stagger}; };
-  it('flags 4 or more words with an explicit equal gap', () => {
-    const {spec, plan} = edit((s) => words(s, [4]));
-    const w = evenStaggers(plan, spec);
-    expect(w).toHaveLength(1);
-    expect(w[0]).toContain('4 frames apart');
-  });
-  it('accepts uneven gaps, the default gap, and short titles', () => {
-    for (const st of [[2, 4, 4], undefined]) {
-      const r = edit((s) => words(s, st));
-      expect(evenStaggers(r.plan, r.spec)).toEqual([]);
-    }
-    const r = edit((s) => { words(s, [4]); flow(s).titles[0].lines = ['one two three']; });
+  it('never blames title words: they always enter with the built-in uneven gaps', () => {
+    const r = edit((s) => { flow(s).titles[0] = {...flow(s).titles[0], lines: ['one two three four five six']}; });
     expect(evenStaggers(r.plan, r.spec)).toEqual([]);
   });
   it('flags a pop step of 4 elements and can be turned off', () => {
@@ -101,24 +90,29 @@ describe('even-stagger', () => {
 
 describe('action-reaction', () => {
   const tapOf = (s: Ad, element: string) => flow(s).steps.find((x) => x.type === 'tap' && x.element === element) as {press: boolean; reaction: string};
-  it('flags a tap with no press, reaction, screen change or check after it', () => {
-    const {spec, plan} = edit(() => {});
+  const none = (s: Ad) => { tapOf(s, 'timeChip').reaction = 'none'; };
+  it('flags a tap with reaction none and no press, screen change or check after it', () => {
+    const {spec, plan} = edit(none);
     const w = actionReactions(plan, spec);
     expect(w).toHaveLength(1);
     expect(w[0]).toContain('"timeChip"');
   });
-  it('accepts a press, a reaction option, or a screen change right after the tap', () => {
-    for (const f of [(s: Ad) => { tapOf(s, 'timeChip').press = true; }, (s: Ad) => { tapOf(s, 'timeChip').reaction = 'ripple'; }, (s: Ad) => { flow(s).steps.push({type: 'screen', at: 8, screen: 'thanks'} as never); }]) {
+  it('does not flag a tap that has the default reaction', () => {
+    const {spec, plan} = edit(() => {});
+    expect(actionReactions(plan, spec)).toEqual([]);
+  });
+  it('accepts a press, or a screen change right after a tap with reaction none', () => {
+    for (const f of [(s: Ad) => { none(s); tapOf(s, 'timeChip').press = true; }, (s: Ad) => { none(s); flow(s).steps.push({type: 'screen', at: 8, screen: 'thanks'} as never); }]) {
       const r = edit(f);
       expect(actionReactions(r.plan, r.spec)).toEqual([]);
     }
   });
   it('skips blocks that show a recorded take', () => {
-    const {spec, plan} = edit(() => {});
+    const {spec, plan} = edit(none);
     expect(actionReactions(plan, spec, (ref) => ref === 'shop')).toEqual([]);
   });
   it('can be turned off', () => {
-    const {spec, plan} = edit((s) => { s.checks.actionReaction = false; });
+    const {spec, plan} = edit((s) => { none(s); s.checks.actionReaction = false; });
     expect(actionReactions(plan, spec)).toEqual([]);
   });
 });
@@ -130,7 +124,7 @@ describe('flat-background', () => {
     expect(w.length).toBeGreaterThan(0);
     expect(w[0]).toContain('never moves');
   });
-  it('does not flag the studio backdrop, a moving gradient, a scene-level override or a short scene', () => {
+  it('does not flag the default backdrop, a moving gradient, a scene-level override or a short scene', () => {
     expect(flatBackgrounds(edit(() => {}).plan, edit(() => {}).spec)).toEqual([]);
     expect(flatBackgrounds(edit((s) => { s.background = {drift: 0.2, grain: 0.7}; }).plan, edit((s) => { s.background = {drift: 0.2, grain: 0.7}; }).spec)).toEqual([]);
     const r = edit((s) => { s.background = {drift: 0, grain: 0}; s.scenes.forEach((b) => { b.background = {drift: 0, grain: 0.5}; }); });

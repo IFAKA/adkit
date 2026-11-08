@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {AdSpec, Title} from '../src/spec/schema';
+import {Background, Title} from '../src/spec/schema';
 import {gradientLayers} from '../src/render/lib/gradient';
 import {markerOpacity, markerBoxes, MARKER_OFFSETS, layoutTitle} from '../src/render/geometry';
 import {segmentKey} from '../src/cli/cache';
@@ -28,18 +28,17 @@ describe('gradient background', () => {
     const bg = {gradient: COLORS, drift: 0, grain: 0.7};
     expect(gradientLayers(bg, 5).grain).not.toEqual(gradientLayers(bg, 6).grain);
   });
-  it('is off by default and defaults drift and grain when given empty', () => {
+  it('is always on: drift 0.2 and grain 0.7 unless the author tunes them', () => {
     const { spec } = load('minimal');
-    expect(spec.background).toBeUndefined();
-    const s = clone(spec);
-    s.background = AdSpec.shape.background.unwrap().parse({});
-    expect(s.background).toMatchObject({drift: 0.2, grain: 0.7});
-    expect(s.background!.gradient).toBeUndefined();
+    expect(spec.background).toMatchObject({drift: 0.2, grain: 0.7});
+    expect(spec.background.gradient).toBeUndefined();
+    expect(Background.parse({})).toMatchObject({drift: 0.2, grain: 0.7});
+    expect(Background.parse({drift: 0, grain: 0})).toMatchObject({drift: 0, grain: 0});
   });
   it('changes the scene cache key', () => {
     const { spec, plan } = load('minimal');
     const s = clone(spec);
-    s.background = AdSpec.shape.background.unwrap().parse({grain: 0.5});
+    s.background = Background.parse({grain: 0.5});
     expect(segmentKey(s, plan, 0, undefined, 'e')).not.toBe(segmentKey(spec, plan, 0, undefined, 'e'));
   });
 });
@@ -59,7 +58,7 @@ describe('flicker markers', () => {
     expect(new Set(per).size).toBe(4);
     expect(MARKER_OFFSETS.map((o) => markerOpacity(100, o))).toEqual([1, 1, 1, 1]);
   });
-  it('is off by default and does not change the title box', () => {
+  it('has no corner marks unless asked, and they do not change the title box', () => {
     const t = Title.parse({lines: ['Hello there']});
     expect(t.markers).toBe(false);
     const on = Title.parse({lines: ['Hello there'], markers: true});

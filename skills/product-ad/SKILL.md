@@ -25,9 +25,9 @@ If the `motion-design` skill is available, read it first and use it for the choi
 ## Camera and screens need a reason
 - Every camera move and every screen change has a visible cause (a tap, a typed word, a result appearing) and a purpose (to read something that just appeared). No zoom just because.
 - A push-in (a `fit` zoom, a zoom of 1.1 or more, or a focus on an element) must carry `why: 'reads: "3 min"'`. `adkit check` fails a push-in without `why` (check `camera-why`) and warns when it holds still for less than the reading time (`checks.appTextSeconds`). Hold it about 1.5 s, then pull back to the wide pose. A camera key's `at` can be any beat (4.75 is fine); with `whoosh: true` it must be a whole or half beat.
-- Camera `spring: snappy` (fast start, soft tail) for a push-in; `spring: drift` when another move or a held frame follows, so the camera does not stop dead.
-- Title `stagger: [2, 4, 4]` (frames between words, last repeats) when even gaps look mechanical; the first word should catch the eye.
-- `adkit check` also warns on motion that looks mechanical: `camera-dead-stop` (a camera move that stops dead before the next; use spring `drift`), `same-frame-start`, `even-stagger`, `action-reaction` (a tap with no press or `reaction`), `flat-background`, `motion-density` (too many things start moving together).
+- Camera `spring: snappy` (the default: fast start, soft tail) for a push-in that ends in a hold; `spring: drift` when another move or a held frame follows, so the camera does not stop dead. `adkit check` fails a camera move that stops dead and waits more than 6 frames for the next one.
+- Title words enter with built-in uneven gaps; you set nothing.
+- `adkit check` also warns on motion that looks mechanical: `camera-dead-stop` (a camera move that stops dead before the next; use spring `drift`), `same-frame-start`, `even-stagger`, `action-reaction` (a tap with `reaction: none` and no press), `flat-background`, `motion-density` (too many things start moving together).
 - Titles sit under the phone, so a push-in hides them. To keep a title readable during a push-in set `above: true` on it and keep its `y` away from the camera's `qy` (check `title-above` warns).
 - When the story is about a map, keep the map in view: the phone shows the map in at least the top 40 % the whole time. Never open a bottom sheet to full height in the ad; use the half (peek) state. Show one interaction the way a person does it, in one phone: tap the tab, tap the pin, the card opens; do not fade to a different full-screen page. adkit cannot see the sheet state, so check this by looking at the tile.
 - Several services in a row: give each at least 0.8 s (24 frames) with its tab tap visible and its map with pins visible. Make the montage longer rather than faster.
@@ -56,7 +56,7 @@ adkit check ad.yaml       # fix every FAIL
 adkit tile ad.yaml        # then LOOK at .adkit/tiles/sheet.png (Read the PNG)
 adkit tile ad.yaml --from 120 --to 240   # zoom on one part
 ```
-Optional look: `background: {gradient: [...], drift, grain: 0.7}` for a soft moving gradient with film grain behind the scenes (use when the flat paper backdrop feels plain; keep title colours readable on it). A title's `markers: true` adds flickering corner squares (use on one hero title, not every title).
+Look: every scene has a soft moving gradient with film grain behind it. `background: {gradient: [...], drift, grain}` only tunes it (defaults drift 0.2, grain 0.7; keep title colours readable on it). A title's `markers: true` adds flickering corner squares (use on one hero title, not every title).
 Review the tile like a viewer: is the first second a hook, is each title readable and off the top 250 px / bottom 400 px, does every scene show one thing, does the end card hold long enough. Fix the spec, re-render (cached, fast), look again. Stop when the check passes and the tile looks professional.
 
 ## Speed
@@ -65,4 +65,4 @@ Review the tile like a viewer: is the first second a hook, is each title readabl
 - Paste these rules into every delegated agent prompt that runs capture or render.
 - Mark a capture screen `independent: true` (first step a goto, needs no state from earlier screens) so it is shot beside the others in its own browser. Frames inside one take stay in order.
 - Check that a speed change keeps the frames: `scripts/speed-same.sh DIR_A DIR_B` (pixel compare). `ADKIT_SLOW_SHOT=1` and `ADKIT_SERIAL=1` switch the fast paths off.
-- `tap` `reaction: ripple|burst`: use on the one tap that matters (a pay or add button) so the element answers the finger on the same frame. `notification` `banner.glass: true`: use when the banner sits over a busy or coloured screen and should look like frosted glass.
+- `tap` always answers the finger on the same frame (`reaction: burst` by default). Use `reaction: ripple` for a button that should send out a ring, and `reaction: none` only when a press or a screen change answers. `notification` `banner.glass: true`: use when the banner sits over a busy or coloured screen and should look like frosted glass.

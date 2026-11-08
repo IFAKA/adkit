@@ -194,13 +194,12 @@ export const Title = z.object({
   accent: hex.optional(),
   scrim: z.union([z.boolean(), hex]).default(false).describe('Soft gradient behind the text; true uses the paper colour.'),
   instant: z.boolean().default(false).describe('Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.'),
-  stagger: z.array(z.number().int().min(1).max(30)).min(1).optional().describe('Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.'),
   above: z.boolean().optional().describe('Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.'),
   markers: z.union([z.boolean(), z.object({size: z.number().min(8).max(80).default(26), color: hex.optional().describe('Default: the title colour.')}).strict()]).default(false).describe('Four small squares on the corners of the title that flicker on with an uneven frame pattern, then hold. true = size 26, title colour. They are decoration: the safe-zone and title-size checks use the text box only.'),
 }).strict();
 
 export const Background = z.object({
-  gradient: z.array(hex).min(2).max(6).optional().describe('Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).'),
+  gradient: z.array(hex).min(2).max(6).optional().describe('Colours of the soft moving blobs. Default: built from the brand colours (paper, glow, the scene accent).'),
   drift: z.number().min(0).max(2).default(0.2).describe('How fast the blobs wander. 0 = still, 0.2 = slow, 1 = clearly moving.'),
   grain: z.number().min(0).max(1).default(0.7).describe('Film grain on the background. 0 = none, 0.5 is subtle, 0.7 is the usual look, 1 is harsh.'),
 }).strict();
@@ -209,7 +208,7 @@ const common = {
   id: z.string().regex(/^[A-Za-z][A-Za-z0-9_-]*$/).optional().describe('Name used in cue names and error messages (default: block name + index).'),
   bars: z.number().min(0).describe('Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter.'),
   titles: z.array(Title).default([]),
-  background: Background.optional().describe('Replaces the spec-level background for this scene.'),
+  background: Background.optional().describe('Tuning of the gradient background for this scene; replaces the spec-level one.'),
 };
 
 export const CameraKey = z.object({
@@ -223,7 +222,7 @@ export const CameraKey = z.object({
     dy: z.number().default(0),
   }).strict().default({x: 195, dy: 0}),
   qy: z.number().default(1180).describe('Where on the frame (px from top) the focus point sits.'),
-  spring: z.enum(['soft', 'fast', 'tap', 'slow', 'snap', 'snappy', 'drift']).default('soft').describe('Feel of the move. snappy: very fast start, long soft tail. drift: slows down but keeps moving at the end (use before another move or a held frame). The others are springs.'),
+  spring: z.enum(['snappy', 'drift']).default('snappy').describe('Feel of the move. snappy: very fast start, long soft tail; it comes to rest. drift: slows down but keeps moving at the end (use it when another move or a held frame follows, so the camera does not stop dead).'),
   roll: z.number().optional().describe('Camera roll in degrees; omit to keep the current roll.'),
   whoosh: z.boolean().default(false).describe('Emit a short whoosh cue at this move.'),
   why: z.string().optional().describe('Required on a push-in (a fit zoom, a zoom of 1.1 or more, or a focus on an element): what the viewer reads there, e.g. `reads: "3 min"`. A camera move needs a visible cause and a purpose; the check refuses a push-in without it and warns when it does not hold still long enough to be read.'),
@@ -259,7 +258,7 @@ const TapFlowStep = z.discriminatedUnion('type', [
     type: z.literal('swipe'), at: posBeat, from: str, to: str, beats: beat.refine((n) => n > 0, 'beats must be more than 0').default(1),
     scroll: z.number().optional().describe('Also scroll the page by this many px while the finger moves (the finger stays on the same content point; `to` then only sets where it ends sideways).'),
   }).strict(),
-  z.object({type: z.literal('tap'), at: posBeat, element: str, x: z.number().min(0).max(1).default(0.5).describe('Where along the element width the finger lands.'), radius: z.number().default(16), press: z.boolean().default(false).describe('Pop the element out and press it.'), highlight: z.boolean().default(true), reaction: z.enum(['none', 'ripple', 'burst']).default('none').describe('What the tapped element does back, starting on the tap frame. ripple = a ring grows out of the element; burst = a soft flash in the accent colour (up and back in ~10 frames).'), pan: z.number().optional()}).strict(),
+  z.object({type: z.literal('tap'), at: posBeat, element: str, x: z.number().min(0).max(1).default(0.5).describe('Where along the element width the finger lands.'), radius: z.number().default(16), press: z.boolean().default(false).describe('Pop the element out and press it.'), highlight: z.boolean().default(true), reaction: z.enum(['none', 'ripple', 'burst']).default('burst').describe('What the tapped element does back, starting on the tap frame. burst = a soft flash in the accent colour (up and back in ~10 frames); ripple = a ring grows out of the element; none = no answer (the check warns unless a press, screen change or check follows).'), pan: z.number().optional()}).strict(),
   z.object({type: z.literal('lift'), at: posBeat, element: str, tap: str.optional().describe('Element of the lifted card the finger presses.'), tapAt: posBeat.optional()}).strict(),
   z.object({type: z.literal('fly'), at: posBeat, to: str.describe('Element the lifted card flies into (e.g. the cart icon).')}).strict(),
   z.object({type: z.literal('badge'), at: posBeat, element: str, count: z.number().int().default(1)}).strict(),
@@ -384,25 +383,25 @@ export const Checks = z.object({
   appTextSeconds: z.number().min(0).max(5).default(1.2).describe('App text the story depends on (a camera push-in target) should stay still on screen this long.'),
   minMotionFrames: z.number().int().min(1).default(8).describe('live-smooth check: a recorded live sequence must have at least this many frames that visibly move.'),
   maxSpike: z.number().min(0.1).max(1).default(0.6).describe('live-smooth check: the biggest single-frame change of a recorded live sequence, as a share of its whole change.'),
-  maxJump: z.number().min(1).max(255).default(10).describe('continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly. A rise that the next frame tops (a fast camera spring still speeding up) is not counted.'),
+  maxJump: z.number().min(1).max(255).default(10).describe('continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly. A rise that the next frame tops (a camera move still speeding up) is not counted.'),
   cuts: z.array(z.number().int().min(1)).default([]).describe('continuity check: frames where a hard cut is intended (the frame that shows the new picture). They are not reported.'),
   motionDensity: z.union([z.literal(false), z.object({max: z.number().int().min(1).default(6), window: z.number().int().min(1).default(10)}).strict()]).default({max: 6, window: 10}).describe('motion-density: warn when more than `max` elements (titles, markers, tap parts, camera moves, step effects) start to move within `window` frames. false = off.'),
-  flatBackground: z.union([z.literal(false), z.object({frames: z.number().int().min(1).default(60)}).strict()]).default({frames: 60}).describe('flat-background: warn when a scene longer than `frames` has a `background` with drift 0 and grain 0 (nothing moves). The default studio backdrop is not flat (key light and drifting blobs), so it is never reported. false = off.'),
-  actionReaction: z.union([z.literal(false), z.object({frames: z.number().int().min(0).default(3)}).strict()]).default({frames: 3}).describe('action-reaction: warn when a `tap` has no `press`, no `reaction` and no screen change or check within `frames` after it. false = off.'),
-  evenStagger: z.union([z.literal(false), z.object({count: z.number().int().min(2).default(4)}).strict()]).default({count: 4}).describe('even-stagger: warn when this many items arrive with one identical gap: a `pop` step, or a title whose `stagger` list the author wrote. The default 3 frame title stagger is not reported. false = off.'),
+  flatBackground: z.union([z.literal(false), z.object({frames: z.number().int().min(1).default(60)}).strict()]).default({frames: 60}).describe('flat-background: warn when a scene longer than `frames` has a background with drift 0 and grain 0 (nothing moves). false = off.'),
+  actionReaction: z.union([z.literal(false), z.object({frames: z.number().int().min(0).default(3)}).strict()]).default({frames: 3}).describe('action-reaction: warn when a `tap` has `reaction: none`, no `press` and no screen change or check within `frames` after it. false = off.'),
+  evenStagger: z.union([z.literal(false), z.object({count: z.number().int().min(2).default(4)}).strict()]).default({count: 4}).describe('even-stagger: warn when this many items arrive with one identical gap: a `pop` step. false = off.'),
   sameFrameStart: z.union([z.literal(false), z.object({count: z.number().int().min(2).default(3)}).strict()]).default({count: 3}).describe('same-frame-start: warn when this many titles, title markers or tap reactions start on the same frame (an `instant` title does not count). false = off.'),
   cameraDeadStop: z.union([z.literal(false), z.object({
     frames: z.number().int().min(0).default(6).describe('Largest gap between a camera move settling and the next move starting.'),
-    level: z.enum(['fail', 'warn']).default('warn').describe('fail stops `adkit check`.'),
-  }).strict()]).default({frames: 6, level: 'warn'}).describe('camera-dead-stop: a camera move ends at zero speed and the next one starts more than `frames` later (or never, while the ad goes on). false = off. Not reported: the pull-out to a wide pose (zoom below 1.1) and the last move of the ad. Use the `drift` spring before a next move.'),
-}).strict().default({wordsPerSecond: 4, noticeSeconds: 0.5, appTextSeconds: 1.2, maxJump: 10, minMotionFrames: 8, maxSpike: 0.6, cuts: [], cameraDeadStop: {frames: 6, level: 'warn'}, sameFrameStart: {count: 3}, evenStagger: {count: 4}, actionReaction: {frames: 3}, flatBackground: {frames: 60}, motionDensity: {max: 6, window: 10}});
+    level: z.enum(['fail', 'warn']).default('fail').describe('fail stops `adkit check`.'),
+  }).strict()]).default({frames: 6, level: 'fail'}).describe('camera-dead-stop: a camera move ends at zero speed and the next one starts more than `frames` later (or never, while the ad goes on). false = off. Not reported: the pull-out to a wide pose (zoom below 1.1) and the last move of the ad. Use the `drift` spring before a next move.'),
+}).strict().default({wordsPerSecond: 4, noticeSeconds: 0.5, appTextSeconds: 1.2, maxJump: 10, minMotionFrames: 8, maxSpike: 0.6, cuts: [], cameraDeadStop: {frames: 6, level: 'fail'}, sameFrameStart: {count: 3}, evenStagger: {count: 4}, actionReaction: {frames: 3}, flatBackground: {frames: 60}, motionDensity: {max: 6, window: 10}});
 
 export const AdSpec = z.object({
   meta: Meta.default({fps: 30, width: 1080, height: 1920}),
   brief: Brief,
   brand: Brand,
   capture: Capture,
-  background: Background.optional().describe('A soft multi-colour gradient with slow drift and film grain behind every scene. Off by default (the studio backdrop).'),
+  background: Background.default({drift: 0.2, grain: 0.7}).describe('The backdrop of every scene is a soft multi-colour gradient with slow drift and film grain. This only tunes it: `gradient` colours, `drift` and `grain` (0 is allowed for both).'),
   scenes: z.array(Block).min(1),
   sound: Sound.default({sounds: {}, cues: {}, mix: {loudness: {lufs: -14, truePeak: -1.5}, duckMusic: 0, musicGain: 0}, seed: 21}),
   output: Output,

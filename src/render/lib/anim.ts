@@ -13,15 +13,13 @@ export const SNAP: Spring = {damping: 20, stiffness: 220, mass: 0.8};
 export const BOUNCY: Spring = {damping: 9, stiffness: 180, mass: 0.8};
 export const HEAVY: Spring = {damping: 18, stiffness: 70, mass: 1.3};
 
+/** The renderer's own camera moves (opening push, end card pull-out, skins) and the roll. */
 export const CAM: Spring = {damping: 22, stiffness: 55, mass: 1.3};
-export const CAM_FAST: Spring = {damping: 20, stiffness: 130, mass: 0.9};
-export const CAM_TAP: Spring = {damping: 22, stiffness: 160, mass: 0.8};
 export const CAM_SLOW: Spring = {damping: 30, stiffness: 20, mass: 1.5};
-export const CAM_SNAP: Spring = {damping: 40, stiffness: 400, mass: 0.5};
-/** snappy: very fast start, long soft tail. drift: slows down but keeps moving when it ends (use before another move or a held frame). */
-export const CAM_SNAPPY: Spring = {curve: (u) => 1 - Math.pow(1 - u, 5), frames: 30};
-export const CAM_DRIFT: Spring = {curve: (u) => 0.6 * (1 - Math.pow(1 - u, 3)) + 0.4 * u, frames: 24};
-export const CAM_SPRINGS = {soft: CAM, fast: CAM_FAST, tap: CAM_TAP, slow: CAM_SLOW, snap: CAM_SNAP, snappy: CAM_SNAPPY, drift: CAM_DRIFT} as const;
+/** The two feels an author can pick. snappy (default): fast start (full speed after about 5 frames, so the first frame is not a jump), long soft tail. drift: slows down but keeps moving when it ends (use before another move or a held frame). */
+export const CAM_SNAPPY: Spring = {curve: (u) => 1 - Math.pow(1 - Math.pow(u, 1.5), 5), frames: 30};
+export const CAM_DRIFT: Spring = {curve: (u) => { const w = Math.pow(u, 1.5); return 0.6 * (1 - Math.pow(1 - w, 3)) + 0.4 * w; }, frames: 24};
+export const CAM_SPRINGS = {snappy: CAM_SNAPPY, drift: CAM_DRIFT} as const;
 
 const progress = (t: number, config: Spring, fps = FPS): number => {
   if (config.curve) return config.curve(clamp01(t / (config.frames ?? 24)));

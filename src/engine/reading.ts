@@ -2,15 +2,15 @@ import type {Ad} from '../spec/schema';
 import type {Plan, PlacedTitle} from './plan';
 import {layoutTitle} from '../render/geometry';
 
-/** Frames a title takes to enter: words come in 3 frames apart, then the last one settles. `instant` titles do not enter. */
-export const STAGGER = 3;
+/** Frames between one word and the next: a short first gap, then longer ones; the last value repeats. Uneven gaps read as handmade, not mechanical. */
+export const WORD_GAPS = [2, 4, 4];
+/** Frames the last word needs to settle. `instant` titles do not enter. */
 export const SETTLE = 8;
-export const FADE_OUT = 8;
 
-/** Start frame of each word, counted from the title's first frame. `gaps` are the frames between words; the last value repeats. */
-export function wordStarts(words: number, gaps: number[] = [STAGGER]): number[] {
+/** Start frame of each word, counted from the title's first frame. */
+export function wordStarts(words: number): number[] {
   const out = [0];
-  for (let i = 1; i < words; i++) out.push(out[i - 1] + gaps[Math.min(i - 1, gaps.length - 1)]);
+  for (let i = 1; i < words; i++) out.push(out[i - 1] + WORD_GAPS[Math.min(i - 1, WORD_GAPS.length - 1)]);
   return out.slice(0, words);
 }
 
@@ -32,7 +32,7 @@ export function readingRows(plan: Plan, spec: Ad): ReadingRow[] {
   }
   return ts.map((t) => {
     const words = wordCount(t.spec.lines);
-    const enter = t.spec.instant ? 0 : (wordStarts(words, t.spec.stagger).pop() ?? 0) + SETTLE;
+    const enter = t.spec.instant ? 0 : (wordStarts(words).pop() ?? 0) + SETTLE;
     const end = t.outAt ?? t.until;
     const visible = Math.max(0, end - (t.inAt + enter));
     const needed = Math.ceil((words / wordsPerSecond + noticeSeconds) * plan.fps);

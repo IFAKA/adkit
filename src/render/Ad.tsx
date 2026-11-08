@@ -52,7 +52,7 @@ const SceneBackdrop: React.FC<{m: Model; block?: Model['plan']['blocks'][number]
       const ring = ramp(f, sk.swaps[idx], sk.swaps[idx] + 14);
       return (
         <>
-          <Backdrop bg={bg} base={base} light={light} blob={a} blobOpacity={0.45} par={par} photo={photo} />
+          <Backdrop bg={bg} base={base} light={light} blob={a} par={par} photo={photo} />
           <AbsoluteFill>
             <div style={{position: 'absolute', left: 540 - 520 * ring, top: 1210 - 520 * ring, width: 1040 * ring, height: 1040 * ring, borderRadius: '50%', border: `${6 * (1 - ring)}px solid ${rgba('#FFFFFF', 0.8 * (1 - ring))}`}} />
           </AbsoluteFill>

@@ -41,7 +41,7 @@ scenes:                      # lengths are in bars (4 beats = 2 s at 120 BPM); a
       - {type: tap, at: 3, element: buyButton, press: true}
       - {type: screen, at: 5, screen: done}
     camera:
-      - {at: 2.5, zoom: 1.7, focus: {element: buyButton}, qy: 1200, spring: fast, whoosh: true}
+      - {at: 2.5, zoom: 1.7, focus: {element: buyButton}, qy: 1200, whoosh: true}
 
   - block: endCard
     bars: 3
