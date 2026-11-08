@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {clone, load} from './helpers';
 import {compile} from '../src/engine/compile';
-import {cameraDeadStops, sameFrameStarts, evenStaggers, actionReactions} from '../src/engine/rules';
+import {cameraDeadStops, sameFrameStarts, evenStaggers, actionReactions, flatBackgrounds} from '../src/engine/rules';
 import type {Ad} from '../src/spec/schema';
 
 /** The minimal example with a change to its spec, compiled again. */
@@ -116,5 +116,26 @@ describe('action-reaction', () => {
   it('can be turned off', () => {
     const {spec, plan} = edit((s) => { s.checks.actionReaction = false; });
     expect(actionReactions(plan, spec)).toEqual([]);
+  });
+});
+
+describe('flat-background', () => {
+  it('flags a long scene on a background with no drift and no grain', () => {
+    const {spec, plan} = edit((s) => { s.background = {drift: 0, grain: 0}; });
+    const w = flatBackgrounds(plan, spec);
+    expect(w.length).toBeGreaterThan(0);
+    expect(w[0]).toContain('never moves');
+  });
+  it('does not flag the studio backdrop, a moving gradient, a scene-level override or a short scene', () => {
+    expect(flatBackgrounds(edit(() => {}).plan, edit(() => {}).spec)).toEqual([]);
+    expect(flatBackgrounds(edit((s) => { s.background = {drift: 0.2, grain: 0.7}; }).plan, edit((s) => { s.background = {drift: 0.2, grain: 0.7}; }).spec)).toEqual([]);
+    const r = edit((s) => { s.background = {drift: 0, grain: 0}; s.scenes.forEach((b) => { b.background = {drift: 0, grain: 0.5}; }); });
+    expect(flatBackgrounds(r.plan, r.spec)).toEqual([]);
+    const q = edit((s) => { s.background = {drift: 0, grain: 0}; });
+    expect(flatBackgrounds(q.plan, {...q.spec, checks: {...q.spec.checks, flatBackground: {frames: 1000}}})).toEqual([]);
+  });
+  it('can be turned off', () => {
+    const {spec, plan} = edit((s) => { s.background = {drift: 0, grain: 0}; s.checks.flatBackground = false; });
+    expect(flatBackgrounds(plan, spec)).toEqual([]);
   });
 });

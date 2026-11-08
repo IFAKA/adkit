@@ -94,3 +94,14 @@ export function actionReactions(plan: Plan, spec: Ad): string[] {
   }
   return warns;
 }
+
+/** The studio backdrop (key light, three drifting blobs, vignette) always moves, so only a `background` with drift 0 and grain 0 is flat. Chaos scenes draw their own. */
+export function flatBackgrounds(plan: Plan, spec: Ad): string[] {
+  const cfg = spec.checks.flatBackground;
+  if (!cfg) return [];
+  return plan.blocks.flatMap((b) => {
+    const bg = (b.spec as {background?: Ad['background']}).background ?? spec.background;
+    if (b.kind === 'chaos' || b.end - b.start <= cfg.frames || !bg || bg.drift > 0 || bg.grain > 0) return [];
+    return [`${b.id}: ${b.end - b.start} frames on a background that never moves (drift 0, grain 0). Give it a little \`drift\` and \`grain\` (0.2 and 0.7 are the defaults).`];
+  });
+}
