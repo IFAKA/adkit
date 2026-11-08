@@ -56,14 +56,15 @@ scenes:
       - {lines: ["Scroll the *list.*"], at: 17, to: 21.5, size: 112, scrim: true}
     steps:
       - {type: type, at: 1, element: searchText, text: "pharmacy open now", beats: 3}
-      - {type: pop, at: 5, elements: [pin1, pin2, pin3, pin4], stagger: 0.5, style: pin, under: map-bare}
+      - {type: pop, at: 5, elements: [pin1, pin2], stagger: 0.5, style: pin, under: map-bare}
+      - {type: pop, at: 6, elements: [pin3, pin4], stagger: 1, style: pin, under: map-bare}
       - {type: pulse, at: 8, element: locate, count: 2}
       - {type: screen, at: 11, screen: sheet, transition: sheet, sheetHeight: 460}
       - {type: tap, at: 13, element: go, radius: 27, press: true}
       - {type: screen, at: 15, screen: list, transition: fade}
       - {type: swipe, at: 17, from: row6, to: row6, beats: 2, scroll: 360}
     camera:
-      - {at: 1, zoom: 1.5, focus: {element: searchText}, qy: 1100, spring: fast, why: 'reads: searchText'}
+      - {at: 1, zoom: 1.5, focus: {element: searchText}, qy: 1100, why: 'reads: searchText'}
       - {at: 5, zoom: 1.0, focus: {y: 422}, qy: 1180}
       - {at: 12, zoom: 1.25, focus: {y: 600}, qy: 1180, why: 'reads: the part of the screen in view'}
 

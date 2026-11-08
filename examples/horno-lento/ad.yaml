@@ -85,16 +85,16 @@ scenes:
       - {type: check, at: 14}
       - {type: screen, at: 14.5, screen: confirmation}
     camera:
-      - {at: 3, zoom: {fit: productCard, fraction: 0.75}, focus: {element: productCard, x: element}, qy: 1210, spring: fast, whoosh: true, why: 'reads: productCard'}
-      - {at: 5, offset: -2, zoom: 1.5, focus: {y: 230}, qy: 1150, why: 'reads: the part of the screen in view'}
-      - {at: 8, zoom: 1.9, focus: {element: branchChip}, qy: 1180, spring: fast, roll: 0.5, whoosh: true, why: 'reads: branchChip'}
-      - {at: 8.5, offset: -6, zoom: 1.9, focus: {element: branchChip}, qy: 1180, spring: tap, why: 'reads: branchChip'}
-      - {at: 9.5, offset: -6, zoom: 1.9, focus: {element: dayChip}, qy: 1180, spring: tap, why: 'reads: dayChip'}
-      - {at: 10.5, offset: -6, zoom: 1.9, focus: {element: timeChip}, qy: 1180, spring: tap, why: 'reads: timeChip'}
-      - {at: 11.5, offset: -6, zoom: 1.9, focus: {element: payButton, dy: -50}, qy: 1190, spring: tap, why: 'reads: payButton'}
-      - {at: 12.5, zoom: 1.05, qy: 1060, spring: fast, roll: -0.4, whoosh: true}
-      - {at: 14, offset: 2, zoom: 1.5, qy: 1180, why: 'reads: the part of the screen in view'}
-      - {at: 14.5, offset: 4, zoom: 1.33, focus: {y: 300}, qy: 1150, roll: 0, why: 'reads: the part of the screen in view'}
+      - {at: 3, zoom: {fit: productCard, fraction: 0.75}, focus: {element: productCard, x: element}, qy: 1210, spring: drift, whoosh: true, why: 'reads: productCard'}
+      - {at: 5, offset: -2, zoom: 1.5, focus: {y: 230}, qy: 1150, spring: drift, why: 'reads: the part of the screen in view'}
+      - {at: 8, zoom: 1.9, focus: {element: branchChip}, qy: 1180, roll: 0.5, whoosh: true, why: 'reads: branchChip'}
+      - {at: 8.5, offset: -6, zoom: 1.9, focus: {element: branchChip}, qy: 1180, why: 'reads: branchChip'}
+      - {at: 9.5, offset: -6, zoom: 1.9, focus: {element: dayChip}, qy: 1180, why: 'reads: dayChip'}
+      - {at: 10.5, offset: -6, zoom: 1.9, focus: {element: timeChip}, qy: 1180, why: 'reads: timeChip'}
+      - {at: 11.5, offset: -6, zoom: 1.9, focus: {element: payButton, dy: -50}, qy: 1190, why: 'reads: payButton'}
+      - {at: 12.5, zoom: 1.05, qy: 1060, roll: -0.4, whoosh: true}
+      - {at: 14, offset: 2, zoom: 1.5, qy: 1180, spring: drift, why: 'reads: the part of the screen in view'}
+      - {at: 14.5, offset: 4, zoom: 1.33, focus: {y: 300}, qy: 1150, roll: 0, spring: drift, why: 'reads: the part of the screen in view'}
 
   # 5. Whip pan to the owner's phone.
   - {block: whip, to: owner}
@@ -112,7 +112,7 @@ scenes:
     titles:
       - {lines: ["Vos solo", "*horneás.*"], at: 2, to: 11, size: 124, scrim: true}
     camera:
-      - {at: 3.5, offset: 6, zoom: 1.8, focus: {element: "freshBadge+newOrderCard"}, qy: 1190, why: 'reads: freshBadge+newOrderCard'}
+      - {at: 3.5, offset: 6, zoom: 1.8, focus: {element: "freshBadge+newOrderCard"}, qy: 1190, spring: drift, why: 'reads: freshBadge+newOrderCard'}
 
   - block: statCountUp
     id: sales
@@ -123,8 +123,8 @@ scenes:
     card: revenueCard
     chart: {element: chartArea, at: 4}
     camera:
-      - {at: 0.5, zoom: 2.0, focus: {element: revenueNumber, dy: 20}, qy: 1180, spring: fast, whoosh: true, why: 'reads: revenueNumber'}
-      - {at: 3, offset: 6, zoom: 1.33, focus: {element: chartArea}, qy: 1180, why: 'reads: chartArea'}
+      - {at: 0.5, zoom: 2.0, focus: {element: revenueNumber, dy: 20}, qy: 1180, spring: drift, whoosh: true, why: 'reads: revenueNumber'}
+      - {at: 3, offset: 6, zoom: 1.33, focus: {element: chartArea}, qy: 1180, spring: drift, why: 'reads: chartArea'}
 
   # 7. Same shop, new colours.
   - block: skins
