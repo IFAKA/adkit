@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {clone, load} from './helpers';
 import {compile} from '../src/engine/compile';
-import {cameraDeadStops, sameFrameStarts, evenStaggers} from '../src/engine/rules';
+import {cameraDeadStops, sameFrameStarts, evenStaggers, actionReactions} from '../src/engine/rules';
 import type {Ad} from '../src/spec/schema';
 
 /** The minimal example with a change to its spec, compiled again. */
@@ -96,5 +96,25 @@ describe('even-stagger', () => {
     expect(evenStaggers(plan, spec)).toHaveLength(1);
     const o = edit((s) => { pop(s); s.checks.evenStagger = false; });
     expect(evenStaggers(o.plan, o.spec)).toEqual([]);
+  });
+});
+
+describe('action-reaction', () => {
+  const tapOf = (s: Ad, element: string) => flow(s).steps.find((x) => x.type === 'tap' && x.element === element) as {press: boolean; reaction: string};
+  it('flags a tap with no press, reaction, screen change or check after it', () => {
+    const {spec, plan} = edit(() => {});
+    const w = actionReactions(plan, spec);
+    expect(w).toHaveLength(1);
+    expect(w[0]).toContain('"timeChip"');
+  });
+  it('accepts a press, a reaction option, or a screen change right after the tap', () => {
+    for (const f of [(s: Ad) => { tapOf(s, 'timeChip').press = true; }, (s: Ad) => { tapOf(s, 'timeChip').reaction = 'ripple'; }, (s: Ad) => { flow(s).steps.push({type: 'screen', at: 8, screen: 'thanks'} as never); }]) {
+      const r = edit(f);
+      expect(actionReactions(r.plan, r.spec)).toEqual([]);
+    }
+  });
+  it('can be turned off', () => {
+    const {spec, plan} = edit((s) => { s.checks.actionReaction = false; });
+    expect(actionReactions(plan, spec)).toEqual([]);
   });
 });

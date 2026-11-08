@@ -10,7 +10,7 @@ import {build} from './build';
 import {readingRows, movingTextWarnings, pushInFindings, aboveTitleWarnings} from '../../engine/reading';
 import {frameDiffs, findJumps, smoothness, sequenceDiffs} from '../../engine/continuity';
 import {sameTakeFindings, takeSyncFindings} from '../../engine/take';
-import {cameraDeadStops, sameFrameStarts, evenStaggers} from '../../engine/rules';
+import {cameraDeadStops, sameFrameStarts, evenStaggers, actionReactions} from '../../engine/rules';
 import {soundFindings} from '../../engine/sound-check';
 
 export const SAFE_TOP = 250;
@@ -181,6 +181,7 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   };
   rule('same-frame-start', spec.checks.sameFrameStart, sameFrameStarts(plan, spec), 'no 3 title or accent items start on one frame');
   rule('even-stagger', spec.checks.evenStagger, evenStaggers(plan, spec), 'no 4 staggered items share one gap');
+  rule('action-reaction', spec.checks.actionReaction, actionReactions(plan, spec), 'every tap has a visible reaction');
 
   // the video file
   const video = path.resolve(p.dir, opts.video ?? spec.output.file);

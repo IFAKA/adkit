@@ -40,7 +40,7 @@ export function cameraDeadStops(plan: Plan, spec: Ad): string[] {
   return warns;
 }
 
-type Step = {type: string; at: number; reaction?: string; press?: boolean; stagger?: number; elements?: string[]; screen?: string};
+type Step = {type: string; element?: string; at: number; reaction?: string; press?: boolean; stagger?: number; elements?: string[]; screen?: string};
 const stepsOf = (b: {spec: unknown}) => ((b.spec as {steps?: Step[]}).steps ?? []);
 
 /** Accent items that begin on one frame look like one blob, not a sequence: titles (not `instant`), their markers and tap reactions. */
@@ -74,5 +74,23 @@ export function evenStaggers(plan: Plan, spec: Ad): string[] {
     const starts = s.elements.map((_, e) => Math.round((s.at + e * s.stagger!) * plan.beat));
     if (same(starts, 1)) warns.push(`${b.id}: the ${starts.length} elements of pop step ${i + 1} all appear ${starts[1] - starts[0]} frames apart. Split the step in two, or change \`stagger\` and the order.`);
   });
+  return warns;
+}
+
+/** A tap needs an answer the viewer sees: a press dip, a `reaction`, or a screen change or check within `frames` after it. (The default tap highlight is a ring, not an answer.) */
+export function actionReactions(plan: Plan, spec: Ad): string[] {
+  const cfg = spec.checks.actionReaction;
+  if (!cfg) return [];
+  const warns: string[] = [];
+  for (const b of plan.blocks) {
+    const steps = stepsOf(b);
+    const frame = (s: Step) => b.start + Math.round(s.at * plan.beat);
+    for (const s of steps) {
+      if (s.type !== 'tap' || s.press || (s.reaction && s.reaction !== 'none')) continue;
+      const f = frame(s);
+      if (steps.some((x) => (x.type === 'screen' || x.type === 'check') && frame(x) >= f && frame(x) <= f + cfg.frames)) continue;
+      warns.push(`${b.id}: the tap on "${s.element}" at frame ${f} has no reaction within ${cfg.frames} frames. Add \`press: true\` or \`reaction: ripple\`/\`burst\`.`);
+    }
+  }
   return warns;
 }
