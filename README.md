@@ -127,6 +127,13 @@ Story order: `chaos` (optional) first, `endCard` last, `iconOpen` only right aft
 
 Examples: `examples/minimal/ad.yaml` (15 s), `examples/horno-lento/ad.yaml` (30 s, a shop app, most blocks) and `examples/steps/ad.yaml` (20 s, a fake map app: chaos `cards`, `type`, `pop` with `under`, `pulse`, `sheet` and `fade` transitions, `swipe` with scroll, `endCard.note`).
 
+### Background and title accents
+
+Both are off by default.
+
+- `background: {gradient: [4 hex colours], drift: 0.2, grain: 0.7}` (spec level; a scene can set its own `background`) replaces the studio backdrop with a soft gradient of blurred blobs that wander slowly, plus film grain. Without `gradient` it uses the brand colours. `drift` 0 holds still; `grain` 0 is clean, 0.5 is subtle, 0.7 is the usual look, 1 is harsh. It is deterministic, and a change re-renders the scenes.
+- A title's `markers: true` (or `{size: 26, color: "#hex"}`) adds four small squares on the corners of the title. They flicker on with an uneven frame pattern, each square a few frames apart, then hold. They are decoration: the safe-zone and title-size checks use the text box only, so keep the title away from the edges.
+
 ## Sound
 
 adkit has **no default sounds and no default song**. Every ad carries its own music and its own sounds, written for that product, as data in `ad.yaml` (or a `sound.yaml` it points to). The sounds are synthesised, so nothing is licensed.

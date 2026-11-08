@@ -196,12 +196,20 @@ export const Title = z.object({
   instant: z.boolean().default(false).describe('Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.'),
   stagger: z.array(z.number().int().min(1).max(30)).min(1).optional().describe('Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.'),
   above: z.boolean().optional().describe('Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.'),
+  markers: z.union([z.boolean(), z.object({size: z.number().min(8).max(80).default(26), color: hex.optional().describe('Default: the title colour.')}).strict()]).default(false).describe('Four small squares on the corners of the title that flicker on with an uneven frame pattern, then hold. true = size 26, title colour. They are decoration: the safe-zone and title-size checks use the text box only.'),
+}).strict();
+
+export const Background = z.object({
+  gradient: z.array(hex).min(2).max(6).optional().describe('Colours of the soft moving blobs. Default: the brand colours (paper, glow, the scene accent, paperDeep).'),
+  drift: z.number().min(0).max(2).default(0.2).describe('How fast the blobs wander. 0 = still, 0.2 = slow, 1 = clearly moving.'),
+  grain: z.number().min(0).max(1).default(0.7).describe('Film grain on the background. 0 = none, 0.5 is subtle, 0.7 is the usual look, 1 is harsh.'),
 }).strict();
 
 const common = {
   id: z.string().regex(/^[A-Za-z][A-Za-z0-9_-]*$/).optional().describe('Name used in cue names and error messages (default: block name + index).'),
   bars: z.number().min(0).describe('Length in bars; a whole number of beats (4/4: multiples of 0.25; 3/4: multiples of 1/3; 6/8: multiples of 1/6). The compiler checks it against the meter.'),
   titles: z.array(Title).default([]),
+  background: Background.optional().describe('Replaces the spec-level background for this scene.'),
 };
 
 export const CameraKey = z.object({
@@ -385,6 +393,7 @@ export const AdSpec = z.object({
   brief: Brief,
   brand: Brand,
   capture: Capture,
+  background: Background.optional().describe('A soft multi-colour gradient with slow drift and film grain behind every scene. Off by default (the studio backdrop).'),
   scenes: z.array(Block).min(1),
   sound: Sound.default({sounds: {}, cues: {}, mix: {loudness: {lufs: -14, truePeak: -1.5}, duckMusic: 0, musicGain: 0}, seed: 21}),
   output: Output,
@@ -394,4 +403,5 @@ export const AdSpec = z.object({
 export type AdSpecInput = z.input<typeof AdSpec>;
 export type Ad = z.infer<typeof AdSpec>;
 export type Title = z.infer<typeof Title>;
+export type Background = z.infer<typeof Background>;
 export type CameraKey = z.infer<typeof CameraKey>;

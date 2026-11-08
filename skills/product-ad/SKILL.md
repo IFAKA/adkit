@@ -55,6 +55,7 @@ adkit check ad.yaml       # fix every FAIL
 adkit tile ad.yaml        # then LOOK at .adkit/tiles/sheet.png (Read the PNG)
 adkit tile ad.yaml --from 120 --to 240   # zoom on one part
 ```
+Optional look: `background: {gradient: [...], drift, grain: 0.7}` for a soft moving gradient with film grain behind the scenes (use when the flat paper backdrop feels plain; keep title colours readable on it). A title's `markers: true` adds flickering corner squares (use on one hero title, not every title).
 Review the tile like a viewer: is the first second a hook, is each title readable and off the top 250 px / bottom 400 px, does every scene show one thing, does the end card hold long enough. Fix the spec, re-render (cached, fast), look again. Stop when the check passes and the tile looks professional.
 
 ## Speed

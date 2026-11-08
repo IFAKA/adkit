@@ -72,3 +72,18 @@ export function layoutBoxes(plan: Plan, _spec?: Ad, _manifest?: CaptureManifest)
     return {frame: pt.inAt, kind: 'title' as const, block: pt.block, box: l.box, fontSize: l.fontSize};
   });
 }
+
+/** Frame offsets of the four corner squares, so they do not flicker together. */
+export const MARKER_OFFSETS = [0, 2, 1, 3];
+/** Frames (after a square's start) at which its opacity flips: on at 0, then off, on, off ... ends on. */
+const MARKER_FLIPS = [1, 2, 4, 5, 8, 10, 11, 12];
+
+/** Flicker accent opacity (0 or 1) of one square `start` frames in: 100, then 0/100 with uneven gaps, then hold. */
+export function markerOpacity(f: number, start: number): number {
+  if (f < start) return 0;
+  return MARKER_FLIPS.filter((k) => f - start >= k).length % 2 === 0 ? 1 : 0;
+}
+
+/** The four squares (top-left, top-right, bottom-right, bottom-left), centred on the corners of a title box. */
+export const markerBoxes = (box: {x: number; y: number; w: number; h: number}, size: number) =>
+  [[box.x, box.y], [box.x + box.w, box.y], [box.x + box.w, box.y + box.h], [box.x, box.y + box.h]].map(([cx, cy]) => ({x: Math.round(cx - size / 2), y: Math.round(cy - size / 2), size}));

@@ -50,6 +50,7 @@ export function segmentKey(spec: Ad, plan: Plan, index: number, manifest: Manife
   const slice = {
     meta: spec.meta,
     brand: spec.brand,
+    background: spec.background,
     layout: plan.blocks.map((x) => [x.kind, x.start, x.end]),
     range: [b.start, b.end],
     block: b.spec,

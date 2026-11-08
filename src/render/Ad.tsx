@@ -3,6 +3,7 @@ import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {DraftCtx, MotionBlur} from './lib/Blur';
 import {buildModel, type Model} from './model';
 import type {RenderProps} from './types';
+import type {Background} from '../spec/schema';
 import {ColorsProvider} from './lib/colors';
 import {FontsCtx, loadBrandFonts} from './lib/fonts';
 import {Finish} from './lib/Finish';
@@ -27,14 +28,15 @@ const SceneBackdrop: React.FC<{m: Model; block?: Model['plan']['blocks'][number]
   const cur = vis[vis.length - 1] ?? m.layers[0];
   const accent = cur ? m.themeOf(cur.ref.set).accent : m.mainTheme.accent;
   const photo = m.photo;
+  const bg = (b.spec as {background?: Background}).background ?? m.spec.background;
   const par = b.kind === 'endCard' ? undefined : parallax(cam);
   switch (b.kind) {
     case 'reveal':
     case 'tapFlow':
-      return <Backdrop base={c.paper} light={c.glow} blob={accent} par={par} photo={photo} />;
+      return <Backdrop bg={bg} base={c.paper} light={c.glow} blob={accent} par={par} photo={photo} />;
     case 'notification':
     case 'statCountUp':
-      return <Backdrop base={mix(c.paper, c.paperDeep, 0.5)} light={c.glow} blob={accent} par={par} photo={photo} />;
+      return <Backdrop bg={bg} base={mix(c.paper, c.paperDeep, 0.5)} light={c.glow} blob={accent} par={par} photo={photo} />;
     case 'skins': {
       const sk = m.skins.find((s) => s.block === b)!;
       let idx = 0;
@@ -50,7 +52,7 @@ const SceneBackdrop: React.FC<{m: Model; block?: Model['plan']['blocks'][number]
       const ring = ramp(f, sk.swaps[idx], sk.swaps[idx] + 14);
       return (
         <>
-          <Backdrop base={base} light={light} blob={a} blobOpacity={0.45} par={par} photo={photo} />
+          <Backdrop bg={bg} base={base} light={light} blob={a} blobOpacity={0.45} par={par} photo={photo} />
           <AbsoluteFill>
             <div style={{position: 'absolute', left: 540 - 520 * ring, top: 1210 - 520 * ring, width: 1040 * ring, height: 1040 * ring, borderRadius: '50%', border: `${6 * (1 - ring)}px solid ${rgba('#FFFFFF', 0.8 * (1 - ring))}`}} />
           </AbsoluteFill>
@@ -60,12 +62,12 @@ const SceneBackdrop: React.FC<{m: Model; block?: Model['plan']['blocks'][number]
     case 'endCard':
       return (
         <>
-          <Backdrop base={mix(c.paper, c.paperDeep, 0.35)} light={c.glow} blob={accent} photo={photo} photoOpacity={0.55} />
+          <Backdrop bg={bg} base={mix(c.paper, c.paperDeep, 0.35)} light={c.glow} blob={accent} photo={photo} photoOpacity={0.55} />
           <EndRing m={m} />
         </>
       );
     default:
-      return <Backdrop base={c.paper} light={c.glow} blob={accent} par={par} photo={photo} />;
+      return <Backdrop bg={bg} base={c.paper} light={c.glow} blob={accent} par={par} photo={photo} />;
   }
 };
 
