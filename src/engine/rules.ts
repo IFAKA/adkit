@@ -105,3 +105,40 @@ export function flatBackgrounds(plan: Plan, spec: Ad): string[] {
     return [`${b.id}: ${b.end - b.start} frames on a background that never moves (drift 0, grain 0). Give it a little \`drift\` and \`grain\` (0.2 and 0.7 are the defaults).`];
   });
 }
+
+/** Frames where something starts to move: titles and their markers, camera moves, and every tapFlow step (a pop counts each element; a tap counts its press and reaction). Chaos piles up on purpose and is left out. */
+export function motionStarts(plan: Plan): {f: number; what: string}[] {
+  const out: {f: number; what: string}[] = [];
+  for (const t of plan.titles) {
+    if (plan.blocks.find((b) => b.id === t.block)?.kind === 'chaos') continue;
+    out.push({f: t.inAt, what: `title "${t.spec.lines.join(' ').replace(/[*_]/g, '')}"`});
+    if (t.spec.markers) out.push({f: t.inAt, what: 'title markers'});
+  }
+  for (const m of cameraMoves(plan)) if (m.own) out.push({f: m.f, what: 'camera move'});
+  for (const b of plan.blocks) for (const s of stepsOf(b)) {
+    const f = b.start + Math.round(s.at * plan.beat);
+    if (s.type === 'pop') s.elements?.forEach((e, i) => out.push({f: b.start + Math.round((s.at + i * s.stagger!) * plan.beat), what: `pop ${e}`}));
+    else out.push({f, what: s.type === 'tap' ? `tap ${s.element}` : s.type});
+    if (s.type === 'tap') {
+      if (s.press) out.push({f, what: 'press'});
+      if (s.reaction && s.reaction !== 'none') out.push({f, what: s.reaction});
+    }
+  }
+  return out.sort((a, c) => a.f - c.f);
+}
+
+/** Too many things beginning to move together (more than `max` within `window` frames) leaves the eye nowhere to go. */
+export function motionDensity(plan: Plan, spec: Ad): string[] {
+  const cfg = spec.checks.motionDensity;
+  if (!cfg) return [];
+  const starts = motionStarts(plan);
+  const warns: string[] = [];
+  for (let i = 0; i < starts.length;) {
+    const group = starts.filter((s) => s.f >= starts[i].f && s.f < starts[i].f + cfg.window);
+    if (group.length > cfg.max) {
+      warns.push(`${group.length} elements start to move within ${cfg.window} frames from frame ${starts[i].f} (${group.map((g) => g.what).join(', ')}). Spread them out or drop the least important (max ${cfg.max}).`);
+      i += group.length;
+    } else i++;
+  }
+  return warns;
+}

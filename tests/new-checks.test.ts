@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {clone, load} from './helpers';
 import {compile} from '../src/engine/compile';
-import {cameraDeadStops, sameFrameStarts, evenStaggers, actionReactions, flatBackgrounds} from '../src/engine/rules';
+import {cameraDeadStops, sameFrameStarts, evenStaggers, actionReactions, flatBackgrounds, motionDensity} from '../src/engine/rules';
 import type {Ad} from '../src/spec/schema';
 
 /** The minimal example with a change to its spec, compiled again. */
@@ -137,5 +137,22 @@ describe('flat-background', () => {
   it('can be turned off', () => {
     const {spec, plan} = edit((s) => { s.background = {drift: 0, grain: 0}; s.checks.flatBackground = false; });
     expect(flatBackgrounds(plan, spec)).toEqual([]);
+  });
+});
+
+describe('motion-density', () => {
+  const busy = (s: Ad) => { const tap = flow(s).steps.find((x) => x.type === 'tap' && x.element === 'timeChip') as {press: boolean; reaction: string}; tap.press = true; tap.reaction = 'burst'; };
+  it('flags more elements than the limit starting within the window', () => {
+    const {spec, plan} = edit((s) => { busy(s); s.checks.motionDensity = {max: 3, window: 10}; });
+    const w = motionDensity(plan, spec);
+    expect(w).toHaveLength(1);
+    expect(w[0]).toContain('4 elements start to move within 10 frames from frame 203 (camera move, tap timeChip, press, burst)');
+  });
+  it('accepts the same plan at the default limit, the shipped example, and off', () => {
+    const r = edit(busy);
+    expect(motionDensity(r.plan, r.spec)).toEqual([]);
+    expect(motionDensity(edit(() => {}).plan, edit(() => {}).spec)).toEqual([]);
+    const o = edit((s) => { busy(s); s.checks.motionDensity = false; });
+    expect(motionDensity(o.plan, o.spec)).toEqual([]);
   });
 });
