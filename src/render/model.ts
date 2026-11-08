@@ -293,7 +293,8 @@ export function buildModel(props: RenderProps): Model {
               break;
             }
             case 'check':
-              cur.check = {at: f, size: st.size, fadeAt: nextScreenAt(f) + 2};
+              // No screen after the check: it stays until the block ends (an infinite fade time crashed the render)
+              cur.check = {at: f, size: st.size, fadeAt: Number.isFinite(nextScreenAt(f)) ? nextScreenAt(f) + 2 : Math.max(f + 1, b.end - 8)};
               break;
           }
         }
