@@ -3,7 +3,7 @@ import {interpolate, useCurrentFrame} from 'remotion';
 import {useFonts} from './fonts';
 import {spr, ramp, clamp01, rgba, SNAP} from './anim';
 import {W} from '../model';
-import {layoutTitle, parseWord, TITLE_LEFT, TITLE_LINE} from '../geometry';
+import {layoutTitle, parseLine, TITLE_LEFT, TITLE_LINE} from '../geometry';
 import type {Title as TitleSpec} from '../../spec/schema';
 
 /** Kinetic title. Words enter one after another; the block leaves at `outAt`. *word* is the serif italic accent. */
@@ -21,14 +21,12 @@ export const Title: React.FC<{spec: TitleSpec; inAt: number; outAt?: number; col
       <div style={{position: 'absolute', left: TITLE_LEFT, width: W - 2 * TITLE_LEFT, top: lay.y, textAlign: 'center', fontFamily: sans, fontWeight: 800, fontSize: lay.fontSize, lineHeight: TITLE_LINE, letterSpacing: '-0.045em', color, opacity: 1 - out, transform: `translateY(${-out * 40}px)`, filter: out > 0 ? `blur(${out * 10}px)` : undefined}}>
         {spec.lines.map((line, li) => (
           <div key={li} style={{whiteSpace: 'nowrap'}}>
-            {line.split(' ').map((raw, i) => {
-              const {accent: isAccent, text} = parseWord(raw);
-              const word = text.replace(/ /g, ' ');
+            {parseLine(line).map((parts, i) => {
               const p = spec.instant ? 1 : spr(f, inAt + wi * stagger, SNAP);
               wi++;
               return (
-                <span key={i} style={{display: 'inline-block', marginRight: '0.24em', opacity: clamp01(p * 1.4), transform: `translateY(${interpolate(p, [0, 1], [70, 0])}px) scale(${interpolate(p, [0, 1], [0.92, 1])})`, filter: p < 1 ? `blur(${(1 - clamp01(p)) * 10}px)` : undefined, ...(isAccent ? {fontFamily: serif, fontStyle: 'italic', fontWeight: 400, color: accent, fontSize: '1.14em', letterSpacing: '-0.02em', lineHeight: 0.9} : {})}}>
-                  {word}
+                <span key={i} style={{display: 'inline-block', marginRight: '0.24em', opacity: clamp01(p * 1.4), transform: `translateY(${interpolate(p, [0, 1], [70, 0])}px) scale(${interpolate(p, [0, 1], [0.92, 1])})`, filter: p < 1 ? `blur(${(1 - clamp01(p)) * 10}px)` : undefined}}>
+                  {parts.map((pt, j) => (pt.accent ? <span key={j} style={{fontFamily: serif, fontStyle: 'italic', fontWeight: 400, color: accent, fontSize: '1.14em', letterSpacing: '-0.02em', lineHeight: 0.9}}>{pt.text}</span> : <React.Fragment key={j}>{pt.text}</React.Fragment>))}
                 </span>
               );
             })}

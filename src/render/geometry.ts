@@ -20,19 +20,36 @@ const adv = (ch: string): number => {
   return 0.58 - 0.045;
 };
 
-export const parseWord = (raw: string) => {
-  const accent = raw.length > 1 && raw.startsWith('*') && raw.endsWith('*');
-  return {accent, text: (accent ? raw.slice(1, -1) : raw).replace(/_/g, ' ')};
+export type Part = {accent: boolean; text: string};
+
+/** A line as words (split at spaces), each a list of plain and accent parts. `*` opens an accent before a non-space and closes it after one, so `*pay*.`, `(*pay*)` and `*two words*` work; a lone `*` stays text. */
+export const parseLine = (line: string): Part[][] => {
+  let accent = false;
+  return line.split(' ').map((raw) => {
+    const parts: Part[] = [];
+    let cur = '';
+    const flush = () => { if (cur) parts.push({accent, text: cur.replace(/_/g, '\u00a0')}); cur = ''; };
+    [...raw].forEach((ch, i, all) => {
+      const next = all[i + 1];
+      const opens = !accent && next !== undefined && next !== '*';
+      const closes = accent && i > 0 && all[i - 1] !== '*';
+      if (ch === '*' && (opens || closes)) { flush(); accent = !accent; } else cur += ch;
+    });
+    flush();
+    return parts;
+  });
 };
 
 /** Estimated width of a line at font size `size` (px). Words are inline blocks with a 0.24em right margin. */
 export const lineWidth = (line: string, size: number): number => {
   let w = 0;
-  for (const raw of line.split(' ')) {
-    const {accent, text} = parseWord(raw);
-    let ew = 0;
-    for (const ch of text) ew += accent ? 0.46 : adv(ch);
-    w += ew * size * (accent ? 1.14 : 1) + 0.24 * size;
+  for (const word of parseLine(line)) {
+    for (const {accent, text} of word) {
+      let ew = 0;
+      for (const ch of text) ew += accent ? 0.46 : adv(ch);
+      w += ew * size * (accent ? 1.14 : 1);
+    }
+    w += 0.24 * size;
   }
   return w - 0.24 * size;
 };

@@ -890,7 +890,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -1080,7 +1080,7 @@
                       "type": "string",
                       "minLength": 1
                     },
-                    "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                   },
                   "at": {
                     "default": 0,
@@ -1207,7 +1207,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -1329,7 +1329,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -1560,7 +1560,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -2206,7 +2206,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -2301,7 +2301,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -2563,7 +2563,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -2878,7 +2878,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -2983,7 +2983,7 @@
                       "type": "string",
                       "minLength": 1
                     },
-                    "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                   },
                   "at": {
                     "default": 0,
@@ -3194,7 +3194,7 @@
                         "type": "string",
                         "minLength": 1
                       },
-                      "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                      "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                     },
                     "at": {
                       "default": 0,
@@ -3268,7 +3268,7 @@
                       "type": "string",
                       "minLength": 1
                     },
-                    "description": "Lines of text. *word* is the italic accent, _ is a non-breaking space."
+                    "description": "Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space."
                   },
                   "at": {
                     "default": 0,

@@ -66,7 +66,7 @@ The full reference is the JSON Schema `schema/ad.schema.json` (use it in your ed
 
 Time is musical. A scene's length is in **bars** (the music's meter, 4 beats in 4/4; 2 s at 120 BPM and 30 fps). Everything inside a scene is placed in **beats** from the scene start. The compiler turns this into frames, puts every cue on a beat or off-beat (`frame % 15` is 0 or 7 at 120 BPM / 30 fps) and fails on off-grid cues, overlapping events, overlapping titles, or a wrong story order.
 
-Text: `*word*` is drawn in the accent colour; `_` is a non-breaking space.
+Text: `*word*` is drawn in the accent colour, anywhere in a line (punctuation may sit outside: `*pay*.`); `_` is a non-breaking space.
 Environment variables in the spec: `${APP_DIR:-/default/path}`.
 
 ### Capture

@@ -185,7 +185,7 @@ export const Sound = z.object({
 export const ScreenRef = z.string().regex(/^([A-Za-z][A-Za-z0-9_-]*\/)?[A-Za-z][A-Za-z0-9_-]*$/, 'screen reference is "name" or "set/name"');
 
 export const Title = z.object({
-  lines: z.array(str).min(1).max(4).describe('Lines of text. *word* is the italic accent, _ is a non-breaking space.'),
+  lines: z.array(str).min(1).max(4).describe('Lines of text. *word* is the italic accent (anywhere in a line; punctuation may sit outside: *pay*.), _ is a non-breaking space.'),
   at: posBeat.default(0).describe('Beat (relative to the block) when it enters.'),
   to: posBeat.optional().describe('Beat when it leaves; default: never (until the block ends).'),
   y: z.number().optional().describe('Top of the text in px (default 270, inside the safe zone).'),
