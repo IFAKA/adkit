@@ -47,7 +47,7 @@ scenes:
       - {beat: 5.5, side: out, text: "Sí! Te escribo en un rato"}
       - {frame: 86, text: "Mandé el comprobante"}
       - {frame: 88, text: "¿Cuánto sale la de dulce de leche?"}
-    title: {lines: ["¿Todavía tomás", "pedidos por", "*WhatsApp?*"], at: 3, to: 5.5, y: 410, size: 104, color: "#FFFFFF", accent: "#5BE08A"}
+    title: {lines: ["¿Todavía tomás", "pedidos por", "*WhatsApp?*"], at: 1.5, to: 6.5, y: 410, size: 104, color: "#FFFFFF", accent: "#5BE08A"}
 
   # 2. The chat icon turns into the app icon.
   - {block: iconOpen, bars: 0.25}
@@ -58,8 +58,8 @@ scenes:
     screen: home
     scroll: 70
     titles:
-      - {lines: ["Tu *tienda*", "online."], at: 2, to: 5, size: 124}
-      - {lines: ["Con tu", "*marca.*"], at: 5, to: 7, size: 124}
+      - {lines: ["Tu", "*tienda,*"], at: 1, to: 4, size: 124}
+      - {lines: ["tu", "*marca.*"], at: 5, to: 8, size: 124}
 
   # 4. The customer orders and pays.
   - block: tapFlow
@@ -67,9 +67,9 @@ scenes:
     bars: 4
     start: {screen: home, scroll: 70}
     titles:
-      - {lines: ["Tus clientes", "*eligen…*"], at: 1, to: 8, size: 118, scrim: true}
-      - {lines: ["…reservan", "*día_y_hora…*"], at: 8, to: 12, size: 118, scrim: true}
-      - {lines: ["…y pagan", "*online.*"], at: 12, to: 13.5, size: 118, scrim: true}
+      - {lines: ["Tus clientes", "*eligen…*"], at: 1, to: 6, size: 118, scrim: true}
+      - {lines: ["…reservan", "*día_y_hora…*"], at: 7, to: 11.5, size: 118, scrim: true}
+      - {lines: ["…y pagan", "*online.*"], at: 12.5, to: 16, size: 118, scrim: true}
     steps:
       - {type: screen, at: 0.5, screen: catalog, scroll: {element: productCard, y: 380}, sticky: 117}
       - {type: lift, at: 3.5, element: productCard, tap: addButton, tapAt: 4}
