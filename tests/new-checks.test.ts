@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {clone, load} from './helpers';
 import {compile} from '../src/engine/compile';
-import {cameraDeadStops, sameFrameStarts} from '../src/engine/rules';
+import {cameraDeadStops, sameFrameStarts, evenStaggers} from '../src/engine/rules';
 import type {Ad} from '../src/spec/schema';
 
 /** The minimal example with a change to its spec, compiled again. */
@@ -71,5 +71,30 @@ describe('same-frame-start', () => {
   it('can be turned off', () => {
     const {spec, plan} = edit((s) => { crowd(s); s.checks.sameFrameStart = false; });
     expect(sameFrameStarts(plan, spec)).toEqual([]);
+  });
+});
+
+describe('even-stagger', () => {
+  const words = (s: Ad, stagger?: number[]) => { flow(s).titles[0] = {...flow(s).titles[0], lines: ['one two three four five'], stagger}; };
+  it('flags 4 or more words with an explicit equal gap', () => {
+    const {spec, plan} = edit((s) => words(s, [4]));
+    const w = evenStaggers(plan, spec);
+    expect(w).toHaveLength(1);
+    expect(w[0]).toContain('4 frames apart');
+  });
+  it('accepts uneven gaps, the default gap, and short titles', () => {
+    for (const st of [[2, 4, 4], undefined]) {
+      const r = edit((s) => words(s, st));
+      expect(evenStaggers(r.plan, r.spec)).toEqual([]);
+    }
+    const r = edit((s) => { words(s, [4]); flow(s).titles[0].lines = ['one two three']; });
+    expect(evenStaggers(r.plan, r.spec)).toEqual([]);
+  });
+  it('flags a pop step of 4 elements and can be turned off', () => {
+    const pop = (s: Ad) => { flow(s).steps.push({type: 'pop', at: 6.5, elements: ['a', 'b', 'c', 'd'], stagger: 0.5, style: 'pin'} as never); s.sound.cues['pop-in'] = 'silent'; };
+    const {spec, plan} = edit(pop);
+    expect(evenStaggers(plan, spec)).toHaveLength(1);
+    const o = edit((s) => { pop(s); s.checks.evenStagger = false; });
+    expect(evenStaggers(o.plan, o.spec)).toEqual([]);
   });
 });

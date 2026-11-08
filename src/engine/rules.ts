@@ -1,5 +1,6 @@
 import type {Ad, CameraKey} from '../spec/schema';
 import type {Plan} from './plan';
+import {wordCount, wordStarts} from './reading';
 import {CAM_SPRINGS, settle} from '../render/lib/anim';
 
 type Move = {block: string; f: number; spring: keyof typeof CAM_SPRINGS; wide: boolean; own: boolean};
@@ -54,4 +55,24 @@ export function sameFrameStarts(plan: Plan, spec: Ad): string[] {
   }
   for (const b of plan.blocks) for (const s of stepsOf(b)) if (s.type === 'tap' && s.reaction && s.reaction !== 'none') add(b.start + Math.round(s.at * plan.beat), `${b.id} tap ${s.reaction}`);
   return [...at].filter(([, v]) => v.length >= cfg.count).sort((a, c) => a[0] - c[0]).map(([f, v]) => `${v.length} items start on frame ${f} (${v.join(', ')}). Move them 3-4 frames apart, or make a title \`instant\`.`);
+}
+
+/** Items that arrive one after another with exactly one gap look mechanical. Counts a `pop` step and a title whose `stagger` the author wrote (the default 3 frame gap is not reported: every long title has it). */
+export function evenStaggers(plan: Plan, spec: Ad): string[] {
+  const cfg = spec.checks.evenStagger;
+  if (!cfg) return [];
+  const same = (starts: number[], tol = 0) => starts.length >= cfg.count && starts.every((v, i) => i < 2 || Math.abs(v - starts[i - 1] - (starts[1] - starts[0])) <= tol);
+  const warns: string[] = [];
+  for (const t of plan.titles) {
+    if (!t.spec.stagger || t.spec.instant) continue;
+    const starts = wordStarts(wordCount(t.spec.lines), t.spec.stagger);
+    if (same(starts)) warns.push(`${t.block}#${t.index + 1}: the ${starts.length} words of "${t.spec.lines.join(' ').replace(/[*_]/g, '')}" all come ${starts[1]} frames apart. Vary \`stagger\`, e.g. [2, 4, 4].`);
+  }
+  for (const b of plan.blocks) stepsOf(b).forEach((s, i) => {
+    if (s.type !== 'pop' || !s.elements) return;
+    // beats round to whole frames, so a gap may differ by one frame
+    const starts = s.elements.map((_, e) => Math.round((s.at + e * s.stagger!) * plan.beat));
+    if (same(starts, 1)) warns.push(`${b.id}: the ${starts.length} elements of pop step ${i + 1} all appear ${starts[1] - starts[0]} frames apart. Split the step in two, or change \`stagger\` and the order.`);
+  });
+  return warns;
 }
