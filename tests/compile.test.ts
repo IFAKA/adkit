@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {compile, CompileError} from '../src/engine/compile';
+import {AdSpec} from '../src/spec/schema';
 import {clone, load} from './helpers';
 
 const GOLDEN: Record<string, number> = {
@@ -106,5 +107,22 @@ describe('compile', () => {
     it('accepts an ad with no chaos at all', () => {
       expect(() => load('minimal')).not.toThrow();
     });
+  });
+});
+
+describe('camera key times', () => {
+  const withKey = (key: Record<string, unknown>) => {
+    const {spec} = load('minimal');
+    const s = clone(spec);
+    const b = s.scenes.find((x) => 'camera' in x) as any;
+    b.camera.push(key);
+    return s;
+  };
+  const key = {at: 4.75, zoom: 1.5, focus: {y: 230}, qy: 1150, why: 'reads: the part of the screen in view'};
+  it('accepts a camera key off the half-beat grid when it has no sound', () => {
+    expect(() => compile(AdSpec.parse(withKey(key)))).not.toThrow();
+  });
+  it('still refuses an off-grid camera key with a whoosh, with a clear message', () => {
+    expect(() => compile(AdSpec.parse(withKey({...key, whoosh: true})))).toThrow(/off the grid/);
   });
 });

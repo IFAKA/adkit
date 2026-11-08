@@ -96,7 +96,7 @@ adkit never changes your app folder when `isolate: copy` (it works in `.adkit/wo
 | `chaos` | Dark scene where the problem piles up faster and faster. `items` (text, optional emoji `icon`, `side`, `beat` or `frame`) in a `look`: `bubbles` (chat), `cards`, `tabs` or `toasts`. A red `counter` climbs (or `counter: false`). A title shakes in. `into: icon` flies the items into an icon (an `iconOpen` block must follow); `into: center` collapses them to one point and cuts to the next block. `flyBeats` sets when they fly. Must be the first block, if used. |
 | `iconOpen` | The icon morphs into your app icon (`brand.icon`, or `brand.icon.image`). Only right after a `chaos` with `into: icon`. |
 | `reveal` | Warm light blooms, the phone opens from the icon (or rises), push-in, 1-2 titles |
-| `tapFlow` | Ordered steps on the captured app (see below), plus camera keys with zoom / focus on elements |
+| `tapFlow` | Ordered steps on the captured app (see below), plus camera keys with zoom / focus on elements. A camera key's `at` may be any beat (e.g. 4.75); only a key with `whoosh: true` must sit on a whole or half beat |
 | `whip` | Whip-pan from one phone to the next (zero length) |
 | `notification` | A banner drops in and a card slides into the screen |
 | `statCountUp` | A number counts up with a ring and chart bars |

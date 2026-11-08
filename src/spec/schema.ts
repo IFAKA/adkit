@@ -203,7 +203,7 @@ const common = {
 };
 
 export const CameraKey = z.object({
-  at: posBeat.describe('Beat (relative to the block) when the move starts.'),
+  at: z.number().min(0, 'time cannot be negative').describe('Beat (relative to the block) when the move starts. Any value, e.g. 4.75. A key with `whoosh` must sit on a whole or half beat (the sound is on the grid).'),
   offset: z.number().int().default(0).describe('Extra frames added to `at` (camera moves need not sit on the grid).'),
   zoom: z.union([z.number().min(0.5).max(4), z.object({fit: str, fraction: z.number().min(0.2).max(1).default(0.75)}).strict()]).describe('Zoom, or fit an element to a fraction of the frame width.'),
   focus: z.object({

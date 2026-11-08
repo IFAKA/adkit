@@ -1410,7 +1410,8 @@
                   "properties": {
                     "at": {
                       "type": "number",
-                      "description": "Beat (relative to the block) when the move starts."
+                      "minimum": 0,
+                      "description": "Beat (relative to the block) when the move starts. Any value, e.g. 4.75. A key with `whoosh` must sit on a whole or half beat (the sound is on the grid)."
                     },
                     "offset": {
                       "default": 0,
@@ -2054,7 +2055,8 @@
                   "properties": {
                     "at": {
                       "type": "number",
-                      "description": "Beat (relative to the block) when the move starts."
+                      "minimum": 0,
+                      "description": "Beat (relative to the block) when the move starts. Any value, e.g. 4.75. A key with `whoosh` must sit on a whole or half beat (the sound is on the grid)."
                     },
                     "offset": {
                       "default": 0,
@@ -2407,7 +2409,8 @@
                   "properties": {
                     "at": {
                       "type": "number",
-                      "description": "Beat (relative to the block) when the move starts."
+                      "minimum": 0,
+                      "description": "Beat (relative to the block) when the move starts. Any value, e.g. 4.75. A key with `whoosh` must sit on a whole or half beat (the sound is on the grid)."
                     },
                     "offset": {
                       "default": 0,
@@ -2723,7 +2726,8 @@
                   "properties": {
                     "at": {
                       "type": "number",
-                      "description": "Beat (relative to the block) when the move starts."
+                      "minimum": 0,
+                      "description": "Beat (relative to the block) when the move starts. Any value, e.g. 4.75. A key with `whoosh` must sit on a whole or half beat (the sound is on the grid)."
                     },
                     "offset": {
                       "default": 0,
@@ -3040,7 +3044,8 @@
                   "properties": {
                     "at": {
                       "type": "number",
-                      "description": "Beat (relative to the block) when the move starts."
+                      "minimum": 0,
+                      "description": "Beat (relative to the block) when the move starts. Any value, e.g. 4.75. A key with `whoosh` must sit on a whole or half beat (the sound is on the grid)."
                     },
                     "offset": {
                       "default": 0,
