@@ -109,6 +109,8 @@ Story order: `chaos` (optional) first, `endCard` last, `iconOpen` only right aft
 
 **Title stagger.** A title may have `stagger: [2, 4, 4]`: the frames between one word and the next. The last value repeats. Uneven gaps look less mechanical than the default 3 frames. The reading-time check counts the longer entrance.
 
+**Title layer.** A title is drawn under the phone, so a title that is still fading out while the phone moves is hidden by it. A camera push-in covers the title too. Set `above: true` on a title to draw it over the phone instead (keep it clear of the spot the camera looks at: `adkit check` warns as `title-above` when the title overlaps the camera's focus band, `qy` plus or minus 220 px).
+
 #### tapFlow steps
 
 | step | fields | what it does (cue) |

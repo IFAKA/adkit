@@ -7,7 +7,7 @@ import {readManifest, type Project} from '../project';
 import {fmt, run} from '../util';
 import {capture} from './capture';
 import {build} from './build';
-import {readingRows, movingTextWarnings, pushInFindings} from '../../engine/reading';
+import {readingRows, movingTextWarnings, pushInFindings, aboveTitleWarnings} from '../../engine/reading';
 import {frameDiffs, findJumps, smoothness, sequenceDiffs} from '../../engine/continuity';
 import {sameTakeFindings, takeSyncFindings} from '../../engine/take';
 import {soundFindings} from '../../engine/sound-check';
@@ -167,6 +167,7 @@ export async function check(p: Project, opts: {video?: string; warm?: boolean} =
   const pin = pushInFindings(plan, spec);
   out.push({check: 'camera-why', ok: !pin.fails.length, msg: pin.fails.length ? pin.fails.join(' | ') : `${pin.count} push-ins, each with a reason`});
   for (const w of pin.warns) out.push({check: 'camera-why', ok: false, warn: true, msg: w});
+  for (const w of aboveTitleWarnings(plan)) out.push({check: 'title-above', ok: false, warn: true, msg: w});
 
   // the video file
   const video = path.resolve(p.dir, opts.video ?? spec.output.file);

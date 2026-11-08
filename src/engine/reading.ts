@@ -1,5 +1,6 @@
 import type {Ad} from '../spec/schema';
-import type {Plan} from './plan';
+import type {Plan, PlacedTitle} from './plan';
+import {layoutTitle} from '../render/geometry';
 
 /** Frames a title takes to enter: words come in 3 frames apart, then the last one settles. `instant` titles do not enter. */
 export const STAGGER = 3;
@@ -94,4 +95,35 @@ export function pushInFindings(plan: Plan, spec: Ad): {fails: string[]; warns: s
     });
   }
   return {fails, warns, count};
+}
+
+/** Titles on one layer: `above` ones are drawn over the phone (and so over a camera push-in), the others under it. */
+export const titlesOnLayer = <T extends {spec: {above?: boolean}}>(titles: T[], above: boolean): T[] => titles.filter((t) => !!t.spec.above === above);
+
+const LOOK_BAND = 220;
+
+/** An `above` title is drawn over the phone, so it must not sit on the spot the camera is pointing at (the focus lands at `qy` on the frame). */
+export function aboveTitleWarnings(plan: Plan): string[] {
+  const warns: string[] = [];
+  const ts = plan.titles.filter((t: PlacedTitle) => t.spec.above);
+  if (!ts.length) return warns;
+  for (const b of plan.blocks) {
+    const cam = (b.spec as {camera?: (CamKey & {qy?: number})[]}).camera;
+    if (!cam?.length) continue;
+    const keys = cam.map((k) => ({k, f: b.start + Math.round(k.at * plan.beat) + (k.offset ?? 0)})).sort((a, c) => a.f - c.f);
+    keys.forEach(({k, f}, i) => {
+      if (!isPushIn(k)) return;
+      const end = keys[i + 1]?.f ?? b.end;
+      const qy = k.qy ?? 1180;
+      for (const t of ts) {
+        const visEnd = t.outAt ?? t.until;
+        if (t.inAt >= end || visEnd <= f) continue;
+        const box = layoutTitle(t.spec, plan.width).box;
+        if (box.y < qy + LOOK_BAND && box.y + box.h > qy - LOOK_BAND) {
+          warns.push(`${t.block}: the title "${t.spec.lines.join(' ')}" is drawn over the phone at y ${box.y}-${box.y + box.h}, where the camera looks (y about ${qy}) during the push-in "${k.why ?? 'at frame ' + f}". Move the title (y) or the camera focus (qy).`);
+        }
+      }
+    });
+  }
+  return warns;
 }

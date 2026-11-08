@@ -946,6 +946,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1146,6 +1150,10 @@
                       "minimum": 1,
                       "maximum": 30
                     }
+                  },
+                  "above": {
+                    "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -1283,6 +1291,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1415,6 +1427,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1659,6 +1675,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -2328,6 +2348,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -2433,6 +2457,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -2713,6 +2741,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -3041,6 +3073,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -3156,6 +3192,10 @@
                       "minimum": 1,
                       "maximum": 30
                     }
+                  },
+                  "above": {
+                    "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -3380,6 +3420,10 @@
                         "minimum": 1,
                         "maximum": 30
                       }
+                    },
+                    "above": {
+                      "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -3464,6 +3508,10 @@
                       "minimum": 1,
                       "maximum": 30
                     }
+                  },
+                  "above": {
+                    "description": "Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.",
+                    "type": "boolean"
                   }
                 },
                 "required": [

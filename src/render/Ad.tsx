@@ -9,6 +9,7 @@ import {Finish} from './lib/Finish';
 import {Backdrop} from './lib/Backdrop';
 import {parallax} from './lib/Camera';
 import {Title} from './lib/Title';
+import {titlesOnLayer} from '../engine/reading';
 import {mix, ramp, rgba, spr, SNAP} from './lib/anim';
 import {camera} from './choreo';
 import {ChaosScene} from './blocks/Chaos';
@@ -88,12 +89,12 @@ const BackdropBlend: React.FC<{m: Model}> = ({m}) => {
   );
 };
 
-const Titles: React.FC<{m: Model}> = ({m}) => {
+const Titles: React.FC<{m: Model; above?: boolean}> = ({m, above = false}) => {
   const f = useCurrentFrame();
   const c = m.spec.brand.colors;
   return (
     <>
-      {m.plan.titles.map((t, i) => {
+      {titlesOnLayer(m.plan.titles, above).map((t, i) => {
         const blk = m.plan.blocks.find((b) => b.id === t.block)!;
         if (blk.kind === 'chaos') return null;
         const outAt = t.outAt ?? (t.until >= m.plan.total ? 99999 : t.until);
@@ -136,7 +137,7 @@ const PhoneScene: React.FC<{m: Model}> = ({m}) => {
     <AbsoluteFill>
       <BackdropBlend m={m} />
       {/* titles sit between the backdrop and the phone: a title that is still on screen while the phone moves under it is hidden by the phone, never seen through the screen */}
-      <Titles m={m} />
+      <Titles m={m} above={false} />
       {blurStage ? (
         <MotionBlur shutterAngle={200} samples={6}>
           {stage}
@@ -144,6 +145,7 @@ const PhoneScene: React.FC<{m: Model}> = ({m}) => {
       ) : (
         stage
       )}
+      <Titles m={m} above={true} />
       {inEnd && <EndLockup m={m} />}
     </AbsoluteFill>
   );

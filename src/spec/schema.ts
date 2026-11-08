@@ -195,6 +195,7 @@ export const Title = z.object({
   scrim: z.union([z.boolean(), hex]).default(false).describe('Soft gradient behind the text; true uses the paper colour.'),
   instant: z.boolean().default(false).describe('Fully on screen at its first frame (no word-by-word entrance). Use it for a title at frame 0 of the ad.'),
   stagger: z.array(z.number().int().min(1).max(30)).min(1).optional().describe('Frames between one word and the next, e.g. [2, 4, 4]; the last value repeats. Uneven gaps look less mechanical. Default: 3 frames between all words.'),
+  above: z.boolean().optional().describe('Draw this title over the phone instead of under it, so a camera push-in does not hide it. Keep it clear of the spot the camera looks at (the check warns). Default: under the phone.'),
 }).strict();
 
 const common = {
