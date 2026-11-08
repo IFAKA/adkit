@@ -91,8 +91,6 @@ sets:
         steps:
           - click: {selector: '[role=dialog] >> [role=radio]:has-text("Centro")', tap: true}
           - wait: 300
-          - click: {selector: '[role=dialog] >> [aria-label="Día de retiro"] [role=radio] >> nth=1', tap: true}
-          - wait: 300
           - click: {selector: '[role=dialog] >> [aria-label="Horario de retiro"] [role=radio] >> nth=2', tap: true}
           - fill: {selector: '[role=dialog] input[name=name]', value: Lucía Fernández}
           - fill: {selector: '[role=dialog] input[name=phone]', value: 341 555-0147}
@@ -101,7 +99,7 @@ sets:
           - wait: 900
         elements:
           branchChip: '[role=dialog] >> [role=radio]:has-text("Centro")'
-          dayChip: '[role=dialog] >> [aria-label="Día de retiro"] [role=radio][data-checked]'
+          dayChip: '[role=dialog] >> button[aria-haspopup="dialog"]'
           timeChip: '[role=dialog] >> [aria-label="Horario de retiro"] [role=radio][data-checked]'
           payButton: '[role=dialog] >> button:has-text("Pagar con Mercado Pago")'
 

@@ -150,4 +150,7 @@ scenes:
 
 sound: sound.yaml
 
+# Frame 77: a new chat bubble arrives and the whole pile shifts up one row. Meant.
+checks: {cuts: [77]}
+
 output: {file: out/ad.mp4, crf: 18}
