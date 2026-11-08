@@ -31,7 +31,8 @@ export function frameDiffs(video: string, w = 54, h = 96, pre: string[] = [], po
 /**
  * Sudden changes: a frame whose change from the previous frame is more than `maxJump` above the change before it.
  * A hard cut (black to white, one scene to the next) jumps from about 0 to a large value in one frame; a smooth camera move
- * or fade builds up over several frames and stays under the limit. `frame` is the first frame of the new picture.
+ * or fade builds up over several frames and stays under the limit. A fast spring starts hard but keeps speeding up for a few frames (the next change is larger),
+ * so a rise that the next frame tops is a move, not a jump; a cut's next frame is the same or smaller. `frame` is the first frame of the new picture.
  * Frames in `cuts` are intended and not reported.
  */
 export function findJumps(diffs: number[], maxJump: number, cuts: number[]): Jump[] {
@@ -39,7 +40,8 @@ export function findJumps(diffs: number[], maxJump: number, cuts: number[]): Jum
   const jumps: Jump[] = [];
   diffs.forEach((d, i) => {
     const rise = d - (i > 0 ? diffs[i - 1] : 0);
-    if (rise > maxJump && !ok.has(i + 1)) jumps.push({frame: i + 1, diff: Math.round(rise * 10) / 10});
+    const speedingUp = i + 1 < diffs.length && diffs[i + 1] > d * 1.05;
+    if (rise > maxJump && !speedingUp && !ok.has(i + 1)) jumps.push({frame: i + 1, diff: Math.round(rise * 10) / 10});
   });
   return jumps;
 }

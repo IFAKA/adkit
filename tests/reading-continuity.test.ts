@@ -40,6 +40,15 @@ describe('continuity', () => {
     expect(findJumps([0, 4, 8, 12, 16, 20, 16, 8, 2], 10, [])).toEqual([]);
     expect(findJumps([0, 0, 18, 18, 0], 10, [])).toEqual([{frame: 3, diff: 18}]);
   });
+  it('lets a fast camera spring start without a jump, but still reports a cut', () => {
+    // measured on examples/minimal, push-in with spring fast (frames 117-126): the change rises 0.6 -> 23 -> 34 -> 41 -> 45 while the spring speeds up
+    const fastSpring = [0.9, 0.6, 0.7, 0.6, 23.1, 34.4, 40.7, 44.6, 44.3, 36.7, 12.9, 4.8, 1.0];
+    expect(findJumps(fastSpring, 10, [])).toEqual([]);
+    // a cut into a scene that is already moving: one big step, then the change falls back
+    expect(findJumps([0.6, 0.6, 40, 20, 5, 1], 10, []).map((j) => j.frame)).toEqual([3]);
+    // a snap at the very end of the video has no next frame to ramp into
+    expect(findJumps([0.5, 30], 10, []).map((j) => j.frame)).toEqual([2]);
+  });
 });
 
 describe('smooth block changes', () => {

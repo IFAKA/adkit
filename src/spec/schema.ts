@@ -374,7 +374,7 @@ export const Checks = z.object({
   appTextSeconds: z.number().min(0).max(5).default(1.2).describe('App text the story depends on (a camera push-in target) should stay still on screen this long.'),
   minMotionFrames: z.number().int().min(1).default(8).describe('live-smooth check: a recorded live sequence must have at least this many frames that visibly move.'),
   maxSpike: z.number().min(0.1).max(1).default(0.6).describe('live-smooth check: the biggest single-frame change of a recorded live sequence, as a share of its whole change.'),
-  maxJump: z.number().min(1).max(255).default(10).describe('continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly.'),
+  maxJump: z.number().min(1).max(255).default(10).describe('continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly. A rise that the next frame tops (a fast camera spring still speeding up) is not counted.'),
   cuts: z.array(z.number().int().min(1)).default([]).describe('continuity check: frames where a hard cut is intended (the frame that shows the new picture). They are not reported.'),
 }).strict().default({wordsPerSecond: 4, noticeSeconds: 0.5, appTextSeconds: 1.2, maxJump: 10, minMotionFrames: 8, maxSpike: 0.6, cuts: []});
 

@@ -3792,7 +3792,7 @@
         },
         "maxJump": {
           "default": 10,
-          "description": "continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly.",
+          "description": "continuity check: the largest allowed sudden rise, in mean pixel change (0-255), from one frame pair to the next. A hard cut or a snap rises by 15-250 in one frame; a smooth move or fade builds up slowly. A rise that the next frame tops (a fast camera spring still speeding up) is not counted.",
           "type": "number",
           "minimum": 1,
           "maximum": 255
