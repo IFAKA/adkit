@@ -4,7 +4,7 @@ import {Camera} from '../lib/Camera';
 import {Phone} from '../lib/Phone';
 import {Lift, Screen, colorOf} from '../lib/Screen';
 import {INSET, POP_DUR, SCREEN_H} from '../model';
-import {Check, CartBadge, Highlight, Pulse, Swipe, Tap} from '../lib/Ui';
+import {Check, CartBadge, Highlight, Reaction, bannerSurface, Pulse, Swipe, Tap} from '../lib/Ui';
 import {AppIconFace, brandIcon} from '../lib/AppIcon';
 import {useColors} from '../lib/colors';
 import {useFonts} from '../lib/fonts';
@@ -79,7 +79,7 @@ const Banner: React.FC<{n: Notif; f: number; color: string}> = ({n, f, color}) =
   const outP = spr(f, n.slideAt + 32, SNAP);
   if (f < n.slideAt || outP > 0.98) return null;
   return (
-    <div style={{position: 'absolute', left: 14, top: 54, width: 362, height: 76, borderRadius: 24, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(14px)', boxShadow: '0 14px 34px rgba(0,0,0,0.28)', display: 'flex', alignItems: 'center', gap: 12, padding: '0 14px', fontFamily: sans, transform: `translateY(${(1 - inP) * -150 - outP * 150}px) scale(${lerp(0.92, 1, inP)})`}}>
+    <div style={{position: 'absolute', left: 14, top: 54, width: 362, height: 76, borderRadius: 24, ...bannerSurface(!!n.banner.glass), display: 'flex', alignItems: 'center', gap: 12, padding: '0 14px', fontFamily: sans, transform: `translateY(${(1 - inP) * -150 - outP * 150}px) scale(${lerp(0.92, 1, inP)})`}}>
       <div style={{width: 46, height: 46, borderRadius: 12, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7h13l-1.5 8H8z" /><path d="M6 7L5 4H3" /><circle cx="9" cy="19" r="1.2" /><circle cx="16" cy="19" r="1.2" /></svg>
       </div>
@@ -113,6 +113,7 @@ const LayerView: React.FC<{m: Model; l: Layer; f: number}> = ({m, l, f}) => {
     <>
       <Screen m={m} layer={l} f={f} scroll={scroll}>
         {l.highlights.map((h, i) => <Highlight key={`h${i}`} f={f} at={h.at} box={h.box} color={t.accent} radius={h.radius} life={l.seq ? 22 : undefined} />)}
+        {l.reactions.map((r, i) => <Reaction key={`re${i}`} f={f} at={r.at} box={r.box} color={t.accent} radius={r.radius} style={r.style} />)}
         {c && f >= l.at + 4 && f < c.doneAt && (
           <div style={{position: 'absolute', left: c.box.x, top: c.box.y, width: c.box.w, height: c.box.h, fontFamily: sans, fontWeight: c.weight, fontSize: c.fontSize, lineHeight: `${c.box.h}px`, letterSpacing: '-0.03em', color: c.color ?? m.spec.brand.colors.ink, fontVariantNumeric: 'tabular-nums'}}>
             {c.prefix}{fmt(c.from + (c.to - c.from) * (1 - Math.pow(1 - cp, 3)), c.decimals, c.thousands)}{c.suffix}

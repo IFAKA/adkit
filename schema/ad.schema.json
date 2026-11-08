@@ -1984,6 +1984,16 @@
                           "default": true,
                           "type": "boolean"
                         },
+                        "reaction": {
+                          "default": "none",
+                          "description": "What the tapped element does back, starting on the tap frame. ripple = a ring grows out of the element; burst = a soft flash in the accent colour (up and back in ~10 frames).",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "ripple",
+                            "burst"
+                          ]
+                        },
                         "pan": {
                           "type": "number"
                         }
@@ -2469,6 +2479,11 @@
                   "time": {
                     "default": "now",
                     "type": "string"
+                  },
+                  "glass": {
+                    "default": false,
+                    "description": "Frosted glass banner: blurred backdrop, 25 % white fill, 1 px white stroke.",
+                    "type": "boolean"
                   }
                 },
                 "required": [

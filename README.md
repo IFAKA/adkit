@@ -98,7 +98,7 @@ adkit never changes your app folder when `isolate: copy` (it works in `.adkit/wo
 | `reveal` | Warm light blooms, the phone opens from the icon (or rises), push-in, 1-2 titles |
 | `tapFlow` | Ordered steps on the captured app (see below), plus camera keys with zoom / focus on elements. A camera key's `at` may be any beat (e.g. 4.75); only a key with `whoosh: true` must sit on a whole or half beat |
 | `whip` | Whip-pan from one phone to the next (zero length) |
-| `notification` | A banner drops in and a card slides into the screen |
+| `notification` | A banner drops in and a card slides into the screen. `banner.glass: true` makes the banner frosted glass (15 px blur of the screen behind, 25 % white, 1 px white stroke); default is the plain white banner |
 | `statCountUp` | A number counts up with a ring and chart bars |
 | `skins` | The same screen in other colour variants every N beats |
 | `endCard` | Promise line, brand lockup, contact, optional `note` (a small line under the contact, kept out of the bottom 400 px), final hit |
@@ -114,7 +114,7 @@ Story order: `chaos` (optional) first, `endCard` last, `iconOpen` only right aft
 | step | fields | what it does (cue) |
 | --- | --- | --- |
 | `screen` | `at`, `screen`, `transition` (`slide` default, `cut`, `fade`, `zoom`, `sheet`), `sheetHeight`, `scroll`, `sticky` | Shows another captured screen. `sheet`: the bottom `sheetHeight` px of the new capture rises over the old screen (capture the page with the sheet open and pinned to the bottom). (swap, or whoosh for sheet) |
-| `tap` | `at`, `element`, `x`, `radius`, `press`, `highlight` | Finger tap with highlight (tap) |
+| `tap` | `at`, `element`, `x`, `radius`, `press`, `highlight`, `reaction` | Finger tap with highlight (tap). `reaction: ripple` grows a ring out of the element; `reaction: burst` flashes it in the accent colour and settles (~10 frames). Both start on the tap frame and reuse the tap cue, so no new sound. Default `none`. |
 | `lift` / `fly` | `element`, `tap`, `tapAt` / `to` | A card pops out, then flies to a target (pop, whoosh) |
 | `badge` | `element`, `count` | A count badge lands on an element (pop) |
 | `check` | `size` | Success check (chime) |

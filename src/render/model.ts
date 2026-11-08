@@ -44,6 +44,7 @@ export type Layer = {
   holes: Hole[];
   highlights: {at: number; box: Box; radius: number}[];
   press: {at: number; box: Box; radius: number}[];
+  reactions: {at: number; box: Box; radius: number; style: 'ripple' | 'burst'}[];
   check?: {at: number; size: number; fadeAt: number};
   count?: {box: Box; startAt: number; doneAt: number; from: number; to: number; prefix: string; suffix: string; thousands: string; decimals: number; fontSize: number; weight: number; color?: string; maskColor: ColorReq};
   ring?: {box: Box; at: number};
@@ -62,7 +63,7 @@ export type Layer = {
 export type TapItem = {kind: 'tap'; at: number; layer: Layer; box: Box; xfrac: number; fixed: boolean};
 export type LiftItem = {kind: 'lift'; layer: Layer; card: Box; tapBox?: Box; liftAt: number; tapAt?: number; flyAt?: number; to?: {x: number; y: number}; until: number};
 export type BadgeItem = {kind: 'badge'; at: number; layer: Layer; cx: number; cy: number; count: number};
-export type Notif = {block: Placed; layer: Layer; box: Box; slideAt: number; landAt: number; banner: {title: string; body: string; time: string}; startAt: number; endAt: number};
+export type Notif = {block: Placed; layer: Layer; box: Box; slideAt: number; landAt: number; banner: {title: string; body: string; time: string; glass?: boolean}; startAt: number; endAt: number};
 
 export type Shot = {f: number; zoom: number; sx: number; sy: number; qy: number; spring: Spring};
 
@@ -164,7 +165,7 @@ export function buildModel(props: RenderProps): Model {
   };
 
   const pushLayer = (b: Placed, at: number, transition: Transition, ref: Ref, scroll: Key[], sticky = 0, sheetHeight = 520, enter: Transition = 'cut'): Layer => {
-    const l: Layer = {index: m.layers.length, at, transition, sheetHeight, holdUntil: -1, ref, scroll, sticky, pops: [], types: [], pulses: [], swipes: [], holes: [], highlights: [], press: [], bg: req(ref, {x: 0, y: 0, w: SCREEN_W, h: 60}, 'inside', 'bg'), next: Infinity, nextSlides: false, nextTransition: 'cut'};
+    const l: Layer = {index: m.layers.length, at, transition, sheetHeight, holdUntil: -1, ref, scroll, sticky, pops: [], types: [], pulses: [], swipes: [], holes: [], highlights: [], press: [], reactions: [], bg: req(ref, {x: 0, y: 0, w: SCREEN_W, h: 60}, 'inside', 'bg'), next: Infinity, nextSlides: false, nextTransition: 'cut'};
     if (transition === 'live') {
       const fr = manifest.sets[ref.set]?.screens[ref.name]?.frames;
       if (!fr?.length) throw new Error(`screen ${ref.key}: transition live needs a capture screen with a record step (no recorded frames)`);
@@ -238,6 +239,7 @@ export function buildModel(props: RenderProps): Model {
               const box = boxOf(cur.ref, st.element);
               if (st.highlight) cur.highlights.push({at: f, box, radius: st.radius});
               if (st.press) cur.press.push({at: f, box, radius: st.radius});
+              if (st.reaction !== 'none') cur.reactions.push({at: f, box, radius: st.radius, style: st.reaction});
               m.taps.push({kind: 'tap', at: f, layer: cur, box, xfrac: st.x, fixed: isFixed(cur.ref, st.element)});
               break;
             }

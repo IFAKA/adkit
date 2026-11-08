@@ -109,3 +109,25 @@ export const Swipe: React.FC<{f: number; at: number; dur: number; x: number; y: 
     </div>
   );
 };
+
+/** The tapped element answers the tap: a ring grows out of it (ripple) or it flashes in the accent colour and settles (burst). */
+export const reactionLook = (style: 'ripple' | 'burst', t: number): {alpha: number; grow: number} => {
+  if (style === 'burst') return {alpha: t <= 0 || t >= 10 ? 0 : 0.5 * (t < 4 ? t / 4 : 1 - (t - 4) / 6), grow: 0};
+  const grow = ramp(t, 0, 16);
+  return {alpha: t < 0 || t >= 16 ? 0 : 0.8 * (1 - grow), grow};
+};
+
+export const Reaction: React.FC<{f: number; at: number; box: Box; color: string; scroll?: number; radius?: number; style: 'ripple' | 'burst'}> = ({f, at, box, color, scroll = 0, radius = 16, style}) => {
+  const {alpha, grow} = reactionLook(style, f - at);
+  if (alpha <= 0) return null;
+  const top = box.y - scroll;
+  if (style === 'burst') return <div style={{position: 'absolute', left: box.x - 8, top: top - 8, width: box.w + 16, height: box.h + 16, borderRadius: radius + 8, background: color, opacity: alpha, filter: 'blur(6px)', pointerEvents: 'none'}} />;
+  const g = 26 * grow;
+  return <div style={{position: 'absolute', left: box.x - g, top: top - g, width: box.w + 2 * g, height: box.h + 2 * g, borderRadius: radius + g, border: `3px solid ${color}`, opacity: alpha, pointerEvents: 'none'}} />;
+};
+
+/** Banner surface: the plain white card, or frosted glass (blur of what is behind, 25 % white, 1 px white stroke). */
+export const bannerSurface = (glass: boolean): React.CSSProperties =>
+  glass
+    ? {background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.85)', boxShadow: '0 14px 34px rgba(0,0,0,0.22)'}
+    : {background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(14px)', boxShadow: '0 14px 34px rgba(0,0,0,0.28)'};

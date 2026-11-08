@@ -62,3 +62,4 @@ Review the tile like a viewer: is the first second a hook, is each title readabl
 - Paste these rules into every delegated agent prompt that runs capture or render.
 - Mark a capture screen `independent: true` (first step a goto, needs no state from earlier screens) so it is shot beside the others in its own browser. Frames inside one take stay in order.
 - Check that a speed change keeps the frames: `scripts/speed-same.sh DIR_A DIR_B` (pixel compare). `ADKIT_SLOW_SHOT=1` and `ADKIT_SERIAL=1` switch the fast paths off.
+- `tap` `reaction: ripple|burst`: use on the one tap that matters (a pay or add button) so the element answers the finger on the same frame. `notification` `banner.glass: true`: use when the banner sits over a busy or coloured screen and should look like frosted glass.

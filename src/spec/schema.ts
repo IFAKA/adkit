@@ -250,7 +250,7 @@ const TapFlowStep = z.discriminatedUnion('type', [
     type: z.literal('swipe'), at: posBeat, from: str, to: str, beats: beat.refine((n) => n > 0, 'beats must be more than 0').default(1),
     scroll: z.number().optional().describe('Also scroll the page by this many px while the finger moves (the finger stays on the same content point; `to` then only sets where it ends sideways).'),
   }).strict(),
-  z.object({type: z.literal('tap'), at: posBeat, element: str, x: z.number().min(0).max(1).default(0.5).describe('Where along the element width the finger lands.'), radius: z.number().default(16), press: z.boolean().default(false).describe('Pop the element out and press it.'), highlight: z.boolean().default(true), pan: z.number().optional()}).strict(),
+  z.object({type: z.literal('tap'), at: posBeat, element: str, x: z.number().min(0).max(1).default(0.5).describe('Where along the element width the finger lands.'), radius: z.number().default(16), press: z.boolean().default(false).describe('Pop the element out and press it.'), highlight: z.boolean().default(true), reaction: z.enum(['none', 'ripple', 'burst']).default('none').describe('What the tapped element does back, starting on the tap frame. ripple = a ring grows out of the element; burst = a soft flash in the accent colour (up and back in ~10 frames).'), pan: z.number().optional()}).strict(),
   z.object({type: z.literal('lift'), at: posBeat, element: str, tap: str.optional().describe('Element of the lifted card the finger presses.'), tapAt: posBeat.optional()}).strict(),
   z.object({type: z.literal('fly'), at: posBeat, to: str.describe('Element the lifted card flies into (e.g. the cart icon).')}).strict(),
   z.object({type: z.literal('badge'), at: posBeat, element: str, count: z.number().int().default(1)}).strict(),
@@ -318,7 +318,7 @@ export const Notification = z.object({
   screen: ScreenRef, element: str.describe('Element that slides in (e.g. the new order card).'),
   also: z.array(str).default([]).describe('More elements joined with `element` into one box (e.g. its badge).'),
   slideAt: posBeat, landAt: posBeat,
-  banner: z.object({title: str, body: str, time: z.string().default('now')}).strict(),
+  banner: z.object({title: str, body: str, time: z.string().default('now'), glass: z.boolean().default(false).describe('Frosted glass banner: blurred backdrop, 25 % white fill, 1 px white stroke.')}).strict(),
   camera: Cam,
 }).strict();
 
